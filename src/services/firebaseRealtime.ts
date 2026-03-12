@@ -207,8 +207,8 @@ export async function verifyObservation(
  */
 export async function saveDashboardState(state: {
   selectedDataset?: string
-  mapBounds?: any
-  filters?: any
+  mapBounds?: Record<string, unknown>
+  filters?: Record<string, unknown>
 }): Promise<void> {
   const stateRef = ref(realtimeDb!, 'dashboard_state')
   await set(stateRef, {
@@ -220,7 +220,7 @@ export async function saveDashboardState(state: {
 /**
  * Get dashboard state
  */
-export async function getDashboardState(): Promise<any> {
+export async function getDashboardState(): Promise<Record<string, unknown> | null> {
   const stateRef = ref(realtimeDb!, 'dashboard_state')
   const snapshot = await get(stateRef)
 
@@ -234,7 +234,7 @@ export async function getDashboardState(): Promise<any> {
 /**
  * Subscribe to dashboard state changes
  */
-export function subscribeToDashboardState(callback: (state: any) => void): () => void {
+export function subscribeToDashboardState(callback: (state: Record<string, unknown> | null) => void): () => void {
   const stateRef = ref(realtimeDb!, 'dashboard_state')
 
   const handleUpdate = (snapshot: DataSnapshot) => {

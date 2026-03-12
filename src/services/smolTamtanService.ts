@@ -149,7 +149,7 @@ export async function askSmolTamtan(
   conversationHistory: ChatMessage[],
   onToken?: (token: string) => void
 ): Promise<string> {
-  const apiKey = (import.meta as any).env?.VITE_ANTHROPIC_API_KEY as string | undefined
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
   if (!apiKey) {
     return (
       "Halo! I'm Smol Tamtan, but I can't connect to my brain right now. 🌏\n\n" +
