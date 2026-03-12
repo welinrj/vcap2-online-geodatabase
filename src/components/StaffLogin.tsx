@@ -4,6 +4,7 @@ import type { UserProfile } from '../types/user'
 import { createUser, findUserByName } from '../services/userStore'
 import app from '../config/firebase'
 import SmolTamtan from './SmolTamtan/SmolTamtan'
+import { WavyBackground } from './ui/wavy-background'
 
 const STAFF_PASSWORD = 'VCAP2@2026'
 const STAFF_USER_NAME = 'VCAP2 Staff'
@@ -116,6 +117,15 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
 
   if (useFirebase) {
     return (
+      <WavyBackground
+        colors={['#22c55e', '#06b6d4', '#3b82f6', '#166534', '#0891b2']}
+        backgroundFill="#09090b"
+        blur={12}
+        speed="slow"
+        waveOpacity={0.4}
+        containerClassName="!h-auto min-h-screen"
+        className="w-full"
+      >
       <div className="login-container">
         {brandPanel}
         <div className="login-panel">
@@ -177,10 +187,20 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
           </form>
         </div>
       </div>
+      </WavyBackground>
     )
   }
 
   return (
+    <WavyBackground
+      colors={['#22c55e', '#06b6d4', '#3b82f6', '#166534', '#0891b2']}
+      backgroundFill="#09090b"
+      blur={12}
+      speed="slow"
+      waveOpacity={0.4}
+      containerClassName="!h-auto min-h-screen"
+      className="w-full"
+    >
     <div className="login-container">
       {brandPanel}
       <div className="login-panel">
@@ -212,6 +232,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         </form>
       </div>
     </div>
+    </WavyBackground>
   )
 }
 
