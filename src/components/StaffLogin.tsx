@@ -5,7 +5,7 @@ import { createUser, findUserByName } from '../services/userStore'
 import app from '../config/firebase'
 
 const STAFF_PASSWORD = 'VCAP2@2026'
-const AUTHORIZED_NAME = 'Micky WELIN'
+const STAFF_USER_NAME = 'VCAP2 Staff'
 
 const useFirebase = !!app
 
@@ -15,7 +15,6 @@ interface StaffLoginProps {
 }
 
 const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -23,15 +22,6 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
 
   const handleFallbackLogin = async (e: FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) {
-      setError('Please enter your name')
-      return
-    }
-    if (name.trim().toLowerCase() !== AUTHORIZED_NAME.toLowerCase()) {
-      setError('Account not found')
-      setName('')
-      return
-    }
     if (password !== STAFF_PASSWORD) {
       setError('Incorrect password')
       setPassword('')
@@ -40,9 +30,9 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
 
     setLoading(true)
     try {
-      let user = await findUserByName(AUTHORIZED_NAME)
+      let user = await findUserByName(STAFF_USER_NAME)
       if (!user) {
-        user = await createUser(AUTHORIZED_NAME, null)
+        user = await createUser(STAFF_USER_NAME, null)
       }
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
@@ -193,20 +183,9 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         <form className="login-form" onSubmit={handleFallbackLogin}>
           <h2>Staff Login</h2>
           <p className="login-description">
-            Enter your name and the staff password to access the portal.
+            Enter the staff password to access the portal.
           </p>
           {error && <div className="login-error" role="alert">{error}</div>}
-
-          <label className="login-label" htmlFor="staff-name">Name</label>
-          <input
-            id="staff-name"
-            className="login-input"
-            type="text"
-            value={name}
-            onChange={(e) => { setName(e.target.value); setError('') }}
-            placeholder="Enter your name"
-            autoFocus
-          />
 
           <label className="login-label" htmlFor="staff-password">Password</label>
           <input
