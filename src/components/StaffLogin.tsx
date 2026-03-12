@@ -4,7 +4,7 @@ import type { UserProfile } from '../types/user'
 import { createUser, findUserByName } from '../services/userStore'
 import app from '../config/firebase'
 
-const STAFF_PASSWORD = 'VC@P 2026'
+const STAFF_PASSWORD = 'VCAP2@2026'
 const AUTHORIZED_NAME = 'Micky WELIN'
 
 const useFirebase = !!app
