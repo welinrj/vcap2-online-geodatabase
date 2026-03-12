@@ -1,0 +1,522 @@
+/* ============================================================
+   Smol Tamtan – 3D Animated Globe AI Assistant
+   ============================================================ */
+
+/* ── Container (always fixed, bottom-right) ────────────────── */
+.st-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+.st-container > * {
+  pointer-events: auto;
+}
+
+/* ============================================================
+   GLOBE CHARACTER
+   ============================================================ */
+
+.st-globe-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Size variants */
+.st-globe-wrap--lg  { width: 76px;  height: 76px; }
+.st-globe-wrap--sm  { width: 40px;  height: 40px; }
+.st-globe-wrap--xs  { width: 30px;  height: 30px; }
+
+/* ── Rainbow orbit ring (large only) ─── */
+.st-ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(white, white) padding-box,
+    conic-gradient(
+      from 0deg,
+      #f97316, #eab308, #22c55e,
+      #0ea5e9, #8b5cf6, #ec4899, #f97316
+    ) border-box;
+  animation: st-ring-spin 5s linear infinite;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* ── Outer glow ─── */
+.st-glow {
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.22) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── The sphere ─────────────────────────────────────────────── */
+.st-sphere {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  /* 3-D base: ocean blue with radial shading */
+  background:
+    radial-gradient(circle at 33% 28%, rgba(255,255,255,0.45) 0%, transparent 44%),
+    radial-gradient(circle at 68% 72%, rgba(0, 0, 0, 0.28) 0%, transparent 42%),
+    linear-gradient(148deg, #38bdf8 0%, #0369a1 42%, #0c4a6e 100%);
+  box-shadow:
+    inset -6px -6px 16px rgba(0, 0, 0, 0.38),
+    inset  3px  3px 10px rgba(255, 255, 255, 0.22),
+    0 6px 24px rgba(3, 105, 161, 0.45),
+    0 2px  8px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Grid / latitude lines ──────────────────────────────────── */
+.st-grid {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent calc(33.33% - 0.7px),
+      rgba(255,255,255,0.11) calc(33.33% - 0.7px),
+      rgba(255,255,255,0.11) 33.33%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent calc(25% - 0.5px),
+      rgba(255,255,255,0.07) calc(25% - 0.5px),
+      rgba(255,255,255,0.07) 25%
+    );
+  animation: st-grid-drift 14s linear infinite;
+}
+
+/* ── Island / land patches ──────────────────────────────────── */
+.st-land {
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: inset -1px -1px 3px rgba(0,0,0,0.3);
+}
+.st-land-a {
+  width: 28%; height: 18%;
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  top: 28%; left: 14%;
+  border-radius: 58% 42% 55% 45% / 52% 48% 58% 42%;
+}
+.st-land-b {
+  width: 18%; height: 24%;
+  background: linear-gradient(135deg, #16a34a, #166534);
+  top: 46%; right: 18%;
+  border-radius: 44% 56% 38% 62% / 60% 40% 60% 40%;
+}
+.st-land-c {
+  width: 13%; height: 10%;
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+  top: 18%; right: 28%;
+  border-radius: 50%;
+}
+.st-land-d {
+  width: 9%; height: 7%;
+  background: #15803d;
+  top: 58%; left: 34%;
+  border-radius: 50%;
+}
+
+/* ── Specular highlight ─────────────────────────────────────── */
+.st-shine {
+  position: absolute;
+  top: 7%;
+  left: 11%;
+  width: 33%;
+  height: 27%;
+  background: radial-gradient(circle, rgba(255,255,255,0.58) 0%, transparent 72%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Face ───────────────────────────────────────────────────── */
+.st-face {
+  position: absolute;
+  inset: 0;
+}
+
+/* Eyes */
+.st-eye {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  overflow: hidden;
+  /* default large size; overridden by size modifiers below */
+  width: 17%;
+  height: 17%;
+  top: 42%;
+}
+.st-eye-l { left: 26%; animation: st-blink 4.2s ease-in-out infinite; }
+.st-eye-r { right: 26%; animation: st-blink 4.2s ease-in-out 0.09s infinite; }
+
+.st-pupil {
+  position: absolute;
+  width: 50%; height: 50%;
+  background: #1d4ed8;
+  border-radius: 50%;
+  top: 22%; left: 24%;
+}
+.st-pupil::after {
+  content: '';
+  position: absolute;
+  width: 38%; height: 38%;
+  background: #0f172a;
+  border-radius: 50%;
+  top: 26%; left: 26%;
+}
+.st-eye-shine {
+  position: absolute;
+  width: 26%; height: 26%;
+  background: #fff;
+  border-radius: 50%;
+  top: 12%; right: 14%;
+}
+
+/* Cheeks */
+.st-cheek {
+  position: absolute;
+  width: 11%;
+  aspect-ratio: 1;
+  background: rgba(251, 146, 60, 0.42);
+  border-radius: 50%;
+  top: 55%;
+}
+.st-cheek-l { left: 17%; }
+.st-cheek-r { right: 17%; }
+
+/* Smile */
+.st-smile {
+  position: absolute;
+  width: 40%;
+  height: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 60%;
+  border-bottom: 2.5px solid rgba(255,255,255,0.88);
+  border-radius: 0 0 50% 50%;
+  padding-bottom: 9.5%;
+}
+
+/* ── Size-specific tweaks ────────────────────────────────────── */
+/* Small – hide cheeks, simplify */
+.st-globe-wrap--sm .st-cheek,
+.st-globe-wrap--sm .st-ring,
+.st-globe-wrap--xs .st-cheek,
+.st-globe-wrap--xs .st-ring {
+  display: none;
+}
+.st-globe-wrap--sm .st-eye  { width: 19%; height: 19%; }
+.st-globe-wrap--xs .st-eye  { width: 21%; height: 21%; }
+.st-globe-wrap--xs .st-smile { border-bottom-width: 1.5px; }
+.st-globe-wrap--xs .st-land-c,
+.st-globe-wrap--xs .st-land-d { display: none; }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+/* Launcher idle float */
+@keyframes st-float {
+  0%, 100% { transform: translateY(0)    rotate(-2deg); }
+  50%       { transform: translateY(-9px) rotate( 2deg); }
+}
+/* Thinking/loading wiggle */
+@keyframes st-think {
+  0%, 100% { transform: rotate(-6deg) scale(1);    }
+  25%       { transform: rotate( 6deg) scale(1.06); }
+  50%       { transform: rotate(-4deg) scale(0.97); }
+  75%       { transform: rotate( 5deg) scale(1.04); }
+}
+/* Eye blink */
+@keyframes st-blink {
+  0%, 44%, 56%, 100% { transform: scaleY(1);    }
+  50%                 { transform: scaleY(0.07); }
+}
+/* Grid drift */
+@keyframes st-grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 25% 0, 0 0; }
+}
+/* Rainbow ring */
+@keyframes st-ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Status dot pulse */
+@keyframes st-dot-pulse {
+  0%, 100% { opacity: 1;    transform: scale(1);    }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+/* Chat typing dots */
+@keyframes st-bounce {
+  0%, 60%, 100% { transform: translateY(0);   }
+  30%            { transform: translateY(-6px); }
+}
+/* Popup entrance */
+@keyframes st-pop-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.st-globe-wrap--floating { animation: st-float 3s ease-in-out infinite; }
+.st-globe-wrap--thinking  { animation: st-think 1.1s ease-in-out infinite; }
+.st-globe-wrap--thinking .st-eye {
+  animation: st-blink 0.55s ease-in-out infinite;
+}
+
+/* ============================================================
+   LAUNCHER BUTTON
+   ============================================================ */
+.st-launcher {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 60px;
+  transition: transform 0.18s;
+}
+.st-launcher:hover { transform: scale(1.07); }
+
+.st-launcher-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0369a1;
+  background: #fff;
+  padding: 2px 9px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   POPUP PANEL
+   ============================================================ */
+.st-popup {
+  width: 348px;
+  max-height: 540px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.16),
+    0  4px 18px rgba(0,0,0,0.09);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: st-pop-in 0.26s cubic-bezier(0.34,1.2,0.64,1) both;
+}
+
+/* Header */
+.st-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 55%, #2d6a4f 100%);
+  flex-shrink: 0;
+}
+.st-header-info { flex: 1; min-width: 0; }
+.st-header-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+.st-header-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.78);
+  margin-top: 1px;
+}
+.st-online-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: st-dot-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.st-close-btn {
+  background: rgba(255,255,255,0.16);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.st-close-btn:hover { background: rgba(255,255,255,0.32); }
+
+/* Message scroll area */
+.st-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Individual message rows */
+.st-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.st-msg--user { flex-direction: row-reverse; }
+
+.st-bubble {
+  max-width: 80%;
+  padding: 9px 13px;
+  border-radius: 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.st-msg--bot  .st-bubble {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #1b1b1b;
+  border-bottom-left-radius: 4px;
+}
+.st-msg--user .st-bubble {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+/* Streaming / loading bubble */
+.st-bubble--loading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 11px 16px;
+}
+.st-type-dot {
+  width: 7px;
+  height: 7px;
+  background: #94a3b8;
+  border-radius: 50%;
+  animation: st-bounce 1.3s ease-in-out infinite;
+}
+.st-type-dot:nth-child(2) { animation-delay: 0.18s; }
+.st-type-dot:nth-child(3) { animation-delay: 0.36s; }
+
+/* Suggestion chips */
+.st-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+.st-suggest-label {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 1px;
+}
+.st-chip {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.4;
+  transition: background 0.14s, border-color 0.14s;
+}
+.st-chip:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+/* Input row */
+.st-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+.st-input {
+  flex: 1;
+  padding: 9px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 22px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.st-input:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
+}
+.st-input:disabled { opacity: 0.55; }
+.st-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.14s, opacity 0.14s;
+  flex-shrink: 0;
+}
+.st-send-btn:hover:not(:disabled) { transform: scale(1.12); }
+.st-send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+/* Disclaimer footer */
+.st-footer {
+  padding: 5px 14px 8px;
+  text-align: center;
+  font-size: 10px;
+  color: #9ca3af;
+  background: #f9fafb;
+  border-top: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}

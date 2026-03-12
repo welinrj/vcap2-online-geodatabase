@@ -1,0 +1,332 @@
+/* ── Full-screen overlay ── */
+.fe-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--color-bg, #f8faf9);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.fe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--color-surface, #fff);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.fe-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fe-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.fe-count {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.fe-dirty {
+  font-size: 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-weight: 600;
+}
+
+.fe-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.fe-status {
+  font-size: 0.82rem;
+  color: var(--color-primary, #2d6a4f);
+  font-weight: 600;
+}
+
+/* ── Body: 3-column layout ── */
+.fe-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Left sidebar ── */
+.fe-sidebar {
+  width: 230px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface, #fff);
+  overflow: hidden;
+}
+
+.fe-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary, #64748b);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.fe-add-btns {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.fe-btn-active {
+  background: #d97706 !important;
+  color: #fff !important;
+  border-color: #b45309 !important;
+}
+
+.fe-hint {
+  font-size: 0.78rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-bottom: 1px solid #fde68a;
+  padding: 0.5rem 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Manual entry form */
+.fe-manual {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.fe-manual label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fe-manual select,
+.fe-manual textarea {
+  font-size: 0.82rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius, 6px);
+  padding: 0.3rem 0.5rem;
+  resize: vertical;
+}
+
+.fe-manual select:focus,
+.fe-manual textarea:focus {
+  outline: 2px solid var(--color-primary-light, #40916c);
+  outline-offset: -1px;
+}
+
+/* Feature list */
+.fe-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.fe-empty {
+  padding: 1rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #64748b);
+  text-align: center;
+}
+
+.fe-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  font-size: 0.82rem;
+  transition: background 0.1s;
+}
+
+.fe-item:hover {
+  background: #f0fdf4;
+}
+
+.fe-item-selected {
+  background: #dcfce7 !important;
+}
+
+.fe-geom-badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--color-primary, #2d6a4f);
+  color: #fff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  letter-spacing: 0.03em;
+}
+
+.fe-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text, #1e293b);
+}
+
+.fe-del {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--color-text-secondary, #64748b);
+  padding: 0 0.15rem;
+  border-radius: 3px;
+}
+
+.fe-del:hover {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+/* ── Map ── */
+.fe-map-wrap {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.fe-map {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── Right: property panel ── */
+.fe-props {
+  width: 270px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface, #fff);
+  overflow: hidden;
+}
+
+.fe-props-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.fe-props-head strong {
+  font-size: 0.88rem;
+}
+
+.fe-geom-type {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary, #64748b);
+  background: var(--color-bg, #f8faf9);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+}
+
+.fe-fields {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fe-field-key {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fe-field-val {
+  font-size: 0.83rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius, 6px);
+  padding: 0.3rem 0.5rem;
+}
+
+.fe-field-val:focus {
+  outline: 2px solid var(--color-primary-light, #40916c);
+  outline-offset: -1px;
+}
+
+/* Add new property row */
+.fe-new-prop {
+  display: flex;
+  gap: 0.3rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-border, #e2e8f0);
+  margin-top: 0.25rem;
+}
+
+.fe-field-newkey {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius, 6px);
+  padding: 0.25rem 0.4rem;
+}
+
+.fe-field-newval {
+  flex: 1.2;
+  min-width: 0;
+  font-size: 0.8rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius, 6px);
+  padding: 0.25rem 0.4rem;
+}
+
+.fe-field-newkey:focus,
+.fe-field-newval:focus {
+  outline: 2px solid var(--color-primary-light, #40916c);
+  outline-offset: -1px;
+}
+
+.fe-apply-btn {
+  margin: 0.75rem;
+  flex-shrink: 0;
+}

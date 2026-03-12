@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "field_observations": {
+      ".indexOn": ["timestamp", "verified", "collectorName"],
+      "$observationId": {
+        ".read": true,
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['timestamp', 'latitude', 'longitude', 'species', 'collectorName'])"
+      }
+    },
+
+    "dashboard_state": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+
+    "users": {
+      "$userId": {
+        ".read": "auth != null",
+        ".write": "$userId === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      }
+    },
+
+    "sync_status": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}

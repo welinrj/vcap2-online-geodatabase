@@ -1,0 +1,98 @@
+/* Protected Areas - type badges */
+.badge-pa-type {
+  font-weight: 700;
+}
+
+.badge-pa-cca {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-pa-mpa {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* Status badge additions */
+.badge-proposed {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.badge-designated {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+/* Filters bar */
+.pa-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.pa-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pa-filter-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.pa-filter-group select {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  background: #fff;
+}
+
+.pa-filter-group select:focus {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: -1px;
+}
+
+.pa-filter-count {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-left: auto;
+}
+
+/* Attachments card */
+.pa-attachments-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-top: 1.5rem;
+}
+
+.pa-attachments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.pa-attachments-header h3 {
+  font-size: 1rem;
+}
+
+.pa-attachments-empty {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+/* Boundary file indicator */
+.pa-boundary-file {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  margin-top: 0.25rem;
+}
