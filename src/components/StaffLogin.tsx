@@ -62,15 +62,16 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
       onSuccess(user)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err)
-      if (err.code === 'auth/user-not-found') {
+      const code = (err as { code?: string }).code
+      if (code === 'auth/user-not-found') {
         setError('No account found with this email')
-      } else if (err.code === 'auth/wrong-password') {
+      } else if (code === 'auth/wrong-password') {
         setError('Incorrect password')
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (code === 'auth/invalid-email') {
         setError('Invalid email address')
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (code === 'auth/too-many-requests') {
         setError('Too many failed attempts. Please try again later')
       } else {
         setError('Login failed. Please check your credentials.')
@@ -89,11 +90,12 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
       onSuccess(user)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Google login error:', err)
-      if (err.code === 'auth/popup-closed-by-user') {
+      const code = (err as { code?: string }).code
+      if (code === 'auth/popup-closed-by-user') {
         setError('Sign-in cancelled')
-      } else if (err.code === 'auth/popup-blocked') {
+      } else if (code === 'auth/popup-blocked') {
         setError('Pop-up blocked. Please allow pop-ups for this site')
       } else {
         setError('Google sign-in failed. Please try again.')

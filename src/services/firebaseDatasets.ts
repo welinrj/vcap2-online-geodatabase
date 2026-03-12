@@ -158,7 +158,7 @@ export async function deleteDataset(id: string): Promise<void> {
   // Delete full dataset
   try {
     await deleteDoc(doc(db!, DATASETS_COLLECTION, id))
-  } catch (error) {
+  } catch {
     // Dataset might only exist as metadata if stored in Cloud Storage
     console.log('No full dataset document to delete:', id)
   }

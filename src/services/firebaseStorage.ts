@@ -24,7 +24,7 @@ const FIELD_DATA_BUCKET = 'field-data'
  */
 export async function uploadGeoJSON(
   datasetId: string,
-  geoJSON: any,
+  geoJSON: Record<string, unknown>,
   metadata?: {
     name?: string
     category?: string
@@ -85,7 +85,7 @@ export async function uploadGeoJSONFile(
 /**
  * Download GeoJSON from Cloud Storage
  */
-export async function downloadGeoJSON(datasetId: string): Promise<any> {
+export async function downloadGeoJSON(datasetId: string): Promise<Record<string, unknown>> {
   const fileName = `${datasetId}.geojson`
   const storageRef = ref(storage!, `${GEOJSON_BUCKET}/${fileName}`)
 
@@ -128,7 +128,7 @@ export async function getFileMetadata(datasetId: string) {
  */
 export async function uploadFieldData(
   observationId: string,
-  data: any,
+  data: Record<string, unknown>,
   metadata?: {
     collectorName?: string
     observationDate?: string
