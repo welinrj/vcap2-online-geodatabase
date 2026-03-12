@@ -6,13 +6,17 @@ import { getUser } from './services/userStore'
 import type { UserProfile } from './types/user'
 import './App.css'
 
+const Dashboard = lazy(() => import('./components/portal/Dashboard'))
 const GISDatabase = lazy(() => import('./components/portal/GISDatabase'))
 const ProtectedAreas = lazy(() => import('./components/portal/ProtectedAreas'))
+const ActivityPlanner = lazy(() => import('./components/portal/ActivityPlanner'))
 const PublicDataPortal = lazy(() => import('./components/public/PublicDataPortal'))
 
 const sectionTitles: Record<string, string> = {
+  dashboard: 'Dashboard',
   'gis-database': 'GIS Database',
   'protected-areas': 'CCAs & MPAs',
+  'activity-planner': 'Activity Planner',
   datasets: 'Datasets',
   about: 'About',
 }
@@ -25,7 +29,6 @@ function App() {
   )
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null)
 
-  // Restore user profile from session on mount
   useEffect(() => {
     const userId = sessionStorage.getItem('vcap2_user_id')
     if (staffAuth && userId) {
@@ -41,7 +44,7 @@ function App() {
       return
     }
     setActivePage(page)
-    setActiveSection(page === 'staff' ? 'gis-database' : 'datasets')
+    setActiveSection(page === 'staff' ? 'dashboard' : 'datasets')
   }
 
   const handleLogout = () => {
@@ -53,14 +56,13 @@ function App() {
     setActiveSection('datasets')
   }
 
-  // Show login form when staff page is selected but not authenticated
   if (activePage === 'staff' && !staffAuth) {
     return (
       <StaffLogin
         onSuccess={(user) => {
           setStaffAuth(true)
           setCurrentUser(user)
-          setActiveSection('gis-database')
+          setActiveSection('dashboard')
         }}
         onCancel={() => {
           setActivePage('public')
@@ -88,24 +90,22 @@ function App() {
           user={activePage === 'staff' ? currentUser : null}
         />
         <div className="dashboard-content">
-          <Suspense fallback={<div style={{ padding: '2rem', color: '#6b7280' }}>Loading...</div>}>
-          {/* Staff page sections */}
-          {activeSection === 'gis-database' && (
-            <GISDatabase />
-          )}
+          <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--color-text-tertiary)' }}>Loading...</div>}>
+          {activeSection === 'dashboard' && <Dashboard />}
+          {activeSection === 'gis-database' && <GISDatabase />}
           {activeSection === 'protected-areas' && <ProtectedAreas />}
+          {activeSection === 'activity-planner' && <ActivityPlanner />}
 
-          {/* Public page sections */}
           {activeSection === 'datasets' && <PublicDataPortal />}
           {activeSection === 'about' && (
             <div className="placeholder-section">
               <h3>VCAP2 Public Data Portal</h3>
-              <p style={{ marginTop: '0.75rem' }}>
+              <p style={{ marginTop: '0.75rem', color: 'var(--color-text-secondary)' }}>
                 This public portal provides read-only access to geospatial datasets
                 published by the Vanuatu Climate Adaptation Project 2 (VCAP2) and the
                 Department of Environmental Protection &amp; Conservation (DEPC).
               </p>
-              <p style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+              <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-tertiary)' }}>
                 Datasets are uploaded and managed by authorized staff via the Staff page.
                 The public can view, explore, and download datasets shared here.
               </p>

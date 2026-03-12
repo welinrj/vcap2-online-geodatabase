@@ -7,30 +7,72 @@
 }
 
 :root {
-  --color-bg: #f5f6fa;
-  --color-surface: #ffffff;
-  --color-primary: #2d6a4f;
-  --color-primary-light: #40916c;
-  --color-text: #1b1b1b;
-  --color-text-secondary: #6b7280;
-  --color-border: #e5e7eb;
-  --color-positive: #16a34a;
-  --color-negative: #dc2626;
-  --color-neutral: #6b7280;
-  --sidebar-width: 240px;
-  --header-height: 64px;
-  --radius: 8px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* ─── Dark Theme ─────────────────────────────── */
+  --color-bg: #09090b;
+  --color-bg-alt: #0f0f12;
+  --color-surface: #141418;
+  --color-surface-hover: #1a1a1f;
+  --color-surface-elevated: #1e1e24;
 
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-border: #27272a;
+  --color-border-light: #1e1e22;
+  --color-border-focus: #22c55e;
+
+  /* Brand / Accent */
+  --color-primary: #22c55e;
+  --color-primary-light: #4ade80;
+  --color-primary-dim: #166534;
+  --color-primary-bg: rgba(34, 197, 94, 0.08);
+  --color-primary-bg-hover: rgba(34, 197, 94, 0.14);
+
+  --color-accent-blue: #3b82f6;
+  --color-accent-blue-bg: rgba(59, 130, 246, 0.1);
+  --color-accent-amber: #f59e0b;
+  --color-accent-amber-bg: rgba(245, 158, 11, 0.1);
+  --color-accent-purple: #a855f7;
+  --color-accent-purple-bg: rgba(168, 85, 247, 0.1);
+  --color-accent-cyan: #06b6d4;
+  --color-accent-cyan-bg: rgba(6, 182, 212, 0.1);
+
+  /* Text */
+  --color-text: #f0f0f2;
+  --color-text-secondary: #8b8b92;
+  --color-text-tertiary: #5a5a62;
+  --color-text-inverse: #09090b;
+
+  /* Semantic */
+  --color-positive: #22c55e;
+  --color-positive-bg: rgba(34, 197, 94, 0.1);
+  --color-negative: #ef4444;
+  --color-negative-bg: rgba(239, 68, 68, 0.1);
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-neutral: #8b8b92;
+  --color-info: #3b82f6;
+  --color-info-bg: rgba(59, 130, 246, 0.1);
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
+  --header-height: 60px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: var(--color-text);
   background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   min-height: 100vh;
+  background-color: var(--color-bg);
 }
 
 ul {
@@ -44,11 +86,36 @@ button {
   background: none;
 }
 
-input {
+input, textarea, select {
   font: inherit;
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
 }
 
 table {
   border-collapse: collapse;
   width: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::selection {
+  background: rgba(34, 197, 94, 0.3);
+  color: #fff;
 }

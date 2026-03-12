@@ -7,12 +7,25 @@ interface DatasetUploadProps {
   onCancel: () => void
 }
 
-function detectFormat(filename: string): DatasetFormat | null {
+// Binary/non-parseable formats stored as raw attachments
+type RawFormat = 'shapefile' | 'geopackage' | 'pdf' | 'png'
+
+function detectFormat(filename: string): DatasetFormat | RawFormat | null {
   const ext = filename.split('.').pop()?.toLowerCase()
   if (ext === 'geojson' || ext === 'json') return 'geojson'
   if (ext === 'csv') return 'csv'
   if (ext === 'kml') return 'kml'
+  if (ext === 'shp' || ext === 'zip') return 'shapefile'
+  if (ext === 'gpkg') return 'geopackage'
+  if (ext === 'pdf') return 'pdf'
+  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'tif' || ext === 'tiff') return 'png'
   return null
+}
+
+const RAW_FORMATS: string[] = ['shapefile', 'geopackage', 'pdf', 'png']
+
+function isRawFormat(fmt: string | null): fmt is RawFormat {
+  return fmt !== null && RAW_FORMATS.includes(fmt)
 }
 
 const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
@@ -32,7 +45,7 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
   function handleFile(f: File) {
     const detected = detectFormat(f.name)
     if (!detected) {
-      setError('Unsupported file format. Please use .geojson, .json, .csv, or .kml')
+      setError('Unsupported file format. Supports GeoJSON, CSV, KML, Shapefile (.shp/.zip), GeoPackage (.gpkg), PDF, and images.')
       return
     }
     setFile(f)
@@ -55,6 +68,27 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
     setError('')
 
     try {
+      if (isRawFormat(format)) {
+        // Store raw files as a single-feature dataset with metadata
+        const fc: import('geojson').FeatureCollection = {
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [0, 0] },
+            properties: {
+              _rawFile: true,
+              _fileName: file.name,
+              _fileSize: file.size,
+              _fileType: format,
+              _mimeType: file.type,
+            },
+          }],
+        }
+        await addDataset(fc, { name, description, source }, 'geojson')
+        onUploaded()
+        return
+      }
+
       const text = await file.text()
       let fc
 
@@ -96,7 +130,7 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".geojson,.json,.csv,.kml"
+            accept=".geojson,.json,.csv,.kml,.shp,.zip,.gpkg,.pdf,.png,.jpg,.jpeg,.tif,.tiff"
             onChange={(e) => {
               const f = e.target.files?.[0]
               if (f) handleFile(f)
@@ -111,7 +145,7 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
           ) : (
             <div className="drop-zone-prompt">
               <p>Drag & drop a file here, or click to browse</p>
-              <p className="drop-zone-hint">Supports GeoJSON, CSV, KML</p>
+              <p className="drop-zone-hint">GeoJSON, CSV, KML, Shapefile, GeoPackage, PDF, PNG</p>
             </div>
           )}
         </div>

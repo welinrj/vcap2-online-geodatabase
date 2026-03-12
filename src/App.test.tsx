@@ -8,7 +8,7 @@ async function loginAsStaff() {
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'VCAP2@2026' } })
   fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
   await waitFor(() => {
-    expect(screen.getByRole('button', { name: 'GIS Database' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
   })
 }
 
@@ -98,8 +98,8 @@ describe('App', () => {
     sessionStorage.setItem('vcap2_staff_auth', '1')
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Staff' }))
-    // Should go straight to staff GIS Database without login
-    expect(screen.getByRole('button', { name: 'GIS Database' })).toBeInTheDocument()
+    // Should go straight to staff Dashboard without login
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
   it('shows greeting with user name in header after login', async () => {

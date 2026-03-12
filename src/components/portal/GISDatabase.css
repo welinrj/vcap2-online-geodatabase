@@ -1,31 +1,41 @@
+/* ═══════════════════════════════════════════════════
+   GIS Database — Dark Theme
+   ═══════════════════════════════════════════════════ */
+
 /* Stats grid */
 .db-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .db-stat-card {
   background: var(--color-surface);
-  border-radius: var(--radius);
-  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
   box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   text-align: center;
+  transition: border-color 0.15s;
+}
+
+.db-stat-card:hover {
+  border-color: var(--color-text-tertiary);
 }
 
 .db-stat-value {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--color-primary);
 }
 
 .db-stat-label {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 600;
@@ -33,7 +43,7 @@
 
 /* Storage bar */
 .db-storage-bar-container {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -41,28 +51,28 @@
 
 .db-storage-bar {
   flex: 1;
-  height: 8px;
+  height: 6px;
   background: var(--color-border);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .db-storage-bar-fill {
   height: 100%;
   background: var(--color-primary);
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.3s;
 }
 
 .db-storage-text {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
   white-space: nowrap;
 }
 
 /* Selected row */
 .db-row-selected {
-  background-color: #f0fdf4 !important;
+  background-color: var(--color-primary-bg) !important;
 }
 
 /* Import status */
@@ -70,32 +80,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background: var(--color-positive-bg);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  color: var(--color-positive);
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   margin-bottom: 1rem;
 }
 
 .db-dismiss {
   font-size: 1.1rem;
-  color: #166534;
+  color: inherit;
   padding: 0 0.25rem;
   line-height: 1;
+  opacity: 0.7;
 }
 
 .db-dismiss:hover {
-  opacity: 0.7;
+  opacity: 1;
 }
 
 /* Map preview */
 .db-preview {
   background: var(--color-surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
   margin-top: 1.5rem;
 }
 
@@ -108,15 +120,17 @@
 
 .db-preview-header h3 {
   font-size: 1rem;
+  color: var(--color-text);
 }
 
 /* GitHub Sync */
 .db-sync-section {
   background: var(--color-surface);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.15rem;
   box-shadow: var(--shadow);
-  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.25rem;
 }
 
 .db-sync-row {
@@ -130,12 +144,13 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
 }
 
 .db-sync-last {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
 }
 
 .db-sync-actions {
@@ -147,13 +162,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
+  background: var(--color-info-bg);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  color: var(--color-info);
   border-radius: var(--radius);
   padding: 0.4rem 0.75rem;
-  font-size: 0.82rem;
-  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  margin-top: 0.65rem;
 }
 
 .db-sync-settings {
@@ -173,9 +188,9 @@
 }
 
 .db-sync-field label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -184,12 +199,15 @@
   padding: 0.4rem 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .db-sync-field input:focus {
-  outline: 2px solid var(--color-primary-light);
-  outline-offset: -1px;
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
 }
 
 .db-sync-field-row {
@@ -206,7 +224,7 @@
 .db-preview-meta {
   display: flex;
   gap: 1.5rem;
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
   margin-bottom: 1rem;
 }
