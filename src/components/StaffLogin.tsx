@@ -116,11 +116,11 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
   if (useFirebase) {
     return (
       <WavyBackground
-        colors={['#22c55e', '#06b6d4', '#3b82f6', '#166534', '#0891b2']}
-        backgroundFill="#09090b"
-        blur={12}
+        colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
+        backgroundFill="#0c1520"
+        blur={8}
         speed="slow"
-        waveOpacity={0.4}
+        waveOpacity={0.6}
         containerClassName="!h-auto min-h-screen"
         className="w-full"
       >
@@ -191,11 +191,11 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
 
   return (
     <WavyBackground
-      colors={['#22c55e', '#06b6d4', '#3b82f6', '#166534', '#0891b2']}
-      backgroundFill="#09090b"
-      blur={12}
+      colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
+      backgroundFill="#0c1520"
+      blur={8}
       speed="slow"
-      waveOpacity={0.4}
+      waveOpacity={0.6}
       containerClassName="!h-auto min-h-screen"
       className="w-full"
     >
