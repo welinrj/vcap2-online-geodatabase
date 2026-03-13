@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
+import { PortalBackground } from './components/ui/portal-background'
 import { getUser } from './services/userStore'
 import type { UserProfile } from './types/user'
 import './App.css'
@@ -59,6 +60,7 @@ function App() {
 
   return (
     <>
+    <PortalBackground />
     <div className="app-layout">
       <Sidebar
         activeSection={activeSection}

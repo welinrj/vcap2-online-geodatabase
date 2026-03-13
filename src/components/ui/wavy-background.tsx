@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createNoise3D } from "simplex-noise";
 
 export const WavyBackground = ({
@@ -25,7 +25,7 @@ export const WavyBackground = ({
   waveOpacity?: number;
   [key: string]: unknown;
 }) => {
-  const noise = createNoise3D();
+  const noise = useMemo(() => createNoise3D(), []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationId = useRef<number>(0);
 
