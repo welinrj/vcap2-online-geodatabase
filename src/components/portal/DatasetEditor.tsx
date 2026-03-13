@@ -1,5 +1,6 @@
 import { useState, type FC } from 'react'
-import type { DatasetMetadata, DatasetStatus } from '../../types/geospatial'
+import type { DatasetMetadata, DatasetStatus, ProDocCategory } from '../../types/geospatial'
+import { PRODOC_CATEGORIES } from '../../types/geospatial'
 
 interface DatasetEditorProps {
   metadata: DatasetMetadata
@@ -20,6 +21,7 @@ const DatasetEditor: FC<DatasetEditorProps> = ({
   const [license, setLicense] = useState(metadata.license)
   const [status, setStatus] = useState<DatasetStatus>(metadata.status)
   const [crs, setCrs] = useState(metadata.crs)
+  const [category, setCategory] = useState<ProDocCategory>(metadata.category ?? '')
   const [tagsInput, setTagsInput] = useState(metadata.tags.join(', '))
 
   function handleSubmit(e: React.FormEvent) {
@@ -28,7 +30,7 @@ const DatasetEditor: FC<DatasetEditorProps> = ({
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean)
-    onSave({ name, description, source, license, status, crs, tags })
+    onSave({ name, description, source, license, status, crs, tags, category })
   }
 
   return (
@@ -102,6 +104,22 @@ const DatasetEditor: FC<DatasetEditorProps> = ({
               onChange={(e) => setCrs(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="edit-category">ProDoc Category</label>
+          <select
+            id="edit-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ProDocCategory)}
+          >
+            <option value="">— No category —</option>
+            {PRODOC_CATEGORIES.map((cat) => (
+              <option key={cat.id} value={cat.id} title={cat.description}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">

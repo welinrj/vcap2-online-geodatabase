@@ -268,6 +268,7 @@ export async function addDataset(
     tags: metadata.tags ?? [],
     crs: metadata.crs ?? 'EPSG:4326',
     status: metadata.status ?? 'active',
+    category: metadata.category ?? '',
   }
 
   const dataset: GeoDataset = {

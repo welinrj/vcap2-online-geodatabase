@@ -1,5 +1,6 @@
 import type { FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
+import { PRODOC_CATEGORIES } from '../../types/geospatial'
 import { formatBytes } from '../../services/datasetStore'
 
 interface DatasetListProps {
@@ -35,6 +36,7 @@ const DatasetList: FC<DatasetListProps> = ({
         <thead>
           <tr>
             <th>Name</th>
+            <th>Category</th>
             <th>Format</th>
             <th>Features</th>
             <th>Size</th>
@@ -57,6 +59,15 @@ const DatasetList: FC<DatasetListProps> = ({
                   <span className="dataset-description">
                     {ds.metadata.description}
                   </span>
+                )}
+              </td>
+              <td>
+                {ds.metadata.category ? (
+                  <span className={`badge badge-category badge-category-${ds.metadata.category.startsWith('1') ? 'terrestrial' : 'marine'}`}>
+                    {PRODOC_CATEGORIES.find((c) => c.id === ds.metadata.category)?.label ?? ds.metadata.category}
+                  </span>
+                ) : (
+                  <span className="text-muted">—</span>
                 )}
               </td>
               <td>

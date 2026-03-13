@@ -4,16 +4,13 @@ import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
 
 interface SidebarProps {
-  activePage: 'staff' | 'public'
   activeSection: string
-  onPageChange: (page: 'staff' | 'public') => void
   onNavigate: (section: string) => void
-  staffAuth: boolean
   onLogout: () => void
   user: UserProfile | null
 }
 
-const staffNavItems = [
+const navItems = [
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -62,35 +59,9 @@ const staffNavItems = [
   },
 ]
 
-const publicNavItems = [
-  {
-    id: 'datasets',
-    label: 'Datasets',
-    icon: (
-      <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14,2 14,8 20,8" />
-      </svg>
-    ),
-  },
-  {
-    id: 'about',
-    label: 'About',
-    icon: (
-      <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="16" x2="12" y2="12" />
-        <line x1="12" y1="8" x2="12.01" y2="8" />
-      </svg>
-    ),
-  },
-]
-
-const Sidebar: FC<SidebarProps> = ({ activePage, activeSection, onPageChange, onNavigate, staffAuth, onLogout, user }) => {
-  const navItems = activePage === 'staff' ? staffNavItems : publicNavItems
-
+const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }) => {
   return (
-    <aside className={`sidebar${activePage === 'public' ? ' public-sidebar' : ''}`}>
+    <aside className="sidebar">
       <div className="sidebar-brand">
         <div className="sidebar-logos">
           <img src={vcap2Logo} alt="VCAP2" className="sidebar-logo" />
@@ -102,24 +73,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage, activeSection, onPageChange, on
         </div>
       </div>
 
-      <div className="page-switcher">
-        <button
-          className={`page-switcher-btn${activePage === 'staff' ? ' active' : ''}`}
-          onClick={() => onPageChange('staff')}
-        >
-          Staff
-        </button>
-        <button
-          className={`page-switcher-btn${activePage === 'public' ? ' active' : ''}`}
-          onClick={() => onPageChange('public')}
-        >
-          Public
-        </button>
-      </div>
-
-      <span className="sidebar-section-label">
-        {activePage === 'staff' ? 'Management' : 'Public Access'}
-      </span>
+      <span className="sidebar-section-label">Management</span>
 
       <nav className="sidebar-nav">
         <ul>
@@ -139,33 +93,28 @@ const Sidebar: FC<SidebarProps> = ({ activePage, activeSection, onPageChange, on
       </nav>
 
       <div className="sidebar-footer">
-        {activePage === 'public' && (
-          <span className="public-badge">Read-Only Access</span>
-        )}
-        {activePage === 'staff' && staffAuth && (
-          <div className="sidebar-user-section">
-            {user && (
-              <div className="sidebar-user-info">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="sidebar-avatar" />
-                ) : (
-                  <span className="sidebar-avatar sidebar-avatar-fallback">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-                <span className="sidebar-user-name">{user.name}</span>
-              </div>
-            )}
-            <button className="nav-item logout-btn" onClick={onLogout}>
-              <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16,17 21,12 16,7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              Log Out
-            </button>
-          </div>
-        )}
+        <div className="sidebar-user-section">
+          {user && (
+            <div className="sidebar-user-info">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="sidebar-avatar" />
+              ) : (
+                <span className="sidebar-avatar sidebar-avatar-fallback">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="sidebar-user-name">{user.name}</span>
+            </div>
+          )}
+          <button className="nav-item logout-btn" onClick={onLogout}>
+            <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16,17 21,12 16,7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Log Out
+          </button>
+        </div>
       </div>
     </aside>
   )

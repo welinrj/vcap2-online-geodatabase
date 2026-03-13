@@ -25,10 +25,28 @@ const MapViewer: FC<MapViewerProps> = ({ data, height = '400px' }) => {
     const map = L.map(containerRef.current).setView(DEFAULT_CENTER, DEFAULT_ZOOM)
     mapRef.current = map
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
-    }).addTo(map)
+    })
+
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+      maxZoom: 19,
+    })
+
+    const topographic = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenTopoMap (CC-BY-SA)',
+      maxZoom: 17,
+    })
+
+    streetMap.addTo(map)
+
+    L.control.layers(
+      { 'Street Map': streetMap, 'Satellite': satellite, 'Topographic': topographic },
+      undefined,
+      { position: 'topright' },
+    ).addTo(map)
 
     const geoJsonLayer = L.geoJSON(data, {
       style: () => ({

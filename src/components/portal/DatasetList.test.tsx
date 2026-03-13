@@ -14,6 +14,7 @@ const mockDatasets: DatasetSummary[] = [
       tags: [],
       crs: 'EPSG:4326',
       status: 'active',
+      category: '',
     },
     format: 'geojson',
     featureCount: 10,
