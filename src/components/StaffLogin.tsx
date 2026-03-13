@@ -3,7 +3,6 @@ import vcap2Logo from '../../assets/vcap2-logo.png'
 import type { UserProfile } from '../types/user'
 import { createUser, findUserByName } from '../services/userStore'
 import app from '../config/firebase'
-import SmolTamtan from './SmolTamtan/SmolTamtan'
 import { WavyBackground } from './ui/wavy-background'
 
 const STAFF_PASSWORD = 'VCAP2@2026'
@@ -111,7 +110,6 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       <img src={vcap2Logo} alt="VCAP2" />
       <h1>VCAP2 Staff Portal</h1>
       <p>Adaptation to Climate Change in the Coastal Zone of Vanuatu Phase II</p>
-      <SmolTamtan />
     </div>
   )
 
