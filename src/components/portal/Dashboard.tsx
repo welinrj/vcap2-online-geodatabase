@@ -1,10 +1,12 @@
-import { useState, useEffect, type FC } from 'react'
+import { useState, useEffect, lazy, Suspense, type FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
 import type { ProtectedAreaSummary } from '../../types/protectedArea'
 import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../services/datasetStore'
 import { listProtectedAreas, formatArea } from '../../services/protectedAreaStore'
 import vcap2Logo from '../../../assets/vcap2-logo.png'
 import './Dashboard.css'
+
+const DashboardMap = lazy(() => import('./DashboardMap'))
 
 // Vanuatu targets — 30x30 Global Biodiversity Framework
 const CCA_TARGET_HA = 365_700 // 30% of 1,219,000 ha land area
@@ -113,6 +115,11 @@ const Dashboard: FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Data overview map */}
+      <Suspense fallback={<div className="dash-loading">Loading map...</div>}>
+        <DashboardMap />
+      </Suspense>
 
       {/* Target tracking */}
       <div className="dash-targets">

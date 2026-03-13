@@ -156,6 +156,108 @@
   font-weight: 600;
 }
 
+/* Dashboard map */
+.dash-map-section {
+  background: rgba(20, 20, 24, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(39, 39, 42, 0.5);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dash-map-wrapper {
+  position: relative;
+}
+
+.dash-map-container {
+  height: 420px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(39, 39, 42, 0.5);
+  z-index: 0;
+}
+
+.dash-map-container .leaflet-control-layers {
+  background: rgba(20, 20, 24, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(39, 39, 42, 0.6);
+  border-radius: var(--radius);
+  color: var(--color-text-secondary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.dash-map-container .leaflet-control-layers-toggle {
+  width: 32px;
+  height: 32px;
+}
+
+.dash-map-container .leaflet-control-layers label {
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+}
+
+.dash-map-container .leaflet-control-zoom a {
+  background: rgba(20, 20, 24, 0.85);
+  backdrop-filter: blur(8px);
+  color: var(--color-text-secondary);
+  border-color: rgba(39, 39, 42, 0.5);
+}
+
+.dash-map-container .leaflet-control-zoom a:hover {
+  background: rgba(30, 30, 36, 0.95);
+  color: var(--color-text);
+}
+
+.dash-map-container .leaflet-control-attribution {
+  background: rgba(20, 20, 24, 0.7) !important;
+  color: var(--color-text-tertiary) !important;
+  font-size: 0.6rem;
+}
+
+.dash-map-container .leaflet-control-attribution a {
+  color: var(--color-text-tertiary) !important;
+}
+
+.dash-map-legend {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.dash-map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.dash-map-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.dash-map-swatch-cca {
+  background: rgba(34, 197, 94, 0.35);
+  border: 2px solid #16a34a;
+}
+
+.dash-map-swatch-mpa {
+  background: rgba(59, 130, 246, 0.3);
+  border: 2px solid #2563eb;
+}
+
+@media (max-width: 768px) {
+  .dash-map-container {
+    height: 300px;
+  }
+}
+
 /* Section titles */
 .dash-section-title {
   font-size: 0.95rem;
