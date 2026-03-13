@@ -4,6 +4,51 @@ export type DatasetFormat = 'geojson' | 'csv' | 'kml'
 
 export type DatasetStatus = 'active' | 'archived' | 'draft'
 
+/**
+ * ProDoc Indicator categories for classifying datasets by conservation type.
+ * Each category maps to a specific end-of-project target area (in hectares).
+ */
+export type ProDocCategory =
+  | '1.1' // New Community Conservation Areas
+  | '1.2' // Existing Community Conservation Areas strengthened
+  | '2.1' // New Marine Protected Areas
+  | '2.2' // Existing Marine Protected Areas strengthened
+  | ''    // Uncategorized
+
+export interface ProDocCategoryInfo {
+  id: ProDocCategory
+  label: string
+  description: string
+  targetHa: number
+}
+
+export const PRODOC_CATEGORIES: ProDocCategoryInfo[] = [
+  {
+    id: '1.1',
+    label: '1.1 — New CCA',
+    description: 'New Community Conservation Areas (Terrestrial protected areas newly created)',
+    targetHa: 2298,
+  },
+  {
+    id: '1.2',
+    label: '1.2 — Existing CCA Strengthened',
+    description: 'Existing Community Conservation Areas strengthened (Terrestrial protected areas under improved management effectiveness)',
+    targetHa: 11215,
+  },
+  {
+    id: '2.1',
+    label: '2.1 — New MPA',
+    description: 'New Marine Protected Areas (MPA / CBFM newly created)',
+    targetHa: 575,
+  },
+  {
+    id: '2.2',
+    label: '2.2 — Existing MPA Strengthened',
+    description: 'Existing Marine Protected Areas strengthened (MPA / CBFM under improved management effectiveness)',
+    targetHa: 1766,
+  },
+]
+
 export interface DatasetMetadata {
   name: string
   description: string
@@ -12,6 +57,7 @@ export interface DatasetMetadata {
   tags: string[]
   crs: string
   status: DatasetStatus
+  category: ProDocCategory
 }
 
 export interface GeoDataset {

@@ -1,5 +1,6 @@
 import type { FC } from 'react'
 import type { GeoDataset } from '../../types/geospatial'
+import { PRODOC_CATEGORIES } from '../../types/geospatial'
 import { formatBytes } from '../../services/datasetStore'
 import MapViewer from './MapViewer'
 import AttributeTable from './AttributeTable'
@@ -55,6 +56,11 @@ const DatasetDetail: FC<DatasetDetailProps> = ({
           <span className={`badge badge-${metadata.status}`}>
             {metadata.status}
           </span>
+          {metadata.category && (
+            <span className={`badge badge-category badge-category-${metadata.category.startsWith('1') ? 'terrestrial' : 'marine'}`}>
+              {PRODOC_CATEGORIES.find((c) => c.id === metadata.category)?.label ?? metadata.category}
+            </span>
+          )}
         </div>
         {metadata.description && (
           <p className="detail-description">{metadata.description}</p>
@@ -82,6 +88,15 @@ const DatasetDetail: FC<DatasetDetailProps> = ({
             <span className="detail-stat-label">CRS</span>
             <span className="detail-stat-value">{metadata.crs}</span>
           </div>
+          {metadata.category && (() => {
+            const cat = PRODOC_CATEGORIES.find((c) => c.id === metadata.category)
+            return cat ? (
+              <div className="detail-stat">
+                <span className="detail-stat-label">Target</span>
+                <span className="detail-stat-value">{cat.targetHa.toLocaleString()} ha</span>
+              </div>
+            ) : null
+          })()}
           {metadata.source && (
             <div className="detail-stat">
               <span className="detail-stat-label">Source</span>

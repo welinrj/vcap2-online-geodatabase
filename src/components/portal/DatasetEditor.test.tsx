@@ -11,6 +11,7 @@ const mockMetadata: DatasetMetadata = {
   tags: ['vanuatu', 'test'],
   crs: 'EPSG:4326',
   status: 'active',
+  category: '',
 }
 
 describe('DatasetEditor', () => {

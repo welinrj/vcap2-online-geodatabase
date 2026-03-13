@@ -1,5 +1,6 @@
 import { useState, useRef, type FC, type DragEvent } from 'react'
-import type { DatasetFormat } from '../../types/geospatial'
+import type { DatasetFormat, ProDocCategory } from '../../types/geospatial'
+import { PRODOC_CATEGORIES } from '../../types/geospatial'
 import { parseGeoJSON, parseCSV, parseKML, addDataset } from '../../services/datasetStore'
 
 interface DatasetUploadProps {
@@ -32,6 +33,7 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [source, setSource] = useState('')
+  const [category, setCategory] = useState<ProDocCategory>('')
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -84,7 +86,7 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
             },
           }],
         }
-        await addDataset(fc, { name, description, source }, 'geojson')
+        await addDataset(fc, { name, description, source, category }, 'geojson')
         onUploaded()
         return
       }
@@ -104,7 +106,7 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
           break
       }
 
-      await addDataset(fc, { name, description, source }, format)
+      await addDataset(fc, { name, description, source, category }, format)
       onUploaded()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse file')
@@ -205,6 +207,22 @@ const DatasetUpload: FC<DatasetUploadProps> = ({ onUploaded, onCancel }) => {
             onChange={(e) => setSource(e.target.value)}
             placeholder="Data source or provider"
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="ds-category">ProDoc Category</label>
+          <select
+            id="ds-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ProDocCategory)}
+          >
+            <option value="">— No category —</option>
+            {PRODOC_CATEGORIES.map((cat) => (
+              <option key={cat.id} value={cat.id} title={cat.description}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         {error && <div className="form-error" role="alert">{error}</div>}
