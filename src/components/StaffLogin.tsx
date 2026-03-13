@@ -118,9 +118,9 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       <WavyBackground
         colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
         backgroundFill="#0c1520"
-        blur={8}
+        blur={5}
         speed="slow"
-        waveOpacity={0.6}
+        waveOpacity={0.85}
         containerClassName="!h-auto min-h-screen"
         className="w-full"
       >
@@ -193,9 +193,9 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     <WavyBackground
       colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
       backgroundFill="#0c1520"
-      blur={8}
+      blur={5}
       speed="slow"
-      waveOpacity={0.6}
+      waveOpacity={0.85}
       containerClassName="!h-auto min-h-screen"
       className="w-full"
     >
