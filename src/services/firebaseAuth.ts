@@ -79,7 +79,7 @@ export async function createUser(
   password: string,
   userData: {
     name: string
-    role: 'admin' | 'editor' | 'viewer'
+    role: UserRole
     organization: string
   }
 ): Promise<UserProfile> {
