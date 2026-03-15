@@ -33,7 +33,6 @@ import {
   CartesianGrid,
 } from 'recharts'
 import vcap2Logo from '../../../assets/vcap2-logo.png'
-import { GooeyTextMorph } from '../ui/gooey-text-morph'
 import './Dashboard.css'
 
 const DashboardMap = lazy(() => import('./DashboardMap'))
@@ -231,15 +230,6 @@ const Dashboard: FC = () => {
             <p>Adaptation to Climate Change in the Coastal Zone of Vanuatu Phase II</p>
             <p className="dash-hero-sub">Department of Environmental Protection & Conservation</p>
           </div>
-        </div>
-        <div className="dash-hero-morph">
-          <GooeyTextMorph
-            texts={['Conservation', 'Biodiversity', 'Resilience', 'Sustainability', 'Protection']}
-            morphTime={1.5}
-            cooldownTime={0.8}
-            className="h-10"
-            textClassName="text-2xl md:text-3xl font-bold text-[var(--color-primary)]"
-          />
         </div>
       </div>
 
