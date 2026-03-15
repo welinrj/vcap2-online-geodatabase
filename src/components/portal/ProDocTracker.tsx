@@ -1,10 +1,15 @@
-import { useState, useMemo, useCallback, type FC, type ChangeEvent } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef, type FC, type ChangeEvent } from 'react'
 import {
   newAreas as initialNewAreas,
   existingAreas as initialExistingAreas,
   PRODOC_TARGETS,
   type ProDocEntry,
 } from '../../data/prodocTrackerData'
+import {
+  loadProDocData,
+  saveProDocData,
+  type ColumnDef,
+} from '../../services/prodocStore'
 import {
   ShieldCheck,
   Waves,
@@ -18,6 +23,9 @@ import {
   Trash2,
   X,
   Columns3,
+  Save,
+  GripVertical,
+  Loader2,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -54,15 +62,6 @@ const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', '
 const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
 const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
 const REGISTRATION_STATUSES: ProDocEntry['registrationStatus'][] = ['Registered', 'Not Yet Registered', '']
-
-/** Built-in columns from ProDocEntry */
-interface ColumnDef {
-  key: string
-  label: string
-  type: 'text' | 'number' | 'select'
-  options?: string[]
-  builtin: boolean
-}
 
 const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: 'id', label: 'ID', type: 'text', builtin: true },
@@ -114,6 +113,86 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const [newColName, setNewColName] = useState('')
   const [newColType, setNewColType] = useState<'text' | 'number'>('text')
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+  const [isDirty, setIsDirty] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
+  const [dragColIndex, setDragColIndex] = useState<number | null>(null)
+  const [dragOverColIndex, setDragOverColIndex] = useState<number | null>(null)
+  const initialLoadDone = useRef(false)
+
+  // Load saved data from Firestore on mount
+  useEffect(() => {
+    if (initialLoadDone.current) return
+    initialLoadDone.current = true
+    loadProDocData()
+      .then((saved) => {
+        if (saved) {
+          setNewAreas(saved.newAreas)
+          setExistingAreas(saved.existingAreas)
+          setColumns(saved.columns)
+        }
+      })
+      .catch(() => {
+        // Failed to load — use defaults
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  // Mark dirty when data changes (skip initial load)
+  const markDirty = useCallback(() => {
+    if (!isLoading) {
+      setIsDirty(true)
+      setSaveStatus('idle')
+    }
+  }, [isLoading])
+
+  const handleSave = useCallback(async () => {
+    setIsSaving(true)
+    setSaveStatus('idle')
+    try {
+      await saveProDocData(newAreas, existingAreas, columns)
+      setIsDirty(false)
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    } catch {
+      setSaveStatus('error')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [newAreas, existingAreas, columns])
+
+  // Column drag-and-drop handlers
+  const handleColDragStart = useCallback((index: number) => {
+    setDragColIndex(index)
+  }, [])
+
+  const handleColDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    setDragOverColIndex(index)
+  }, [])
+
+  const handleColDrop = useCallback((targetIndex: number) => {
+    if (dragColIndex === null || dragColIndex === targetIndex) {
+      setDragColIndex(null)
+      setDragOverColIndex(null)
+      return
+    }
+    setColumns((prev) => {
+      const updated = [...prev]
+      const [moved] = updated.splice(dragColIndex, 1)
+      updated.splice(targetIndex, 0, moved)
+      return updated
+    })
+    setDragColIndex(null)
+    setDragOverColIndex(null)
+    markDirty()
+  }, [dragColIndex, markDirty])
+
+  const handleColDragEnd = useCallback(() => {
+    setDragColIndex(null)
+    setDragOverColIndex(null)
+  }, [])
 
   const data = tab === 'new' ? newAreas : existingAreas
   const setData = tab === 'new' ? setNewAreas : setExistingAreas
@@ -135,13 +214,15 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         updated[entryIndex] = { ...updated[entryIndex], [field]: value }
         return updated
       })
+      markDirty()
     },
-    [setData, filtered]
+    [setData, filtered, markDirty]
   )
 
   const addRow = useCallback(() => {
     setData((prev) => [...prev, createEmptyEntry(tab, columns) as ProDocEntry])
-  }, [setData, tab, columns])
+    markDirty()
+  }, [setData, tab, columns, markDirty])
 
   const deleteRow = useCallback(
     (index: number) => {
@@ -151,8 +232,9 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         return prev.filter((_, i) => i !== entryIndex)
       })
       setDeleteConfirm(null)
+      markDirty()
     },
-    [setData, filtered]
+    [setData, filtered, markDirty]
   )
 
   const addColumn = useCallback(() => {
@@ -169,7 +251,8 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     setExistingAreas(addField)
     setNewColName('')
     setShowAddCol(false)
-  }, [newColName, newColType, columns])
+    markDirty()
+  }, [newColName, newColType, columns, markDirty])
 
   const removeColumn = useCallback(
     (key: string) => {
@@ -183,8 +266,9 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         })
       setNewAreas(removeField)
       setExistingAreas(removeField)
+      markDirty()
     },
-    []
+    [markDirty]
   )
 
   // Summary stats
@@ -236,6 +320,17 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     sites: stats.count,
   }))
 
+  if (isLoading) {
+    return (
+      <div className="pdt">
+        <div className="pdt-loading">
+          <Loader2 size={24} className="pdt-spinner" />
+          <span>Loading ProDoc data...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="pdt">
       {/* Header */}
@@ -247,6 +342,17 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
           </p>
         </div>
         <div className="pdt-header-stats">
+          {!readOnly && (
+            <button
+              className={`pdt-save-btn ${isDirty ? 'pdt-save-dirty' : ''} ${saveStatus === 'saved' ? 'pdt-save-success' : ''} ${saveStatus === 'error' ? 'pdt-save-error' : ''}`}
+              onClick={handleSave}
+              disabled={isSaving || !isDirty}
+              title={isDirty ? 'Save changes to database' : 'No unsaved changes'}
+            >
+              {isSaving ? <Loader2 size={14} className="pdt-spinner" /> : <Save size={14} />}
+              {isSaving ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : saveStatus === 'error' ? 'Error' : isDirty ? 'Save Changes' : 'Saved'}
+            </button>
+          )}
           <span className="pdt-header-badge pdt-badge-new">
             <TreePine size={12} />
             {newAreas.length} New
@@ -551,9 +657,22 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
           <thead>
             <tr>
               {!readOnly && <th className="pdt-th-actions" />}
-              {columns.map((col) => (
-                <th key={col.key}>
+              {columns.map((col, colIdx) => (
+                <th
+                  key={col.key}
+                  draggable={!readOnly}
+                  onDragStart={() => handleColDragStart(colIdx)}
+                  onDragOver={(e) => handleColDragOver(e, colIdx)}
+                  onDrop={() => handleColDrop(colIdx)}
+                  onDragEnd={handleColDragEnd}
+                  className={`${dragOverColIndex === colIdx ? 'pdt-th-drag-over' : ''} ${dragColIndex === colIdx ? 'pdt-th-dragging' : ''}`}
+                >
                   <div className="pdt-th-content">
+                    {!readOnly && (
+                      <span className="pdt-drag-handle" title="Drag to reorder">
+                        <GripVertical size={12} />
+                      </span>
+                    )}
                     <span>{col.label}</span>
                     {!readOnly && (
                       <button
