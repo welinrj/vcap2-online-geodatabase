@@ -1063,4 +1063,94 @@ tr:hover .pdt-row-delete-btn {
   .pdt-filters {
     flex-wrap: wrap;
   }
+
+  .pdt-registration-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Registration Status Section */
+.pdt-registration-section {
+  margin-bottom: 1.5rem;
+}
+
+.pdt-registration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.pdt-registration-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.pdt-registration-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.pdt-registration-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pdt-registration-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdt-registration-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.pdt-registration-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pdt-registration-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.pdt-registration-bar-fill.pdt-fill-green {
+  background: #22c55e;
+}
+
+.pdt-registration-bar-fill.pdt-fill-blue {
+  background: #3b82f6;
+}
+
+.pdt-registration-bar-fill.pdt-fill-amber {
+  background: #f59e0b;
+}
+
+.pdt-registration-count {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  min-width: 24px;
+  text-align: right;
+}
+
+.pdt-registration-total {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+  text-align: right;
 }
