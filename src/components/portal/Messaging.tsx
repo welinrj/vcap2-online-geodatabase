@@ -28,6 +28,7 @@ import {
 } from '../../services/messagingStore'
 import { listUsers } from '../../services/userStore'
 import { playMessageSound, playAttachmentSound } from '../../services/notificationSounds'
+import { AutoResizeTextarea } from '../ui/auto-resize-textarea'
 
 interface MessagingProps {
   currentUser: UserProfile | null
@@ -418,12 +419,13 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                 style={{ display: 'none' }}
                 onChange={handleAttachment}
               />
-              <input
-                type="text"
-                className="msg-input"
+              <AutoResizeTextarea
+                className="msg-input msg-textarea"
                 placeholder="Type a message..."
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                onValueChange={setDraft}
+                minRows={1}
+                maxRows={4}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()

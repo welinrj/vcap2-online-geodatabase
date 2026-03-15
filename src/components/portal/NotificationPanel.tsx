@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Bell,
   MessageSquare,
@@ -19,37 +19,75 @@ import {
   deleteNotification,
 } from '../../services/messagingStore'
 import { playNotificationSound } from '../../services/notificationSounds'
+import { AnimatedToastContainer, type ToastTheme } from '../ui/animated-notification-toast'
 
 interface NotificationPanelProps {
   currentUser: UserProfile | null
   onNavigateToChat?: (conversationId: string) => void
 }
 
+/** Map notification type to toast theme */
+function notifTypeToTheme(type: AppNotification['type']): ToastTheme {
+  switch (type) {
+    case 'message': return 'message'
+    case 'call': return 'call'
+    case 'videocall': return 'videocall'
+    case 'attachment': return 'attachment'
+    case 'group_invite': return 'group'
+    default: return 'info'
+  }
+}
+
+interface ToastItem {
+  id: string
+  title: string
+  body?: string
+  theme?: ToastTheme
+  onClick?: () => void
+}
+
 export default function NotificationPanel({ currentUser, onNavigateToChat }: NotificationPanelProps) {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [open, setOpen] = useState(false)
-  const [popup, setPopup] = useState<AppNotification | null>(null)
+  const [toasts, setToasts] = useState<ToastItem[]>([])
   const panelRef = useRef<HTMLDivElement>(null)
   const prevCountRef = useRef(0)
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
 
   // Subscribe to notifications
   useEffect(() => {
     if (!currentUser) return
     return onNotificationsChanged(currentUser.id, (notifs) => {
-      // Show popup + play sound for new unread notifications
+      // Show animated toast + play sound for new unread notifications
       const unreadCount = notifs.filter((n) => !n.read).length
       if (unreadCount > prevCountRef.current && prevCountRef.current >= 0) {
         const newest = notifs.find((n) => !n.read)
         if (newest) {
-          setPopup(newest)
           playNotificationSound()
-          setTimeout(() => setPopup((p) => (p?.id === newest.id ? null : p)), 5000)
+          setToasts((prev) => [
+            ...prev,
+            {
+              id: newest.id,
+              title: newest.title,
+              body: newest.body,
+              theme: notifTypeToTheme(newest.type),
+              onClick: () => {
+                if (newest.conversationId && onNavigateToChat) {
+                  onNavigateToChat(newest.conversationId)
+                }
+                markNotificationRead(newest.id)
+              },
+            },
+          ])
         }
       }
       prevCountRef.current = unreadCount
       setNotifications(notifs)
     })
-  }, [currentUser])
+  }, [currentUser, onNavigateToChat])
 
   // Close panel on outside click
   useEffect(() => {
@@ -165,22 +203,8 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
         )}
       </div>
 
-      {/* Pop-up Toast */}
-      {popup && (
-        <div className="notif-toast" onClick={() => { handleClick(popup); setPopup(null) }}>
-          <span className={`notif-icon notif-icon-${popup.type}`}>{getIcon(popup.type)}</span>
-          <div className="notif-toast-content">
-            <div className="notif-toast-title">{popup.title}</div>
-            <div className="notif-toast-body">{popup.body}</div>
-          </div>
-          <button
-            className="notif-toast-close"
-            onClick={(e) => { e.stopPropagation(); setPopup(null) }}
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
+      {/* Animated Toast Notifications */}
+      <AnimatedToastContainer toasts={toasts} onDismiss={dismissToast} />
     </>
   )
 }
