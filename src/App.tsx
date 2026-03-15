@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation'
+import { PortalLoader } from './components/ui/customizable-loader-spinner-transition'
 import ChatPopup from './components/ChatPopup'
 import { getUser } from './services/userStore'
 import { onIncomingCalls } from './services/callService'
@@ -147,7 +148,7 @@ function App() {
           onNavigateToChat={handleNavigateToChat}
         />
         <div className="dashboard-content">
-          <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--color-text-tertiary)' }}>Loading...</div>}>
+          <Suspense fallback={<PortalLoader squareCount={10} speed={0.5} />}>
           {activeSection === 'dashboard' && <Dashboard />}
           {activeSection === 'gis-database' && isAuthenticated && <GISDatabase />}
           {activeSection === 'protected-areas' && isAuthenticated && <ProtectedAreas />}
