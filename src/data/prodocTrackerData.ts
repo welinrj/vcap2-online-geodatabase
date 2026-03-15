@@ -12,6 +12,7 @@ export interface ProDocEntry {
   hectaresTerrestrial: number | null
   hectaresMarine: number | null
   remarks: string
+  registrationStatus: 'Registered' | 'Not Yet Registered' | ''
 }
 
 export const newAreas: ProDocEntry[] = [
@@ -29,6 +30,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 31.401,
     hectaresMarine: 13.042,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MPA2403',
@@ -44,6 +46,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -59,6 +62,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 7.874,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MPA2405',
@@ -74,6 +78,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MTPA2401',
@@ -89,6 +94,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -104,6 +110,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 9.733,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MPA2511',
@@ -119,6 +126,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 3.053,
     hectaresMarine: 19.566,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MPA2512',
@@ -134,6 +142,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 10.076,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MPA2513',
@@ -149,6 +158,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 68.924,
     hectaresMarine: 19.566,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -164,6 +174,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 4.078,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -179,6 +190,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -194,6 +206,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -209,6 +222,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -224,6 +238,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MTPA2405',
@@ -239,6 +254,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 16.564,
     hectaresMarine: 77.484,
     remarks: 'Areas to be reconfirmed with proper mapping methodology. (MPA was mapped without involvement of Community and/or Land owner)',
+    registrationStatus: '',
   },
   {
     id: 'MTPA2402',
@@ -254,6 +270,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 1343.01,
     hectaresMarine: 9.339,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MTPA2403',
@@ -269,6 +286,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 2414.443,
     hectaresMarine: 111.959,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MTPA2404',
@@ -284,6 +302,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 3559.76,
     hectaresMarine: 43.521,
     remarks: '',
+    registrationStatus: '',
   },
 ]
 
@@ -302,6 +321,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 69.299,
     remarks: '3 Protected Areas',
+    registrationStatus: '',
   },
   {
     id: 'MPA250301',
@@ -317,6 +337,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 46.31,
     hectaresMarine: 30.223,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: '',
@@ -332,6 +353,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'MPA2402',
@@ -347,6 +369,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E01',
@@ -362,6 +385,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 8067.58,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E02',
@@ -377,6 +401,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 4861.65,
     hectaresMarine: null,
     remarks: 'Review of Management Plans. Tree planting, Nursery, Invasive Species Control, Eco-tourism facilities, Ranger capacity building',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E03',
@@ -392,6 +417,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 2951.75,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E04',
@@ -407,6 +433,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 212.69,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E05',
@@ -422,6 +449,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 161.56,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E06',
@@ -437,6 +465,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 773.49,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E07',
@@ -452,6 +481,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 97.90,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E08',
@@ -467,6 +497,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 907.42,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E09',
@@ -482,6 +513,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 3782.01,
     hectaresMarine: null,
     remarks: 'Livelihood activities',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E10',
@@ -497,6 +529,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 101.73,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E11',
@@ -512,6 +545,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 5295.39,
     hectaresMarine: null,
     remarks: 'Management Plan review, Invasive Species Control, Ranger capacity building, School awareness, Waste Management',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E12',
@@ -527,6 +561,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 7.20,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E13',
@@ -542,6 +577,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 45.91,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E14',
@@ -557,6 +593,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 4569.04,
     hectaresMarine: null,
     remarks: 'Management Plan review, Tree planting, Nursery, Eco-tourism, Ranger capacity building, Invasive Species Control',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E15',
@@ -572,6 +609,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 187.22,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E16',
@@ -587,6 +625,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 15.56,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
   {
     id: 'CCA-E17',
@@ -602,6 +641,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: 16877.00,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   },
 ]
 

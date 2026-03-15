@@ -53,6 +53,7 @@ const COLORS = {
 const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', 'Terrestrial']
 const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
 const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
+const REGISTRATION_STATUSES: ProDocEntry['registrationStatus'][] = ['Registered', 'Not Yet Registered', '']
 
 /** Built-in columns from ProDocEntry */
 interface ColumnDef {
@@ -73,6 +74,7 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: 'hectaresTerrestrial', label: 'Terrestrial (ha)', type: 'number', builtin: true },
   { key: 'hectaresMarine', label: 'Marine (ha)', type: 'number', builtin: true },
   { key: 'mappingStatus', label: 'Mapping Status', type: 'select', options: [...MAPPING_STATUSES], builtin: true },
+  { key: 'registrationStatus', label: 'Registration Status', type: 'select', options: [...REGISTRATION_STATUSES], builtin: true },
   { key: 'remarks', label: 'Remarks', type: 'text', builtin: true },
 ]
 
@@ -91,6 +93,7 @@ function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & R
     hectaresTerrestrial: null,
     hectaresMarine: null,
     remarks: '',
+    registrationStatus: '',
   }
   for (const col of customColumns) {
     if (!col.builtin) {
@@ -701,7 +704,7 @@ const EditableTableRow: FC<{
         if (readOnly) {
           return (
             <td key={col.key} className={cellClass}>
-              {col.key === 'mappingStatus' && value ? (
+              {(col.key === 'mappingStatus' || col.key === 'registrationStatus') && value ? (
                 <span className={`pdt-status-badge pdt-status-${String(value).toLowerCase().replace(/\s+/g, '-')}`}>
                   {String(value)}
                 </span>

@@ -88,7 +88,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
         // Fallback: create in userStore directly (no Firebase Auth)
         const { createUser: storeCreateUser } = await import('../../services/userStore')
         const user = await storeCreateUser(newName.trim(), null)
-        await updateUser(user.id, { role: newRole, email: newEmail || undefined })
+        await updateUser(user.id, { role: newRole, email: newEmail || '' })
       }
 
       setShowCreateForm(false)
