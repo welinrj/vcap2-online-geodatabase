@@ -719,6 +719,17 @@
   color: var(--color-accent-amber);
 }
 
+/* Registration status badges */
+.pdt-status-registered {
+  background: var(--color-positive-bg);
+  color: var(--color-positive);
+}
+
+.pdt-status-not-yet-registered {
+  background: var(--color-accent-amber-bg);
+  color: var(--color-accent-amber);
+}
+
 /* Mapping status badges */
 .pdt-mapping-badge {
   font-size: 0.62rem;
