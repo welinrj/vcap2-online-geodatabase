@@ -328,7 +328,7 @@ export const existingAreas: ProDocEntry[] = [
     name: 'Hiu Island',
     areaCouncil: 'Hiu Island (Torres)',
     beneficiary: '',
-    ccaType: 'Marine',
+    ccaType: 'Marine & Terrestrial',
     status: 'Existing',
     xCoord: null,
     yCoord: null,
