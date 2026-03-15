@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type FC } from 'react'
 import L from 'leaflet'
 import type { ProtectedArea } from '../../types/protectedArea'
+import type { DatasetSummary } from '../../types/geospatial'
 import { exportAllAreas } from '../../services/protectedAreaStore'
+import { listDatasets, getDataset } from '../../services/datasetStore'
 import 'leaflet/dist/leaflet.css'
 
 const VANUATU_CENTER: [number, number] = [-16.5, 168.0]
@@ -21,12 +23,27 @@ const MPA_STYLE: L.PathOptions = {
   fillOpacity: 0.2,
 }
 
+/** Palette for user-uploaded dataset layers */
+const DATASET_COLORS = [
+  '#f97316', // orange
+  '#ec4899', // pink
+  '#8b5cf6', // violet
+  '#14b8a6', // teal
+  '#eab308', // yellow
+  '#ef4444', // red
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+]
+
 const DashboardMap: FC = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const [areasLoaded, setAreasLoaded] = useState(false)
   const [ccaCount, setCcaCount] = useState(0)
   const [mpaCount, setMpaCount] = useState(0)
+  const [datasetLayers, setDatasetLayers] = useState<
+    { name: string; color: string; count: number }[]
+  >([])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -112,6 +129,76 @@ const DashboardMap: FC = () => {
       setAreasLoaded(true)
     })
 
+    // Load uploaded datasets
+    listDatasets().then(async (summaries: DatasetSummary[]) => {
+      const activeSummaries = summaries.filter(
+        (s) => s.metadata.status !== 'archived',
+      )
+      const layers: { name: string; color: string; count: number }[] = []
+
+      for (let i = 0; i < activeSummaries.length; i++) {
+        const summary = activeSummaries[i]
+        try {
+          const dataset = await getDataset(summary.id)
+          if (!dataset?.data?.features?.length) continue
+
+          // Skip raw file placeholders (shapefiles, images, etc.)
+          const firstProps = dataset.data.features[0]?.properties
+          if (firstProps?._rawFile) continue
+
+          const color = DATASET_COLORS[i % DATASET_COLORS.length]
+          const layerStyle: L.PathOptions = {
+            color,
+            weight: 2,
+            fillColor: color,
+            fillOpacity: 0.25,
+          }
+
+          L.geoJSON(dataset.data, {
+            style: () => layerStyle,
+            pointToLayer: (_feature, latlng) =>
+              L.circleMarker(latlng, {
+                radius: 6,
+                ...layerStyle,
+                fillOpacity: 0.7,
+              }),
+            onEachFeature: (feature, layer) => {
+              const props = feature.properties ?? {}
+              const propEntries = Object.entries(props).filter(
+                ([k]) => !k.startsWith('_'),
+              )
+              const propsHtml = propEntries
+                .slice(0, 8)
+                .map(
+                  ([k, v]) =>
+                    `<div style="font-size:12px;color:#666"><strong>${k}:</strong> ${v}</div>`,
+                )
+                .join('')
+
+              layer.bindPopup(
+                `<div style="font-family:system-ui;font-size:13px;min-width:160px">
+                  <div style="font-weight:700;margin-bottom:4px">${dataset.metadata.name}</div>
+                  <div style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px;background:${color}22;color:${color};display:inline-block;margin-bottom:4px">${dataset.metadata.category || dataset.format}</div>
+                  ${propsHtml}
+                </div>`,
+                { maxWidth: 280 },
+              )
+            },
+          }).addTo(map)
+
+          layers.push({
+            name: dataset.metadata.name,
+            color,
+            count: dataset.featureCount,
+          })
+        } catch {
+          // Skip datasets that fail to load
+        }
+      }
+
+      setDatasetLayers(layers)
+    })
+
     return () => {
       map.remove()
       mapRef.current = null
@@ -135,6 +222,17 @@ const DashboardMap: FC = () => {
             <span className="dash-map-legend-swatch dash-map-swatch-mpa" />
             <span>MPA Boundaries{areasLoaded ? ` (${mpaCount})` : ''}</span>
           </div>
+          {datasetLayers.map((dl) => (
+            <div className="dash-map-legend-item" key={dl.name}>
+              <span
+                className="dash-map-legend-swatch"
+                style={{ background: dl.color }}
+              />
+              <span>
+                {dl.name} ({dl.count})
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
