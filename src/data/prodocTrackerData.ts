@@ -568,7 +568,7 @@ export const existingAreas: ProDocEntry[] = [
     name: 'Dany Island Spectacular Coral Reef',
     areaCouncil: 'Sanma',
     beneficiary: '',
-    ccaType: 'Marine & Terrestrial',
+    ccaType: 'Terrestrial',
     status: 'Existing',
     xCoord: null,
     yCoord: null,
