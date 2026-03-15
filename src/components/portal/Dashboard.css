@@ -99,6 +99,26 @@
   margin-bottom: 1.5rem;
 }
 
+.dash-stats-6 {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.dash-stats-6 .dash-stat-value {
+  font-size: 1.3rem;
+}
+
+@media (min-width: 1024px) {
+  .dash-stats-6 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 1023px) and (min-width: 640px) {
+  .dash-stats-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .dash-stat-card {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
@@ -183,6 +203,13 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 600;
+}
+
+.dash-stat-sub {
+  font-size: 0.68rem;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  margin-top: 0.1rem;
 }
 
 /* Dashboard map */
