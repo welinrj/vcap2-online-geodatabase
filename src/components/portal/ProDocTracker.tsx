@@ -273,10 +273,21 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
 
   // Summary stats
   const allEntries = [...newAreas, ...existingAreas]
-  const totalNewTerrestrial = newAreas.reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0)
-  const totalNewMarine = newAreas.reduce((s, e) => s + (e.hectaresMarine ?? 0), 0)
-  const totalExistingTerrestrial = existingAreas.reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0)
-  const totalExistingMarine = existingAreas.reduce((s, e) => s + (e.hectaresMarine ?? 0), 0)
+
+  // Filter by ccaType before summing (consistent with Dashboard logic)
+  const sumTerrestrial = (entries: ProDocEntry[]) =>
+    entries
+      .filter((e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial')
+      .reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0)
+  const sumMarine = (entries: ProDocEntry[]) =>
+    entries
+      .filter((e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial')
+      .reduce((s, e) => s + (e.hectaresMarine ?? 0), 0)
+
+  const totalNewTerrestrial = sumTerrestrial(newAreas)
+  const totalNewMarine = sumMarine(newAreas)
+  const totalExistingTerrestrial = sumTerrestrial(existingAreas)
+  const totalExistingMarine = sumMarine(existingAreas)
   const completedCount = allEntries.filter((e) => e.mappingStatus === 'Completed').length
   const inProgressCount = allEntries.filter((e) => e.mappingStatus === 'In Progress').length
   const withCoords = allEntries.filter((e) => e.xCoord !== null && e.yCoord !== null)

@@ -49,7 +49,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2404',
     name: 'Tonomia to Matesu',
     areaCouncil: 'South Epi',
     beneficiary: '',
@@ -97,7 +97,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2514',
     name: 'Avanbatai',
     areaCouncil: 'South Maewo',
     beneficiary: '',
@@ -161,7 +161,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2515',
     name: 'Nasawa',
     areaCouncil: 'South Maewo',
     beneficiary: '',
@@ -177,7 +177,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2516',
     name: 'Lihe to Metegiove Tebetebe',
     areaCouncil: 'Toga Island (Torres)',
     beneficiary: '',
@@ -193,7 +193,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2406',
     name: 'Ranverekon',
     areaCouncil: 'West Ambrym',
     beneficiary: '',
@@ -209,7 +209,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2407',
     name: 'Yentenair to Vensilea',
     areaCouncil: 'West Ambrym',
     beneficiary: '',
@@ -225,7 +225,7 @@ export const newAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MPA2408',
     name: 'Baiap',
     areaCouncil: 'West Ambrym',
     beneficiary: '',
@@ -340,7 +340,7 @@ export const existingAreas: ProDocEntry[] = [
     registrationStatus: '',
   },
   {
-    id: '',
+    id: 'MTPA2501',
     name: 'Ikunapu',
     areaCouncil: 'South East Tanna',
     beneficiary: '',
@@ -568,7 +568,7 @@ export const existingAreas: ProDocEntry[] = [
     name: 'Dany Island Spectacular Coral Reef',
     areaCouncil: 'Sanma',
     beneficiary: '',
-    ccaType: 'Marine & Terrestrial',
+    ccaType: 'Terrestrial',
     status: 'Existing',
     xCoord: null,
     yCoord: null,
