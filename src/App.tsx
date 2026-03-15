@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
-// PortalBackground removed — portal now uses a clean light theme
+import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation'
 import { getUser } from './services/userStore'
 import type { UserProfile } from './types/user'
 import './App.css'
@@ -62,6 +62,17 @@ function App() {
 
   return (
     <div className="app-layout">
+      <BackgroundGradientAnimation
+        gradientBackgroundStart="rgb(15, 23, 42)"
+        gradientBackgroundEnd="rgb(8, 47, 73)"
+        firstColor="34, 197, 94"
+        secondColor="59, 130, 246"
+        thirdColor="6, 182, 212"
+        fourthColor="168, 85, 247"
+        fifthColor="245, 158, 11"
+        interactive={true}
+        size="80%"
+      />
       <Sidebar
         activeSection={activeSection}
         onNavigate={setActiveSection}
