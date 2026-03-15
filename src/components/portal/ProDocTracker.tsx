@@ -14,6 +14,10 @@ import {
   TreePine,
   ArrowUpRight,
   ChevronDown,
+  Plus,
+  Trash2,
+  X,
+  Columns3,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -50,12 +54,63 @@ const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', '
 const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
 const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
 
+/** Built-in columns from ProDocEntry */
+interface ColumnDef {
+  key: string
+  label: string
+  type: 'text' | 'number' | 'select'
+  options?: string[]
+  builtin: boolean
+}
+
+const DEFAULT_COLUMNS: ColumnDef[] = [
+  { key: 'id', label: 'ID', type: 'text', builtin: true },
+  { key: 'name', label: 'Boundary Name', type: 'text', builtin: true },
+  { key: 'areaCouncil', label: 'Area Council', type: 'text', builtin: true },
+  { key: 'beneficiary', label: 'Beneficiary', type: 'text', builtin: true },
+  { key: 'ccaType', label: 'Type', type: 'select', options: CCA_TYPES, builtin: true },
+  { key: 'status', label: 'Status', type: 'select', options: STATUSES, builtin: true },
+  { key: 'hectaresTerrestrial', label: 'Terrestrial (ha)', type: 'number', builtin: true },
+  { key: 'hectaresMarine', label: 'Marine (ha)', type: 'number', builtin: true },
+  { key: 'mappingStatus', label: 'Mapping Status', type: 'select', options: [...MAPPING_STATUSES], builtin: true },
+  { key: 'remarks', label: 'Remarks', type: 'text', builtin: true },
+]
+
+function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & Record<string, unknown> {
+  const entry: ProDocEntry & Record<string, unknown> = {
+    id: '',
+    name: '',
+    areaCouncil: '',
+    beneficiary: '',
+    ccaType: 'Terrestrial',
+    status: tab === 'new' ? 'New' : 'Existing',
+    xCoord: null,
+    yCoord: null,
+    scheduledTrip: '',
+    mappingStatus: '',
+    hectaresTerrestrial: null,
+    hectaresMarine: null,
+    remarks: '',
+  }
+  for (const col of customColumns) {
+    if (!col.builtin) {
+      entry[col.key] = col.type === 'number' ? null : ''
+    }
+  }
+  return entry
+}
+
 const ProDocTracker: FC = () => {
   const [tab, setTab] = useState<Tab>('new')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [newAreas, setNewAreas] = useState<ProDocEntry[]>(() => [...initialNewAreas])
   const [existingAreas, setExistingAreas] = useState<ProDocEntry[]>(() => [...initialExistingAreas])
+  const [columns, setColumns] = useState<ColumnDef[]>(() => [...DEFAULT_COLUMNS])
+  const [showAddCol, setShowAddCol] = useState(false)
+  const [newColName, setNewColName] = useState('')
+  const [newColType, setNewColType] = useState<'text' | 'number'>('text')
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
 
   const data = tab === 'new' ? newAreas : existingAreas
   const setData = tab === 'new' ? setNewAreas : setExistingAreas
@@ -69,7 +124,7 @@ const ProDocTracker: FC = () => {
   }, [data, typeFilter, statusFilter])
 
   const updateEntry = useCallback(
-    (index: number, field: keyof ProDocEntry, value: string | number | null) => {
+    (index: number, field: string, value: string | number | null) => {
       setData((prev) => {
         const updated = [...prev]
         const entryIndex = prev.indexOf(filtered[index])
@@ -79,6 +134,54 @@ const ProDocTracker: FC = () => {
       })
     },
     [setData, filtered]
+  )
+
+  const addRow = useCallback(() => {
+    setData((prev) => [...prev, createEmptyEntry(tab, columns) as ProDocEntry])
+  }, [setData, tab, columns])
+
+  const deleteRow = useCallback(
+    (index: number) => {
+      setData((prev) => {
+        const entryIndex = prev.indexOf(filtered[index])
+        if (entryIndex === -1) return prev
+        return prev.filter((_, i) => i !== entryIndex)
+      })
+      setDeleteConfirm(null)
+    },
+    [setData, filtered]
+  )
+
+  const addColumn = useCallback(() => {
+    const trimmed = newColName.trim()
+    if (!trimmed) return
+    const key = 'custom_' + trimmed.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+    if (columns.some((c) => c.key === key)) return
+    const newCol: ColumnDef = { key, label: trimmed, type: newColType, builtin: false }
+    setColumns((prev) => [...prev, newCol])
+    // Add the field to all existing entries in both tabs
+    const addField = (prev: ProDocEntry[]) =>
+      prev.map((e) => ({ ...e, [key]: newColType === 'number' ? null : '' }))
+    setNewAreas(addField)
+    setExistingAreas(addField)
+    setNewColName('')
+    setShowAddCol(false)
+  }, [newColName, newColType, columns])
+
+  const removeColumn = useCallback(
+    (key: string) => {
+      setColumns((prev) => prev.filter((c) => c.key !== key))
+      // Remove the field from all entries
+      const removeField = (prev: ProDocEntry[]) =>
+        prev.map((e) => {
+          const copy = { ...e }
+          delete (copy as unknown as Record<string, unknown>)[key]
+          return copy
+        })
+      setNewAreas(removeField)
+      setExistingAreas(removeField)
+    },
+    []
   )
 
   // Summary stats
@@ -350,7 +453,7 @@ const ProDocTracker: FC = () => {
         </div>
       )}
 
-      {/* Tab toggle + filters */}
+      {/* Tab toggle + filters + actions */}
       <div className="pdt-toolbar">
         <div className="pdt-tabs">
           <button
@@ -366,75 +469,126 @@ const ProDocTracker: FC = () => {
             Existing Areas ({existingAreas.length})
           </button>
         </div>
-        <div className="pdt-filters">
-          <div className="pdt-filter-wrapper">
-            <select
-              className="pdt-filter-select"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
-            >
-              <option value="all">All Types</option>
-              <option value="Marine">Marine</option>
-              <option value="Marine & Terrestrial">Marine & Terrestrial</option>
-              <option value="Terrestrial">Terrestrial</option>
-            </select>
-            <ChevronDown size={14} className="pdt-filter-chevron" />
-          </div>
-          <div className="pdt-filter-wrapper">
-            <select
-              className="pdt-filter-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-            >
-              <option value="all">All Statuses</option>
-              <option value="Completed">Completed</option>
-              <option value="In Progress">In Progress</option>
-            </select>
-            <ChevronDown size={14} className="pdt-filter-chevron" />
+        <div className="pdt-actions">
+          <button className="pdt-action-btn pdt-action-add" onClick={addRow}>
+            <Plus size={14} />
+            Add Row
+          </button>
+          <button
+            className="pdt-action-btn pdt-action-col"
+            onClick={() => setShowAddCol(!showAddCol)}
+          >
+            <Columns3 size={14} />
+            {showAddCol ? 'Cancel' : 'Add Column'}
+          </button>
+          <div className="pdt-filters">
+            <div className="pdt-filter-wrapper">
+              <select
+                className="pdt-filter-select"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+              >
+                <option value="all">All Types</option>
+                <option value="Marine">Marine</option>
+                <option value="Marine & Terrestrial">Marine & Terrestrial</option>
+                <option value="Terrestrial">Terrestrial</option>
+              </select>
+              <ChevronDown size={14} className="pdt-filter-chevron" />
+            </div>
+            <div className="pdt-filter-wrapper">
+              <select
+                className="pdt-filter-select"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              >
+                <option value="all">All Statuses</option>
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+              </select>
+              <ChevronDown size={14} className="pdt-filter-chevron" />
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Add column form */}
+      {showAddCol && (
+        <div className="pdt-add-col-form">
+          <input
+            type="text"
+            className="pdt-add-col-input"
+            placeholder="Column name..."
+            value={newColName}
+            onChange={(e) => setNewColName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addColumn()}
+            autoFocus
+          />
+          <select
+            className="pdt-add-col-type"
+            value={newColType}
+            onChange={(e) => setNewColType(e.target.value as 'text' | 'number')}
+          >
+            <option value="text">Text</option>
+            <option value="number">Number</option>
+          </select>
+          <button className="pdt-action-btn pdt-action-add" onClick={addColumn}>
+            <Plus size={14} />
+            Add
+          </button>
+        </div>
+      )}
+
       {/* Data table */}
       <div className="pdt-table-wrap">
-        <table className="pdt-table">
-          <colgroup>
-            <col className="pdt-col-id" />
-            <col className="pdt-col-name" />
-            <col className="pdt-col-council" />
-            <col className="pdt-col-beneficiary" />
-            <col className="pdt-col-type" />
-            <col className="pdt-col-status" />
-            <col className="pdt-col-terrestrial" />
-            <col className="pdt-col-marine" />
-            <col className="pdt-col-mapping" />
-            <col className="pdt-col-remarks" />
-          </colgroup>
+        <table className="pdt-table" style={{ tableLayout: columns.length > 10 ? 'auto' : 'fixed' }}>
+          {columns.length <= 10 && (
+            <colgroup>
+              <col style={{ width: '32px' }} />
+              {columns.map((col) => (
+                <col key={col.key} className={`pdt-col-${col.key}`} />
+              ))}
+            </colgroup>
+          )}
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Boundary Name</th>
-              <th>Area Council</th>
-              <th>Beneficiary</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Terrestrial (ha)</th>
-              <th>Marine (ha)</th>
-              <th>Mapping Status</th>
-              <th>Remarks</th>
+              <th className="pdt-th-actions" />
+              {columns.map((col) => (
+                <th key={col.key}>
+                  <div className="pdt-th-content">
+                    <span>{col.label}</span>
+                    {!col.builtin && (
+                      <button
+                        className="pdt-col-remove"
+                        title={`Remove "${col.label}" column`}
+                        onClick={() => removeColumn(col.key)}
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={10} className="pdt-empty">No entries match the current filters.</td>
+                <td colSpan={columns.length + 1} className="pdt-empty">
+                  No entries match the current filters.
+                </td>
               </tr>
             ) : (
               filtered.map((entry, i) => (
                 <EditableTableRow
                   key={`${entry.name}-${i}`}
                   entry={entry}
+                  columns={columns}
                   onChange={(field, value) => updateEntry(i, field, value)}
+                  onDelete={() =>
+                    deleteConfirm === i ? deleteRow(i) : setDeleteConfirm(i)
+                  }
+                  isDeletePending={deleteConfirm === i}
+                  onCancelDelete={() => setDeleteConfirm(null)}
                 />
               ))
             )}
@@ -442,14 +596,39 @@ const ProDocTracker: FC = () => {
           {filtered.length > 0 && (
             <tfoot>
               <tr>
-                <td colSpan={6} className="pdt-foot-label">Totals</td>
-                <td className="pdt-foot-val">
-                  {formatHa(filtered.reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0))}
-                </td>
-                <td className="pdt-foot-val">
-                  {formatHa(filtered.reduce((s, e) => s + (e.hectaresMarine ?? 0), 0))}
-                </td>
-                <td colSpan={2} />
+                <td />
+                {columns.map((col, ci) => {
+                  if (col.key === 'hectaresTerrestrial') {
+                    return (
+                      <td key={col.key} className="pdt-foot-val">
+                        {formatHa(filtered.reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0))}
+                      </td>
+                    )
+                  }
+                  if (col.key === 'hectaresMarine') {
+                    return (
+                      <td key={col.key} className="pdt-foot-val">
+                        {formatHa(filtered.reduce((s, e) => s + (e.hectaresMarine ?? 0), 0))}
+                      </td>
+                    )
+                  }
+                  if (col.type === 'number' && !col.builtin) {
+                    const sum = filtered.reduce((s, e) => {
+                      const v = (e as unknown as Record<string, unknown>)[col.key]
+                      return s + (typeof v === 'number' ? v : 0)
+                    }, 0)
+                    return (
+                      <td key={col.key} className="pdt-foot-val">
+                        {sum === 0 ? '\u2014' : sum.toLocaleString(undefined, { maximumFractionDigits: 3 })}
+                      </td>
+                    )
+                  }
+                  // First non-action column gets "Totals" label
+                  if (ci === 0) {
+                    return <td key={col.key} className="pdt-foot-label">Totals</td>
+                  }
+                  return <td key={col.key} />
+                })}
               </tr>
             </tfoot>
           )}
@@ -461,100 +640,100 @@ const ProDocTracker: FC = () => {
 
 const EditableTableRow: FC<{
   entry: ProDocEntry
-  onChange: (field: keyof ProDocEntry, value: string | number | null) => void
-}> = ({ entry, onChange }) => {
-  const handleText = (field: keyof ProDocEntry) => (e: ChangeEvent<HTMLInputElement>) => {
+  columns: ColumnDef[]
+  onChange: (field: string, value: string | number | null) => void
+  onDelete: () => void
+  isDeletePending: boolean
+  onCancelDelete: () => void
+}> = ({ entry, columns, onChange, onDelete, isDeletePending, onCancelDelete }) => {
+  const handleText = (field: string) => (e: ChangeEvent<HTMLInputElement>) => {
     onChange(field, e.target.value)
   }
 
-  const handleNumber = (field: keyof ProDocEntry) => (e: ChangeEvent<HTMLInputElement>) => {
+  const handleNumber = (field: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     onChange(field, val === '' ? null : parseFloat(val))
   }
 
-  const handleSelect = (field: keyof ProDocEntry) => (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleSelect = (field: string) => (e: ChangeEvent<HTMLSelectElement>) => {
     onChange(field, e.target.value)
   }
 
+  const rec = entry as unknown as Record<string, unknown>
+
+  const getCellClass = (key: string) => {
+    if (key === 'id') return 'pdt-cell-id'
+    if (key === 'name') return 'pdt-cell-name'
+    if (key === 'beneficiary') return 'pdt-cell-beneficiary'
+    if (key === 'remarks') return 'pdt-cell-remarks'
+    if (key === 'hectaresTerrestrial' || key === 'hectaresMarine') return 'pdt-cell-num'
+    return ''
+  }
+
   return (
-    <tr>
-      <td className="pdt-cell-id pdt-editable">
-        <input
-          type="text"
-          value={entry.id}
-          onChange={handleText('id')}
-          placeholder="\u2014"
-        />
+    <tr className={isDeletePending ? 'pdt-row-delete-pending' : ''}>
+      <td className="pdt-cell-actions">
+        {isDeletePending ? (
+          <div className="pdt-delete-confirm">
+            <button className="pdt-delete-yes" onClick={onDelete} title="Confirm delete">
+              <Trash2 size={12} />
+            </button>
+            <button className="pdt-delete-no" onClick={onCancelDelete} title="Cancel">
+              <X size={12} />
+            </button>
+          </div>
+        ) : (
+          <button className="pdt-row-delete-btn" onClick={onDelete} title="Delete row">
+            <Trash2 size={13} />
+          </button>
+        )}
       </td>
-      <td className="pdt-cell-name pdt-editable">
-        <input
-          type="text"
-          value={entry.name}
-          onChange={handleText('name')}
-        />
-      </td>
-      <td className="pdt-editable">
-        <input
-          type="text"
-          value={entry.areaCouncil}
-          onChange={handleText('areaCouncil')}
-        />
-      </td>
-      <td className="pdt-cell-beneficiary pdt-editable">
-        <input
-          type="text"
-          value={entry.beneficiary}
-          onChange={handleText('beneficiary')}
-          placeholder="\u2014"
-        />
-      </td>
-      <td className="pdt-editable">
-        <select value={entry.ccaType} onChange={handleSelect('ccaType')}>
-          {CCA_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-      </td>
-      <td className="pdt-editable">
-        <select value={entry.status} onChange={handleSelect('status')}>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </td>
-      <td className="pdt-cell-num pdt-editable">
-        <input
-          type="number"
-          step="0.001"
-          value={entry.hectaresTerrestrial ?? ''}
-          onChange={handleNumber('hectaresTerrestrial')}
-          placeholder="\u2014"
-        />
-      </td>
-      <td className="pdt-cell-num pdt-editable">
-        <input
-          type="number"
-          step="0.001"
-          value={entry.hectaresMarine ?? ''}
-          onChange={handleNumber('hectaresMarine')}
-          placeholder="\u2014"
-        />
-      </td>
-      <td className="pdt-editable">
-        <select value={entry.mappingStatus} onChange={handleSelect('mappingStatus')}>
-          {MAPPING_STATUSES.map((ms) => (
-            <option key={ms || 'pending'} value={ms}>{ms || 'Pending'}</option>
-          ))}
-        </select>
-      </td>
-      <td className="pdt-cell-remarks pdt-editable">
-        <input
-          type="text"
-          value={entry.remarks}
-          onChange={handleText('remarks')}
-          placeholder="\u2014"
-        />
-      </td>
+      {columns.map((col) => {
+        const cellClass = `${getCellClass(col.key)} pdt-editable`
+        const value = rec[col.key]
+
+        if (col.type === 'select' && col.options) {
+          return (
+            <td key={col.key} className={cellClass}>
+              <select
+                value={String(value ?? '')}
+                onChange={handleSelect(col.key)}
+              >
+                {col.options.map((opt) => (
+                  <option key={opt || 'empty'} value={opt}>
+                    {opt || 'Pending'}
+                  </option>
+                ))}
+              </select>
+            </td>
+          )
+        }
+
+        if (col.type === 'number') {
+          return (
+            <td key={col.key} className={`pdt-cell-num pdt-editable`}>
+              <input
+                type="number"
+                step="0.001"
+                value={value === null || value === undefined ? '' : String(value)}
+                onChange={handleNumber(col.key)}
+                placeholder="\u2014"
+              />
+            </td>
+          )
+        }
+
+        return (
+          <td key={col.key} className={cellClass}>
+            <input
+              type="text"
+              value={String(value ?? '')}
+              onChange={handleText(col.key)}
+              placeholder="\u2014"
+            />
+          </td>
+        )
+      })}
     </tr>
   )
 }
