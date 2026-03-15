@@ -536,15 +536,15 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.72rem;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .pdt-table thead th {
-  padding: 0.6rem 0.4rem;
+  padding: 0.75rem 1rem;
   font-weight: 700;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: var(--color-text-tertiary);
   border-bottom: 2px solid var(--color-border);
   background: var(--color-bg-alt);
@@ -564,7 +564,7 @@
 }
 
 .pdt-table tbody td {
-  padding: 0.45rem 0.4rem;
+  padding: 0.55rem 1rem;
   color: var(--color-text-secondary);
   vertical-align: middle;
   overflow: hidden;
@@ -573,22 +573,17 @@
 }
 
 .pdt-table tfoot td {
-  padding: 0.6rem 0.4rem;
+  padding: 0.65rem 1rem;
   border-top: 2px solid var(--color-border);
   background: var(--color-bg-alt);
 }
 
-/* Column widths */
-.pdt-col-id { width: 5%; }
-.pdt-col-name { width: 13%; }
-.pdt-col-council { width: 11%; }
-.pdt-col-beneficiary { width: 12%; }
-.pdt-col-type { width: 9%; }
-.pdt-col-status { width: 7%; }
-.pdt-col-terrestrial { width: 10%; }
-.pdt-col-marine { width: 9%; }
-.pdt-col-mapping { width: 9%; }
-.pdt-col-remarks { width: 15%; }
+/* Column widths — auto layout, just set min-widths */
+.pdt-cell-id { min-width: 60px; }
+.pdt-cell-name { min-width: 140px; }
+.pdt-cell-beneficiary { min-width: 120px; }
+.pdt-cell-num { min-width: 100px; }
+.pdt-cell-remarks { min-width: 120px; }
 
 .pdt-foot-label {
   font-weight: 700;
@@ -837,7 +832,7 @@
 .pdt-th-content {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.5rem;
 }
 
 .pdt-col-remove {
