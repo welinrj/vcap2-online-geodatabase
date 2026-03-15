@@ -202,7 +202,7 @@ const ProDocTracker: FC = () => {
                   ))}
                 </RadialBar>
                 <Tooltip
-                  formatter={(value: number) => `${value.toFixed(1)}%`}
+                  formatter={(value) => `${Number(value).toFixed(1)}%`}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
                 />
               </RadialBarChart>
@@ -280,7 +280,7 @@ const ProDocTracker: FC = () => {
                   tickLine={false}
                 />
                 <Tooltip
-                  formatter={(value: number, name: string) => [formatHa(value), name]}
+                  formatter={(value, name) => [formatHa(Number(value)), String(name)]}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
                   cursor={{ fill: 'rgba(0,0,0,0.03)' }}
                 />

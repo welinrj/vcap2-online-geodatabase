@@ -243,7 +243,7 @@ const Dashboard: FC = () => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatArea(value)}
+                    formatter={(value) => formatArea(Number(value))}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
                   />
                 </PieChart>
@@ -292,7 +292,7 @@ const Dashboard: FC = () => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatArea(value)}
+                    formatter={(value) => formatArea(Number(value))}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
                   />
                 </PieChart>
@@ -428,7 +428,7 @@ const Dashboard: FC = () => {
                     tickLine={false}
                   />
                   <Tooltip
-                    formatter={(value: number, name: string) => [formatArea(value), name]}
+                    formatter={(value, name) => [formatArea(Number(value)), String(name)]}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
                     cursor={{ fill: 'rgba(0,0,0,0.03)' }}
                   />
