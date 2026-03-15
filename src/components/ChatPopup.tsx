@@ -112,11 +112,6 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // When popup opens, reset unread
-  useEffect(() => {
-    if (isOpen) setUnreadCount(0)
-  }, [isOpen])
-
   const otherUsers = allUsers.filter((u) => u.id !== currentUser.id)
 
   const getConvDisplayName = useCallback(
@@ -261,7 +256,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
       {/* Floating Action Button */}
       <button
         className="chat-fab"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => { if (!isOpen) setUnreadCount(0); setIsOpen(!isOpen) }}
         title={isOpen ? 'Close chat' : 'Open chat'}
       >
         {isOpen ? <X size={22} /> : <MessageCircle size={22} />}
