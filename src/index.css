@@ -1,5 +1,113 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════
+   Background Gradient Animation (21st.dev / Aceternity)
+   ═══════════════════════════════════════════════════ */
+
+@keyframes bga-moveVertical {
+  0% { transform: translateY(-50%); }
+  50% { transform: translateY(50%); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes bga-moveInCircle {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bga-moveHorizontal {
+  0% { transform: translateX(-50%) translateY(-10%); }
+  50% { transform: translateX(50%) translateY(10%); }
+  100% { transform: translateX(-50%) translateY(-10%); }
+}
+
+.bga-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 0;
+  background: linear-gradient(40deg, var(--gradient-background-start), var(--gradient-background-end));
+}
+
+.bga-svg-hidden {
+  display: none;
+}
+
+.bga-children {
+  position: relative;
+  z-index: 10;
+}
+
+.bga-gradients {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bga-default-blur {
+  filter: url(#blurMe) blur(40px);
+}
+
+.bga-safari-blur {
+  filter: blur(60px);
+}
+
+.bga-orb {
+  position: absolute;
+  mix-blend-mode: var(--blending-value);
+  width: var(--size);
+  height: var(--size);
+  top: calc(50% - var(--size) / 2);
+  left: calc(50% - var(--size) / 2);
+  opacity: 0.8;
+}
+
+.bga-orb-first {
+  background: radial-gradient(circle at center, rgba(var(--first-color), 0.8) 0, rgba(var(--first-color), 0) 50%) no-repeat;
+  transform-origin: center center;
+  animation: bga-moveVertical 30s ease infinite;
+}
+
+.bga-orb-second {
+  background: radial-gradient(circle at center, rgba(var(--second-color), 0.8) 0, rgba(var(--second-color), 0) 50%) no-repeat;
+  transform-origin: calc(50% - 400px);
+  animation: bga-moveInCircle 20s reverse infinite;
+}
+
+.bga-orb-third {
+  background: radial-gradient(circle at center, rgba(var(--third-color), 0.8) 0, rgba(var(--third-color), 0) 50%) no-repeat;
+  transform-origin: calc(50% + 400px);
+  animation: bga-moveInCircle 40s linear infinite;
+}
+
+.bga-orb-fourth {
+  background: radial-gradient(circle at center, rgba(var(--fourth-color), 0.8) 0, rgba(var(--fourth-color), 0) 50%) no-repeat;
+  transform-origin: calc(50% - 200px);
+  animation: bga-moveHorizontal 40s ease infinite;
+  opacity: 0.6;
+}
+
+.bga-orb-fifth {
+  background: radial-gradient(circle at center, rgba(var(--fifth-color), 0.8) 0, rgba(var(--fifth-color), 0) 50%) no-repeat;
+  transform-origin: calc(50% - 800px) calc(50% + 800px);
+  animation: bga-moveInCircle 20s ease infinite;
+}
+
+.bga-orb-interactive {
+  background: radial-gradient(circle at center, rgba(var(--pointer-color), 0.8) 0, rgba(var(--pointer-color), 0) 50%) no-repeat;
+  width: 100%;
+  height: 100%;
+  top: -50%;
+  left: -50%;
+  opacity: 0.6;
+}
+
 *,
 *::before,
 *::after {
@@ -132,41 +240,41 @@ table {
   scroll-behavior: smooth;
 }
 
-/* ─── Light Theme for Portal (not login) ──────── */
+/* ─── Portal Theme — Glassmorphism over animated BG ── */
 .app-layout {
-  --color-bg: #f8fafc;
-  --color-bg-alt: #f1f5f9;
-  --color-surface: rgba(255, 255, 255, 0.85);
-  --color-surface-solid: #ffffff;
-  --color-surface-hover: rgba(241, 245, 249, 0.9);
-  --color-surface-elevated: rgba(255, 255, 255, 0.95);
+  --color-bg: transparent;
+  --color-bg-alt: rgba(241, 245, 249, 0.55);
+  --color-surface: rgba(255, 255, 255, 0.72);
+  --color-surface-solid: rgba(255, 255, 255, 0.82);
+  --color-surface-hover: rgba(241, 245, 249, 0.75);
+  --color-surface-elevated: rgba(255, 255, 255, 0.88);
 
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
+  --color-border: rgba(226, 232, 240, 0.65);
+  --color-border-light: rgba(241, 245, 249, 0.5);
   --color-border-focus: #22c55e;
 
-  --color-primary-bg: rgba(34, 197, 94, 0.06);
-  --color-primary-bg-hover: rgba(34, 197, 94, 0.1);
+  --color-primary-bg: rgba(34, 197, 94, 0.1);
+  --color-primary-bg-hover: rgba(34, 197, 94, 0.16);
 
-  --color-accent-blue-bg: rgba(59, 130, 246, 0.07);
-  --color-accent-amber-bg: rgba(245, 158, 11, 0.07);
-  --color-accent-purple-bg: rgba(168, 85, 247, 0.07);
-  --color-accent-cyan-bg: rgba(6, 182, 212, 0.07);
-  --color-accent-green-bg: rgba(34, 197, 94, 0.07);
+  --color-accent-blue-bg: rgba(59, 130, 246, 0.1);
+  --color-accent-amber-bg: rgba(245, 158, 11, 0.1);
+  --color-accent-purple-bg: rgba(168, 85, 247, 0.1);
+  --color-accent-cyan-bg: rgba(6, 182, 212, 0.1);
+  --color-accent-green-bg: rgba(34, 197, 94, 0.1);
 
   --color-text: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-text-tertiary: #94a3b8;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
   --color-text-inverse: #ffffff;
 
-  --color-positive-bg: rgba(34, 197, 94, 0.08);
-  --color-negative-bg: rgba(239, 68, 68, 0.07);
-  --color-warning-bg: rgba(245, 158, 11, 0.07);
-  --color-info-bg: rgba(59, 130, 246, 0.07);
+  --color-positive-bg: rgba(34, 197, 94, 0.12);
+  --color-negative-bg: rgba(239, 68, 68, 0.1);
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-info-bg: rgba(59, 130, 246, 0.1);
 
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
 
-  background-color: var(--color-bg);
+  background-color: transparent;
   color: var(--color-text);
 }
