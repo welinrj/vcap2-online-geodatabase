@@ -184,7 +184,6 @@
   min-width: 0;
   overflow-x: hidden;
   position: relative;
-  z-index: 1;
 }
 
 /* ─── Header ──────────────────────────────────────── */
@@ -255,7 +254,6 @@
   padding: 1.5rem;
   flex: 1;
   position: relative;
-  z-index: 1;
   animation: fadeSlideIn 0.3s ease;
   overflow-x: hidden;
   max-width: 100%;
@@ -1347,6 +1345,11 @@
   padding: 0.6rem 1rem;
   text-align: left;
   transition: background 0.12s;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
 }
 
 .msg-user-item:hover {
