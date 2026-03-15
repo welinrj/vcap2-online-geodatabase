@@ -23,7 +23,7 @@ import {
 } from 'firebase/auth'
 import { auth, db } from '../config/firebase'
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
-import type { UserProfile } from '../types/user'
+import type { UserProfile, UserRole } from '../types/user'
 
 const googleProvider = auth ? new GoogleAuthProvider() : null
 
@@ -63,7 +63,7 @@ export async function signInWithGoogle(): Promise<UserProfile> {
     profile = await createUserProfile(user.uid, {
       email: user.email || '',
       name: user.displayName || 'User',
-      role: 'viewer', // Default role
+      role: 'editor', // Default role
       organization: '',
     })
   }
@@ -107,7 +107,7 @@ async function createUserProfile(
   data: {
     email: string
     name: string
-    role: 'admin' | 'editor' | 'viewer'
+    role: UserRole
     organization: string
   }
 ): Promise<UserProfile> {
@@ -156,6 +156,23 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 /**
  * Update user profile
  */
+export async function updateUserRole(uid: string, role: UserRole): Promise<void> {
+  ensureFirebaseConfigured()
+  const docRef = doc(db!, 'users', uid)
+  await updateDoc(docRef, { role })
+}
+
+export async function deleteUserById(uid: string): Promise<void> {
+  ensureFirebaseConfigured()
+  const { deleteDoc } = await import('firebase/firestore')
+  await deleteDoc(doc(db!, 'users', uid))
+}
+
+export async function adminResetPassword(email: string): Promise<void> {
+  ensureFirebaseConfigured()
+  await sendPasswordResetEmail(auth!, email)
+}
+
 export async function updateUserProfile(
   uid: string,
   updates: Partial<Pick<UserProfile, 'name' | 'organization'>>

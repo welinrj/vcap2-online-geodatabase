@@ -7,6 +7,7 @@ import {
   FileBarChart2,
   CalendarDays,
   LogOut,
+  Users,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
@@ -46,6 +47,15 @@ const navItems = [
   },
 ]
 
+const adminNavItems = [
+  {
+    id: 'user-management',
+    label: 'User Management',
+    icon: <Users className="nav-icon" size={18} />,
+    adminOnly: true,
+  },
+]
+
 const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }) => {
   return (
     <aside className="sidebar">
@@ -79,6 +89,28 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }
         </ul>
       </nav>
 
+      {user?.role === 'admin' && (
+        <>
+          <span className="sidebar-section-label">Administration</span>
+          <nav className="sidebar-nav">
+            <ul>
+              {adminNavItems.map((item) => (
+                <li key={item.id}>
+                  <button
+                    className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
+                    onClick={() => onNavigate(item.id)}
+                    title={item.label}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
+
       <div className="sidebar-footer">
         <div className="sidebar-user-section">
           {user && (
@@ -90,7 +122,14 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               )}
-              <span className="sidebar-user-name">{user.name}</span>
+              <div className="sidebar-user-details">
+                <span className="sidebar-user-name">{user.name}</span>
+                {user.role && (
+                  <span className={`sidebar-role-badge sidebar-role-${user.role}`}>
+                    {user.role === 'admin' ? 'Admin' : 'Editor'}
+                  </span>
+                )}
+              </div>
             </div>
           )}
           <button className="nav-item logout-btn" onClick={onLogout}>

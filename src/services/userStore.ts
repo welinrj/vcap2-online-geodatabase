@@ -6,6 +6,7 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  deleteDoc,
 } from 'firebase/firestore'
 
 const COLLECTION = 'users'
@@ -53,4 +54,8 @@ export async function listUsers(): Promise<UserProfile[]> {
 export async function findUserByName(name: string): Promise<UserProfile | null> {
   const users = await listUsers()
   return users.find((u) => u.name.toLowerCase() === name.toLowerCase()) ?? null
+}
+
+export async function deleteUserProfile(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTION, id))
 }
