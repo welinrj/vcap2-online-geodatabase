@@ -10,12 +10,14 @@ import './App.css'
 const Dashboard = lazy(() => import('./components/portal/Dashboard'))
 const GISDatabase = lazy(() => import('./components/portal/GISDatabase'))
 const ProtectedAreas = lazy(() => import('./components/portal/ProtectedAreas'))
+const ProDocTracker = lazy(() => import('./components/portal/ProDocTracker'))
 const ActivityPlanner = lazy(() => import('./components/portal/ActivityPlanner'))
 
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   'gis-database': 'GIS Database',
   'protected-areas': 'CCAs & MPAs',
+  'prodoc-tracker': 'ProDoc Tracker',
   'activity-planner': 'Activity Planner',
 }
 
@@ -78,6 +80,7 @@ function App() {
           {activeSection === 'dashboard' && <Dashboard />}
           {activeSection === 'gis-database' && <GISDatabase />}
           {activeSection === 'protected-areas' && <ProtectedAreas />}
+          {activeSection === 'prodoc-tracker' && <ProDocTracker />}
           {activeSection === 'activity-planner' && <ActivityPlanner />}
           </Suspense>
         </div>
