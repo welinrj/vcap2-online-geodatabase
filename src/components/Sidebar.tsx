@@ -12,6 +12,7 @@ import {
   FolderOpen,
   CalendarCheck,
   MessageSquare,
+  UserCog,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
@@ -180,6 +181,14 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, onLogi
                   )}
                 </div>
               </div>
+              <button
+                className={`nav-item ${activeSection === 'account' ? 'active' : ''}`}
+                onClick={() => onNavigate('account')}
+                title="Account Settings"
+              >
+                <UserCog className="nav-icon" size={18} />
+                Account
+              </button>
               <button className="nav-item logout-btn" onClick={onLogout}>
                 <LogOut className="nav-icon" size={18} />
                 Log Out

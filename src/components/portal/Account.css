@@ -1,0 +1,254 @@
+/* ═══════════════════════════════════════════════════
+   Account Settings — Light Glassmorphism Theme
+   ═══════════════════════════════════════════════════ */
+
+.acc {
+  max-width: 640px;
+  width: 100%;
+}
+
+/* Header */
+.acc-header {
+  margin-bottom: 1.5rem;
+}
+
+.acc-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.acc-subtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-tertiary);
+}
+
+/* No access */
+.acc-no-access {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+.acc-no-access h2 {
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+/* Alert */
+.acc-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.acc-alert-success {
+  background: var(--color-positive-bg);
+  color: var(--color-positive);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.acc-alert-error {
+  background: var(--color-negative-bg);
+  color: var(--color-negative);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+/* Cards */
+.acc-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.acc-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Avatar section */
+.acc-avatar-card {
+  padding: 1.5rem;
+}
+
+.acc-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.acc-avatar-btn {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(226, 232, 240, 0.6);
+  background: var(--color-primary-bg);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+
+.acc-avatar-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.acc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.acc-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.acc-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.acc-avatar-btn:hover .acc-avatar-overlay {
+  opacity: 1;
+}
+
+.acc-avatar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.acc-avatar-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.acc-avatar-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+/* Form */
+.acc-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.acc-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .acc-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acc-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.acc-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.acc-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-text);
+  transition: border-color 0.15s;
+}
+
+.acc-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+
+/* Actions */
+.acc-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.acc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.acc-btn:active {
+  transform: scale(0.97);
+}
+
+.acc-btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.acc-btn-primary:hover {
+  background: var(--color-primary-light);
+}
+
+.acc-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

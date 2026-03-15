@@ -7,6 +7,8 @@ export interface UserProfile {
   role?: UserRole
   organization?: string
   avatar?: string | null // base64 data URL
+  phone?: string
+  position?: string
   createdAt: string
   lastLogin?: string
 }
