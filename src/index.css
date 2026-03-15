@@ -30,6 +30,7 @@
   height: 100vh;
   overflow: hidden;
   z-index: 0;
+  pointer-events: none;
   background: linear-gradient(40deg, var(--gradient-background-start), var(--gradient-background-end));
 }
 
