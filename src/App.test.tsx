@@ -2,8 +2,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import App from './App'
 
-// Helper: log in with the staff password and land on the staff portal
+// Helper: navigate to login screen and authenticate as staff
 async function loginAsStaff() {
+  // The app now shows a public portal by default; click "Staff Login" to open login form
+  fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
+  await waitFor(() => {
+    expect(screen.getByLabelText('Password')).toBeInTheDocument()
+  })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'VCAP2@2026' } })
   fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
   await waitFor(() => {
@@ -16,14 +21,25 @@ describe('App', () => {
     sessionStorage.clear()
   })
 
-  it('shows login form when not authenticated', () => {
+  it('shows public portal with Dashboard by default', () => {
     render(<App />)
-    expect(screen.getByText('Staff Login')).toBeInTheDocument()
+    // Public portal renders sidebar with Dashboard button and a Staff Login button
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Staff Login/i }).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows login form when Staff Login is clicked', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
   })
 
-  it('shows error for wrong password', () => {
+  it('shows error for wrong password', async () => {
     render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
+    await waitFor(() => {
+      expect(screen.getByLabelText('Password')).toBeInTheDocument()
+    })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong' } })
     fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
     expect(screen.getByRole('alert')).toHaveTextContent('Incorrect password')
@@ -46,7 +62,8 @@ describe('App', () => {
 
     // Log out
     fireEvent.click(screen.getByRole('button', { name: 'Log Out' }))
-    expect(screen.getByText('Staff Login')).toBeInTheDocument()
+    // Should return to public portal
+    expect(screen.getAllByRole('button', { name: /Staff Login/i }).length).toBeGreaterThanOrEqual(1)
 
     // Log back in
     await loginAsStaff()
@@ -65,11 +82,11 @@ describe('App', () => {
     expect(screen.getByRole('banner')).toBeInTheDocument()
   })
 
-  it('logs out and returns to login', async () => {
+  it('logs out and returns to public portal', async () => {
     render(<App />)
     await loginAsStaff()
     fireEvent.click(screen.getByRole('button', { name: 'Log Out' }))
-    expect(screen.getByText('Staff Login')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Staff Login/i }).length).toBeGreaterThanOrEqual(1)
   })
 
   it('restores staff auth from sessionStorage', () => {
