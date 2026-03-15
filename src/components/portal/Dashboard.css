@@ -99,10 +99,10 @@
 }
 
 .dash-stat-card {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-lg);
   padding: 1.15rem 1.25rem;
   display: flex;
@@ -186,10 +186,10 @@
 
 /* Dashboard map */
 .dash-map-section {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -316,10 +316,10 @@
 
 /* Target tracking */
 .dash-targets {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -433,10 +433,10 @@
 }
 
 .dash-panel {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   box-shadow: var(--shadow);
