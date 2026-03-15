@@ -23,12 +23,16 @@ const sectionTitles: Record<string, string> = {
   'user-management': 'User Management',
 }
 
+/** Sections visible to the public (unauthenticated visitors) */
+const PUBLIC_SECTIONS = new Set(['dashboard', 'prodoc-tracker'])
+
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard')
   const [staffAuth, setStaffAuth] = useState(
     () => sessionStorage.getItem('vcap2_staff_auth') === '1'
   )
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null)
+  const [showLogin, setShowLogin] = useState(false)
 
   useEffect(() => {
     const userId = sessionStorage.getItem('vcap2_user_id')
@@ -47,20 +51,32 @@ function App() {
     setActiveSection('dashboard')
   }
 
-  if (!staffAuth) {
+  const handleNavigate = (section: string) => {
+    // If not authenticated and trying to access a restricted section, show login
+    if (!staffAuth && !PUBLIC_SECTIONS.has(section)) {
+      setShowLogin(true)
+      return
+    }
+    setActiveSection(section)
+  }
+
+  // Show login modal when requested (either from sidebar button or restricted nav)
+  if (showLogin && !staffAuth) {
     return (
       <StaffLogin
         onSuccess={(user) => {
           setStaffAuth(true)
           setCurrentUser(user)
-          setActiveSection('dashboard')
+          setShowLogin(false)
         }}
         onCancel={() => {
-          // No-op: login is the only entry point
+          setShowLogin(false)
         }}
       />
     )
   }
+
+  const isAuthenticated = staffAuth && currentUser !== null
 
   return (
     <div className="app-layout">
@@ -79,23 +95,27 @@ function App() {
       />
       <Sidebar
         activeSection={activeSection}
-        onNavigate={setActiveSection}
+        onNavigate={handleNavigate}
         onLogout={handleLogout}
+        onLogin={() => setShowLogin(true)}
         user={currentUser}
+        isAuthenticated={isAuthenticated}
       />
       <main className="main-content">
         <Header
           title={sectionTitles[activeSection] ?? activeSection}
           user={currentUser}
+          isAuthenticated={isAuthenticated}
+          onLogin={() => setShowLogin(true)}
         />
         <div className="dashboard-content">
           <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--color-text-tertiary)' }}>Loading...</div>}>
           {activeSection === 'dashboard' && <Dashboard />}
-          {activeSection === 'gis-database' && <GISDatabase />}
-          {activeSection === 'protected-areas' && <ProtectedAreas />}
-          {activeSection === 'prodoc-tracker' && <ProDocTracker />}
-          {activeSection === 'activity-planner' && <ActivityPlanner />}
-          {activeSection === 'user-management' && <UserManagement currentUser={currentUser} />}
+          {activeSection === 'gis-database' && isAuthenticated && <GISDatabase />}
+          {activeSection === 'protected-areas' && isAuthenticated && <ProtectedAreas />}
+          {activeSection === 'prodoc-tracker' && <ProDocTracker readOnly={!isAuthenticated} />}
+          {activeSection === 'activity-planner' && isAuthenticated && <ActivityPlanner />}
+          {activeSection === 'user-management' && isAuthenticated && <UserManagement currentUser={currentUser} />}
           </Suspense>
         </div>
       </main>

@@ -7,6 +7,7 @@ import {
   FileBarChart2,
   CalendarDays,
   LogOut,
+  LogIn,
   Users,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
@@ -16,15 +17,27 @@ interface SidebarProps {
   activeSection: string
   onNavigate: (section: string) => void
   onLogout: () => void
+  onLogin: () => void
   user: UserProfile | null
+  isAuthenticated: boolean
 }
 
-const navItems = [
+/** Items visible to everyone (public + authenticated) */
+const publicNavItems = [
   {
     id: 'dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard className="nav-icon" size={18} />,
   },
+  {
+    id: 'prodoc-tracker',
+    label: 'ProDoc Tracker',
+    icon: <FileBarChart2 className="nav-icon" size={18} />,
+  },
+]
+
+/** Items visible only to authenticated users (admin + editor) */
+const authNavItems = [
   {
     id: 'gis-database',
     label: 'GIS Database',
@@ -34,11 +47,6 @@ const navItems = [
     id: 'protected-areas',
     label: 'CCAs & MPAs',
     icon: <ShieldCheck className="nav-icon" size={18} />,
-  },
-  {
-    id: 'prodoc-tracker',
-    label: 'ProDoc Tracker',
-    icon: <FileBarChart2 className="nav-icon" size={18} />,
   },
   {
     id: 'activity-planner',
@@ -56,7 +64,7 @@ const adminNavItems = [
   },
 ]
 
-const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }) => {
+const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, onLogin, user, isAuthenticated }) => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -70,11 +78,11 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }
         </div>
       </div>
 
-      <span className="sidebar-section-label">Management</span>
+      <span className="sidebar-section-label">Public</span>
 
       <nav className="sidebar-nav">
         <ul>
-          {navItems.map((item) => (
+          {publicNavItems.map((item) => (
             <li key={item.id}>
               <button
                 className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
@@ -88,6 +96,28 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }
           ))}
         </ul>
       </nav>
+
+      {isAuthenticated && (
+        <>
+          <span className="sidebar-section-label">Management</span>
+          <nav className="sidebar-nav">
+            <ul>
+              {authNavItems.map((item) => (
+                <li key={item.id}>
+                  <button
+                    className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
+                    onClick={() => onNavigate(item.id)}
+                    title={item.label}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
 
       {user?.role === 'admin' && (
         <>
@@ -113,29 +143,36 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, user }
 
       <div className="sidebar-footer">
         <div className="sidebar-user-section">
-          {user && (
-            <div className="sidebar-user-info">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="sidebar-avatar" />
-              ) : (
-                <span className="sidebar-avatar sidebar-avatar-fallback">
-                  {user.name.charAt(0).toUpperCase()}
-                </span>
-              )}
-              <div className="sidebar-user-details">
-                <span className="sidebar-user-name">{user.name}</span>
-                {user.role && (
-                  <span className={`sidebar-role-badge sidebar-role-${user.role}`}>
-                    {user.role === 'admin' ? 'Admin' : 'Editor'}
+          {isAuthenticated && user ? (
+            <>
+              <div className="sidebar-user-info">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="sidebar-avatar" />
+                ) : (
+                  <span className="sidebar-avatar sidebar-avatar-fallback">
+                    {user.name.charAt(0).toUpperCase()}
                   </span>
                 )}
+                <div className="sidebar-user-details">
+                  <span className="sidebar-user-name">{user.name}</span>
+                  {user.role && (
+                    <span className={`sidebar-role-badge sidebar-role-${user.role}`}>
+                      {user.role === 'admin' ? 'Admin' : 'Editor'}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+              <button className="nav-item logout-btn" onClick={onLogout}>
+                <LogOut className="nav-icon" size={18} />
+                Log Out
+              </button>
+            </>
+          ) : (
+            <button className="nav-item login-btn" onClick={onLogin}>
+              <LogIn className="nav-icon" size={18} />
+              Staff Login
+            </button>
           )}
-          <button className="nav-item logout-btn" onClick={onLogout}>
-            <LogOut className="nav-icon" size={18} />
-            Log Out
-          </button>
         </div>
       </div>
     </aside>
