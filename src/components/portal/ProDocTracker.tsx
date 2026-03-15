@@ -8,7 +8,7 @@ import {
 import './ProDocTracker.css'
 
 type Tab = 'new' | 'existing'
-type TypeFilter = 'all' | 'Marine' | 'Marine & Terrestrial'
+type TypeFilter = 'all' | 'Marine' | 'Marine & Terrestrial' | 'Terrestrial'
 type StatusFilter = 'all' | 'Completed' | 'In Progress'
 
 function formatHa(val: number | null): string {
@@ -224,6 +224,7 @@ const ProDocTracker: FC = () => {
             <option value="all">All Types</option>
             <option value="Marine">Marine</option>
             <option value="Marine & Terrestrial">Marine & Terrestrial</option>
+            <option value="Terrestrial">Terrestrial</option>
           </select>
           <select
             className="pdt-filter-select"
@@ -292,7 +293,7 @@ const TableRow: FC<{ entry: ProDocEntry }> = ({ entry }) => (
     <td>{entry.areaCouncil}</td>
     <td className="pdt-cell-beneficiary">{entry.beneficiary || '—'}</td>
     <td>
-      <span className={`pdt-type-badge ${entry.ccaType === 'Marine' ? 'pdt-type-marine' : 'pdt-type-both'}`}>
+      <span className={`pdt-type-badge ${entry.ccaType === 'Marine' ? 'pdt-type-marine' : entry.ccaType === 'Terrestrial' ? 'pdt-type-terrestrial' : 'pdt-type-both'}`}>
         {entry.ccaType}
       </span>
     </td>

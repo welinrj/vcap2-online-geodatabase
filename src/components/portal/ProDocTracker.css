@@ -562,6 +562,11 @@
   color: var(--color-accent-purple);
 }
 
+.pdt-type-terrestrial {
+  background: var(--color-accent-green-bg);
+  color: var(--color-accent-green);
+}
+
 /* Status badges */
 .pdt-status-badge {
   font-size: 0.62rem;
