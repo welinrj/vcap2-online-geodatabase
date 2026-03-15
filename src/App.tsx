@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation'
+import ChatPopup from './components/ChatPopup'
 import { getUser } from './services/userStore'
 import { onIncomingCalls } from './services/callService'
 import type { UserProfile } from './types/user'
@@ -174,6 +175,11 @@ function App() {
           )}
         </div>
       </main>
+
+      {/* Floating Chat Popup — available on all pages when authenticated */}
+      {isAuthenticated && currentUser && (
+        <ChatPopup currentUser={currentUser} onStartCall={handleStartCall} />
+      )}
     </div>
   )
 }
