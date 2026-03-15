@@ -12,6 +12,7 @@ const GISDatabase = lazy(() => import('./components/portal/GISDatabase'))
 const ProtectedAreas = lazy(() => import('./components/portal/ProtectedAreas'))
 const ProDocTracker = lazy(() => import('./components/portal/ProDocTracker'))
 const ActivityPlanner = lazy(() => import('./components/portal/ActivityPlanner'))
+const UserManagement = lazy(() => import('./components/portal/UserManagement'))
 
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -19,6 +20,7 @@ const sectionTitles: Record<string, string> = {
   'protected-areas': 'CCAs & MPAs',
   'prodoc-tracker': 'ProDoc Tracker',
   'activity-planner': 'Activity Planner',
+  'user-management': 'User Management',
 }
 
 function App() {
@@ -93,6 +95,7 @@ function App() {
           {activeSection === 'protected-areas' && <ProtectedAreas />}
           {activeSection === 'prodoc-tracker' && <ProDocTracker />}
           {activeSection === 'activity-planner' && <ActivityPlanner />}
+          {activeSection === 'user-management' && <UserManagement currentUser={currentUser} />}
           </Suspense>
         </div>
       </main>

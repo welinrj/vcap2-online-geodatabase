@@ -1,7 +1,7 @@
 import { useState, type FC, type FormEvent } from 'react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import type { UserProfile } from '../types/user'
-import { createUser, findUserByName } from '../services/userStore'
+import { createUser, findUserByName, updateUser } from '../services/userStore'
 import app from '../config/firebase'
 import { WavyBackground } from './ui/wavy-background'
 
@@ -34,6 +34,10 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       let user = await findUserByName(STAFF_USER_NAME)
       if (!user) {
         user = await createUser(STAFF_USER_NAME, null)
+      }
+      // Ensure the staff account is always admin
+      if (user.role !== 'admin') {
+        user = (await updateUser(user.id, { role: 'admin' })) ?? user
       }
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
