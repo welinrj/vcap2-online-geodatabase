@@ -49,18 +49,16 @@ const ProDocTracker: FC = () => {
     { key: '2.2' as const, actual: totalExistingMarine },
   ]
 
-  // Area council breakdown
-  const councilBreakdown = useMemo(() => {
-    const map = new Map<string, { count: number; terrestrial: number; marine: number }>()
-    allEntries.forEach((e) => {
-      const existing = map.get(e.areaCouncil) ?? { count: 0, terrestrial: 0, marine: 0 }
-      existing.count++
-      existing.terrestrial += e.hectaresTerrestrial ?? 0
-      existing.marine += e.hectaresMarine ?? 0
-      map.set(e.areaCouncil, existing)
-    })
-    return Array.from(map.entries()).sort((a, b) => b[1].count - a[1].count)
-  }, [])
+  // Area council breakdown (static data, no memo needed)
+  const councilMap = new Map<string, { count: number; terrestrial: number; marine: number }>()
+  allEntries.forEach((e) => {
+    const existing = councilMap.get(e.areaCouncil) ?? { count: 0, terrestrial: 0, marine: 0 }
+    existing.count++
+    existing.terrestrial += e.hectaresTerrestrial ?? 0
+    existing.marine += e.hectaresMarine ?? 0
+    councilMap.set(e.areaCouncil, existing)
+  })
+  const councilBreakdown = Array.from(councilMap.entries()).sort((a, b) => b[1].count - a[1].count)
 
   return (
     <div className="pdt">
