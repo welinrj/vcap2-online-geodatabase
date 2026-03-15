@@ -13,6 +13,7 @@ const ProtectedAreas = lazy(() => import('./components/portal/ProtectedAreas'))
 const ProDocTracker = lazy(() => import('./components/portal/ProDocTracker'))
 const ActivityPlanner = lazy(() => import('./components/portal/ActivityPlanner'))
 const UserManagement = lazy(() => import('./components/portal/UserManagement'))
+const FileManager = lazy(() => import('./components/portal/FileManager'))
 
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -21,6 +22,7 @@ const sectionTitles: Record<string, string> = {
   'prodoc-tracker': 'ProDoc Tracker',
   'activity-planner': 'Activity Planner',
   'user-management': 'User Management',
+  'file-manager': 'File Manager',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -116,6 +118,7 @@ function App() {
           {activeSection === 'prodoc-tracker' && <ProDocTracker readOnly={!isAuthenticated} />}
           {activeSection === 'activity-planner' && isAuthenticated && <ActivityPlanner />}
           {activeSection === 'user-management' && isAuthenticated && <UserManagement currentUser={currentUser} />}
+          {activeSection === 'file-manager' && isAuthenticated && <FileManager currentUser={currentUser} />}
           </Suspense>
         </div>
       </main>
