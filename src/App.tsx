@@ -63,15 +63,17 @@ function App() {
   return (
     <div className="app-layout">
       <BackgroundGradientAnimation
-        gradientBackgroundStart="rgb(15, 23, 42)"
-        gradientBackgroundEnd="rgb(8, 47, 73)"
-        firstColor="34, 197, 94"
-        secondColor="59, 130, 246"
-        thirdColor="6, 182, 212"
-        fourthColor="168, 85, 247"
-        fifthColor="245, 158, 11"
+        gradientBackgroundStart="rgb(241, 245, 249)"
+        gradientBackgroundEnd="rgb(236, 253, 245)"
+        firstColor="187, 231, 204"
+        secondColor="191, 219, 254"
+        thirdColor="178, 235, 242"
+        fourthColor="221, 214, 254"
+        fifthColor="254, 235, 200"
+        pointerColor="187, 231, 204"
         interactive={true}
         size="80%"
+        blendingValue="normal"
       />
       <Sidebar
         activeSection={activeSection}

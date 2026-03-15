@@ -64,10 +64,10 @@
 }
 
 .pdt-stat-card {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-lg);
   padding: 1.15rem 1.25rem;
   display: flex;
@@ -174,10 +174,10 @@
 
 /* ProDoc targets */
 .pdt-targets {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -323,10 +323,10 @@
 
 /* Area council breakdown */
 .pdt-breakdown {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -362,10 +362,10 @@
 
 /* Coordinates section */
 .pdt-coords-section {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -522,10 +522,10 @@
 
 /* Data table */
 .pdt-table-wrap {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-xl);
   overflow-x: auto;
   box-shadow: var(--shadow);
@@ -798,10 +798,10 @@
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
 }
