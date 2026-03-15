@@ -14,6 +14,7 @@ const ProDocTracker = lazy(() => import('./components/portal/ProDocTracker'))
 const ActivityPlanner = lazy(() => import('./components/portal/ActivityPlanner'))
 const UserManagement = lazy(() => import('./components/portal/UserManagement'))
 const FileManager = lazy(() => import('./components/portal/FileManager'))
+const ActivityCalendar = lazy(() => import('./components/portal/ActivityCalendar'))
 
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -23,6 +24,7 @@ const sectionTitles: Record<string, string> = {
   'activity-planner': 'Activity Planner',
   'user-management': 'User Management',
   'file-manager': 'File Manager',
+  'activity-calendar': 'Activity Calendar',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -116,9 +118,10 @@ function App() {
           {activeSection === 'gis-database' && isAuthenticated && <GISDatabase />}
           {activeSection === 'protected-areas' && isAuthenticated && <ProtectedAreas />}
           {activeSection === 'prodoc-tracker' && <ProDocTracker readOnly={!isAuthenticated} />}
-          {activeSection === 'activity-planner' && isAuthenticated && <ActivityPlanner />}
+          {activeSection === 'activity-planner' && isAuthenticated && <ActivityPlanner currentUser={currentUser} />}
           {activeSection === 'user-management' && isAuthenticated && <UserManagement currentUser={currentUser} />}
           {activeSection === 'file-manager' && isAuthenticated && <FileManager currentUser={currentUser} />}
+          {activeSection === 'activity-calendar' && isAuthenticated && <ActivityCalendar currentUser={currentUser} />}
           </Suspense>
         </div>
       </main>
