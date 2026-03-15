@@ -314,6 +314,13 @@
   line-height: 1.5;
 }
 
+.dash-section-subtitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 1rem 0 0.5rem;
+}
+
 /* Target tracking */
 .dash-targets {
   background: rgba(255, 255, 255, 0.85);
@@ -332,8 +339,19 @@
   gap: 1rem;
 }
 
+.dash-target-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .dash-target-grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .dash-target-grid {
+  .dash-target-grid,
+  .dash-target-grid-4 {
     grid-template-columns: 1fr;
   }
 }
