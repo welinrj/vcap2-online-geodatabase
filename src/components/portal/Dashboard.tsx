@@ -1,8 +1,7 @@
 import { useState, useEffect, lazy, Suspense, type FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
-import type { ProtectedAreaSummary } from '../../types/protectedArea'
 import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../services/datasetStore'
-import { listProtectedAreas, formatArea } from '../../services/protectedAreaStore'
+import { formatArea } from '../../services/protectedAreaStore'
 import { newAreas, existingAreas, PRODOC_TARGETS, type ProDocEntry } from '../../data/prodocTrackerData'
 import {
   ShieldCheck,
@@ -81,15 +80,13 @@ function sumMarine(entries: ProDocEntry[]): number {
 
 const Dashboard: FC = () => {
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
-  const [areas, setAreas] = useState<ProtectedAreaSummary[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       await migrateFromLocalStorage()
-      const [ds, pa] = await Promise.all([listDatasets(), listProtectedAreas()])
+      const ds = await listDatasets()
       setDatasets(ds)
-      setAreas(pa)
       setLoading(false)
     }
     load()
@@ -106,8 +103,6 @@ const Dashboard: FC = () => {
     )
   }
 
-  const ccas = areas.filter((a) => a.type === 'cca')
-  const mpas = areas.filter((a) => a.type === 'mpa')
   const totalFiles = datasets.length
   const totalSize = datasets.reduce((s, d) => s + d.sizeBytes, 0)
   const totalFeatures = datasets.reduce((s, d) => s + d.featureCount, 0)
@@ -223,28 +218,6 @@ const Dashboard: FC = () => {
     }
   }).filter((d) => d.Terrestrial > 0 || d.Marine > 0)
 
-  // Status breakdown from uploaded protected areas
-  const activeAreas = areas.filter((a) => a.status === 'active').length
-  const designatedAreas = areas.filter((a) => a.status === 'designated').length
-  const proposedAreas = areas.filter((a) => a.status === 'proposed').length
-  const statusPieData = [
-    { name: 'Active', value: activeAreas, color: CHART_COLORS.green },
-    { name: 'Designated', value: designatedAreas, color: CHART_COLORS.purple },
-    { name: 'Proposed', value: proposedAreas, color: CHART_COLORS.amber },
-  ].filter((d) => d.value > 0)
-
-  // Province breakdown from uploaded areas
-  const provinces = [...new Set(areas.map((a) => a.province).filter(Boolean))]
-  const provinceBarData = provinces.sort().map((prov) => {
-    const provAreas = areas.filter((a) => a.province === prov)
-    return {
-      name: prov.length > 12 ? prov.slice(0, 12) + '...' : prov,
-      fullName: prov,
-      CCA: provAreas.filter((a) => a.type === 'cca').reduce((s, a) => s + (a.areaHa ?? 0), 0),
-      MPA: provAreas.filter((a) => a.type === 'mpa').reduce((s, a) => s + (a.areaHa ?? 0), 0),
-      count: provAreas.length,
-    }
-  })
 
   return (
     <div className="dash">
