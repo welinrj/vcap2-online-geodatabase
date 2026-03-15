@@ -64,6 +64,27 @@ const FILE_TYPE_ICONS: Record<string, typeof FileJson> = {
   CSV: FileSpreadsheet,
 }
 
+/** Map area councils to their province */
+const AREA_COUNCIL_TO_PROVINCE: Record<string, string> = {
+  'South Epi': 'Shefa',
+  'South Maewo': 'Penama',
+  'Toga Island (Torres)': 'Torba',
+  'West Ambrym': 'Malampa',
+  'West Coast Santo': 'Sanma',
+  'East Vanualava': 'Torba',
+  'Hiu Island (Torres)': 'Torba',
+  'South East Tanna': 'Tafea',
+  'Torba': 'Torba',
+  'Sanma': 'Sanma',
+  'Malampa': 'Malampa',
+  'Shefa': 'Shefa',
+  'Tafea': 'Tafea',
+}
+
+function getProvince(areaCouncil: string): string {
+  return AREA_COUNCIL_TO_PROVINCE[areaCouncil] ?? areaCouncil
+}
+
 /** Sum terrestrial hectares for entries whose ccaType includes terrestrial */
 function sumTerrestrial(entries: ProDocEntry[]): number {
   return entries
@@ -194,6 +215,24 @@ const Dashboard: FC = () => {
     { name: 'Remaining', value: mpaRemainingHa, color: CHART_COLORS.gray },
   ]
 
+  // --- CCA / MPA counts ---
+  // CCA = entries with terrestrial component, MPA = entries with marine component
+  const isCCA = (e: ProDocEntry) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial'
+  const isMPA = (e: ProDocEntry) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial'
+
+  const newCcaCount = newAreas.filter(isCCA).length
+  const newMpaCount = newAreas.filter(isMPA).length
+  const improvedCcaCount = existingAreas.filter(isCCA).length
+  const improvedMpaCount = existingAreas.filter(isMPA).length
+
+  // --- Mapping completion ---
+  const ccaAreas = allProDocAreas.filter(isCCA)
+  const mpaAreas = allProDocAreas.filter(isMPA)
+  const ccaMappedComplete = ccaAreas.filter((a) => a.mappingStatus === 'Completed').length
+  const ccaMappedLeft = ccaAreas.length - ccaMappedComplete
+  const mpaMappedComplete = mpaAreas.filter((a) => a.mappingStatus === 'Completed').length
+  const mpaMappedLeft = mpaAreas.length - mpaMappedComplete
+
   // Mapping status breakdown from ProDoc data
   const mappingCompleted = allProDocAreas.filter((a) => a.mappingStatus === 'Completed').length
   const mappingInProgress = allProDocAreas.filter((a) => a.mappingStatus === 'In Progress').length
@@ -205,16 +244,16 @@ const Dashboard: FC = () => {
     { name: 'Not Started', value: mappingNotStarted, color: CHART_COLORS.gray },
   ].filter((d) => d.value > 0)
 
-  // Area council breakdown from ProDoc data
-  const areaCouncils = [...new Set(allProDocAreas.map((a) => a.areaCouncil))].sort()
-  const councilBarData = areaCouncils.map((council) => {
-    const councilAreas = allProDocAreas.filter((a) => a.areaCouncil === council)
+  // Province breakdown from ProDoc data
+  const provinces = [...new Set(allProDocAreas.map((a) => getProvince(a.areaCouncil)))].sort()
+  const provinceBarData = provinces.map((province) => {
+    const provinceAreas = allProDocAreas.filter((a) => getProvince(a.areaCouncil) === province)
     return {
-      name: council.length > 16 ? council.slice(0, 14) + '...' : council,
-      fullName: council,
-      Terrestrial: councilAreas.reduce((s, a) => s + (a.hectaresTerrestrial ?? 0), 0),
-      Marine: councilAreas.reduce((s, a) => s + (a.hectaresMarine ?? 0), 0),
-      count: councilAreas.length,
+      name: province,
+      fullName: province,
+      Terrestrial: provinceAreas.reduce((s, a) => s + (a.hectaresTerrestrial ?? 0), 0),
+      Marine: provinceAreas.reduce((s, a) => s + (a.hectaresMarine ?? 0), 0),
+      count: provinceAreas.length,
     }
   }).filter((d) => d.Terrestrial > 0 || d.Marine > 0)
 
@@ -233,15 +272,15 @@ const Dashboard: FC = () => {
         </div>
       </div>
 
-      {/* Quick stats — derived from ProDoc Tracker data */}
-      <div className="dash-stats">
+      {/* Quick stats — CCA & MPA summary */}
+      <div className="dash-stats dash-stats-6">
         <div className="dash-stat-card dash-stat-green">
           <div className="dash-stat-icon">
             <TreePine size={20} />
           </div>
           <div className="dash-stat-info">
-            <span className="dash-stat-value">{newAreas.length}</span>
-            <span className="dash-stat-label">New Areas</span>
+            <span className="dash-stat-value">{newCcaCount}</span>
+            <span className="dash-stat-label">New CCAs</span>
           </div>
         </div>
         <div className="dash-stat-card dash-stat-blue">
@@ -249,8 +288,26 @@ const Dashboard: FC = () => {
             <ShieldCheck size={20} />
           </div>
           <div className="dash-stat-info">
-            <span className="dash-stat-value">{existingAreas.length}</span>
-            <span className="dash-stat-label">Existing Areas</span>
+            <span className="dash-stat-value">{newMpaCount}</span>
+            <span className="dash-stat-label">New MPAs</span>
+          </div>
+        </div>
+        <div className="dash-stat-card dash-stat-green">
+          <div className="dash-stat-icon">
+            <TrendingUp size={20} />
+          </div>
+          <div className="dash-stat-info">
+            <span className="dash-stat-value">{improvedCcaCount}</span>
+            <span className="dash-stat-label">CCAs Improved</span>
+          </div>
+        </div>
+        <div className="dash-stat-card dash-stat-blue">
+          <div className="dash-stat-icon">
+            <TrendingUp size={20} />
+          </div>
+          <div className="dash-stat-info">
+            <span className="dash-stat-value">{improvedMpaCount}</span>
+            <span className="dash-stat-label">MPAs Improved</span>
           </div>
         </div>
         <div className="dash-stat-card dash-stat-purple">
@@ -258,17 +315,19 @@ const Dashboard: FC = () => {
             <CheckCircle2 size={20} />
           </div>
           <div className="dash-stat-info">
-            <span className="dash-stat-value">{mappingCompleted}</span>
-            <span className="dash-stat-label">Mapping Completed</span>
+            <span className="dash-stat-value">{ccaMappedComplete} / {ccaAreas.length}</span>
+            <span className="dash-stat-label">CCA Mapped</span>
+            <span className="dash-stat-sub">{ccaMappedLeft} remaining</span>
           </div>
         </div>
         <div className="dash-stat-card dash-stat-amber">
           <div className="dash-stat-icon">
-            <Database size={20} />
+            <CheckCircle2 size={20} />
           </div>
           <div className="dash-stat-info">
-            <span className="dash-stat-value">{totalFiles}</span>
-            <span className="dash-stat-label">GIS Datasets</span>
+            <span className="dash-stat-value">{mpaMappedComplete} / {mpaAreas.length}</span>
+            <span className="dash-stat-label">MPA Mapped</span>
+            <span className="dash-stat-sub">{mpaMappedLeft} remaining</span>
           </div>
         </div>
       </div>
@@ -557,17 +616,17 @@ const Dashboard: FC = () => {
           </div>
         </div>
 
-        {/* Area Council coverage from ProDoc Tracker */}
-        {councilBarData.length > 0 && (
+        {/* Province coverage from ProDoc Tracker */}
+        {provinceBarData.length > 0 && (
           <div className="dash-panel dash-panel-wide">
             <h3 className="dash-section-title">
               <MapPin size={18} className="dash-section-icon" />
-              Coverage by Area Council
+              Coverage by Province
             </h3>
             <div className="dash-province-chart">
-              <ResponsiveContainer width="100%" height={Math.max(200, councilBarData.length * 40)}>
+              <ResponsiveContainer width="100%" height={Math.max(200, provinceBarData.length * 50)}>
                 <BarChart
-                  data={councilBarData}
+                  data={provinceBarData}
                   layout="vertical"
                   margin={{ top: 0, right: 16, bottom: 0, left: 0 }}
                   barCategoryGap="20%"
@@ -583,8 +642,8 @@ const Dashboard: FC = () => {
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={120}
-                    tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
+                    width={80}
+                    tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }}
                     axisLine={false}
                     tickLine={false}
                   />
