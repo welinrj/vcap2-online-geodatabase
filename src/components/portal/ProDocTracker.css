@@ -952,6 +952,97 @@ tr:hover .pdt-row-delete-btn {
   padding: 2rem !important;
 }
 
+/* ─── Loading state ─────────────────────────────── */
+.pdt-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  color: var(--color-text-tertiary);
+  font-size: 0.85rem;
+}
+
+@keyframes pdt-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pdt-spinner {
+  animation: pdt-spin 1s linear infinite;
+}
+
+/* ─── Save button ──────────────────────────────── */
+.pdt-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-text-tertiary);
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.pdt-save-btn:not(:disabled) {
+  cursor: pointer;
+}
+
+.pdt-save-dirty {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.pdt-save-dirty:hover:not(:disabled) {
+  background: #16a34a;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.pdt-save-success {
+  background: var(--color-positive-bg);
+  color: var(--color-positive);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.pdt-save-error {
+  background: var(--color-negative-bg);
+  color: var(--color-negative);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ─── Column drag-and-drop ─────────────────────── */
+.pdt-drag-handle {
+  display: none;
+  align-items: center;
+  color: var(--color-text-tertiary);
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.pdt-th-content:hover .pdt-drag-handle {
+  display: flex;
+  opacity: 0.8;
+}
+
+.pdt-drag-handle:active {
+  cursor: grabbing;
+}
+
+.pdt-th-dragging {
+  opacity: 0.4;
+}
+
+.pdt-th-drag-over {
+  border-left: 3px solid var(--color-primary) !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .pdt-header {
