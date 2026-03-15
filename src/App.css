@@ -1225,7 +1225,7 @@
 
 .msg-input-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--color-border-light);
@@ -1245,6 +1245,21 @@
 
 .msg-input:focus {
   border-color: var(--color-primary);
+}
+
+.msg-textarea {
+  border-radius: 20px !important;
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important;
+  padding: 0.5rem 0.85rem !important;
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+}
+
+.msg-textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: none !important;
+  ring: none !important;
 }
 
 .msg-send-btn {

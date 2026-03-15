@@ -90,6 +90,13 @@
   margin-top: 0.1rem;
 }
 
+.dash-hero-morph {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+
 /* Quick stats */
 .dash-stats {
   display: grid;
