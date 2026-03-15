@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   VCAP2 Portal — Clean Light Theme
+   VCAP2 Portal — Seamless Professional Theme
    ═══════════════════════════════════════════════════ */
 
 /* Layout */
@@ -22,7 +22,8 @@
   bottom: 0;
   z-index: 100;
   overflow-y: auto;
-  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 1px 0 12px rgba(0, 0, 0, 0.04);
+  transition: width 0.25s ease;
 }
 
 .sidebar-brand {
@@ -136,8 +137,9 @@
   font-size: 0.85rem;
   font-weight: 450;
   border-radius: var(--radius);
-  transition: all 0.15s;
+  transition: all 0.2s ease;
   margin-bottom: 1px;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
@@ -149,14 +151,19 @@
   background: var(--color-primary-bg);
   color: var(--color-primary);
   font-weight: 600;
-  border-left: 3px solid var(--color-primary);
+  border-left-color: var(--color-primary);
 }
 
 .nav-icon {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.nav-item:hover .nav-icon {
+  opacity: 0.85;
 }
 
 .nav-item.active .nav-icon {
@@ -240,6 +247,18 @@
   flex: 1;
   position: relative;
   z-index: 1;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─── Stats grid ──────────────────────────────────── */
