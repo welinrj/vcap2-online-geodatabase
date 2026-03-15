@@ -96,6 +96,21 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const currentFolderId = breadcrumb[breadcrumb.length - 1].id
 
+  const loadContents = useCallback(async () => {
+    if (!currentUser) return
+    setLoading(true)
+    try {
+      const [f, fi] = await Promise.all([
+        listFolders(currentUser.id, currentFolderId),
+        currentFolderId ? listFiles(currentFolderId, currentUser.id) : Promise.resolve([]),
+      ])
+      setFolders(f)
+      setFiles(fi)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentUser, currentFolderId])
+
   // Load folder contents
   useEffect(() => {
     if (!currentUser || tab !== 'my-files') return
@@ -111,21 +126,6 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       listMyShares(currentUser.id).then(setSentShares)
     }
   }, [currentUser, tab])
-
-  const loadContents = useCallback(async () => {
-    if (!currentUser) return
-    setLoading(true)
-    try {
-      const [f, fi] = await Promise.all([
-        listFolders(currentUser.id, currentFolderId),
-        currentFolderId ? listFiles(currentFolderId, currentUser.id) : Promise.resolve([]),
-      ])
-      setFolders(f)
-      setFiles(fi)
-    } finally {
-      setLoading(false)
-    }
-  }, [currentUser, currentFolderId])
 
   function showAlert(type: 'success' | 'error', msg: string) {
     setAlert({ type, msg })
