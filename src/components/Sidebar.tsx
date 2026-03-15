@@ -9,6 +9,7 @@ import {
   LogOut,
   LogIn,
   Users,
+  FolderOpen,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
@@ -52,6 +53,11 @@ const authNavItems = [
     id: 'activity-planner',
     label: 'Activity Planner',
     icon: <CalendarDays className="nav-icon" size={18} />,
+  },
+  {
+    id: 'file-manager',
+    label: 'File Manager',
+    icon: <FolderOpen className="nav-icon" size={18} />,
   },
 ]
 
