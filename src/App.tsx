@@ -1,10 +1,12 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation'
 import { getUser } from './services/userStore'
+import { onIncomingCalls } from './services/callService'
 import type { UserProfile } from './types/user'
+import type { CallSignal } from './types/messaging'
 import './App.css'
 
 const Dashboard = lazy(() => import('./components/portal/Dashboard'))
@@ -15,6 +17,8 @@ const ActivityPlanner = lazy(() => import('./components/portal/ActivityPlanner')
 const UserManagement = lazy(() => import('./components/portal/UserManagement'))
 const FileManager = lazy(() => import('./components/portal/FileManager'))
 const ActivityCalendar = lazy(() => import('./components/portal/ActivityCalendar'))
+const Messaging = lazy(() => import('./components/portal/Messaging'))
+const VideoCall = lazy(() => import('./components/portal/VideoCall'))
 
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -25,6 +29,7 @@ const sectionTitles: Record<string, string> = {
   'user-management': 'User Management',
   'file-manager': 'File Manager',
   'activity-calendar': 'Activity Calendar',
+  messaging: 'Messages',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -38,6 +43,12 @@ function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null)
   const [showLogin, setShowLogin] = useState(false)
 
+  // Call state
+  const [outgoingCall, setOutgoingCall] = useState<{
+    calleeId: string; calleeName: string; type: 'video' | 'audio'
+  } | null>(null)
+  const [incomingCall, setIncomingCall] = useState<CallSignal | null>(null)
+
   useEffect(() => {
     const userId = sessionStorage.getItem('vcap2_user_id')
     if (staffAuth && userId) {
@@ -46,6 +57,17 @@ function App() {
       })
     }
   }, [staffAuth])
+
+  // Listen for incoming calls
+  useEffect(() => {
+    if (!currentUser) return
+    return onIncomingCalls(currentUser.id, (calls) => {
+      // Show the first incoming call if not already in a call
+      if (calls.length > 0 && !outgoingCall && !incomingCall) {
+        setIncomingCall(calls[0])
+      }
+    })
+  }, [currentUser, outgoingCall, incomingCall])
 
   const handleLogout = () => {
     sessionStorage.removeItem('vcap2_staff_auth')
@@ -63,6 +85,14 @@ function App() {
     }
     setActiveSection(section)
   }
+
+  const handleStartCall = useCallback((calleeId: string, calleeName: string, type: 'video' | 'audio') => {
+    setOutgoingCall({ calleeId, calleeName, type })
+  }, [])
+
+  const handleNavigateToChat = useCallback(() => {
+    setActiveSection('messaging')
+  }, [])
 
   // Show login modal when requested (either from sidebar button or restricted nav)
   if (showLogin && !staffAuth) {
@@ -111,6 +141,7 @@ function App() {
           user={currentUser}
           isAuthenticated={isAuthenticated}
           onLogin={() => setShowLogin(true)}
+          onNavigateToChat={handleNavigateToChat}
         />
         <div className="dashboard-content">
           <Suspense fallback={<div style={{ padding: '2rem', color: 'var(--color-text-tertiary)' }}>Loading...</div>}>
@@ -122,7 +153,25 @@ function App() {
           {activeSection === 'user-management' && isAuthenticated && <UserManagement currentUser={currentUser} />}
           {activeSection === 'file-manager' && isAuthenticated && <FileManager currentUser={currentUser} />}
           {activeSection === 'activity-calendar' && isAuthenticated && <ActivityCalendar currentUser={currentUser} />}
+          {activeSection === 'messaging' && isAuthenticated && (
+            <Messaging currentUser={currentUser} onStartCall={handleStartCall} />
+          )}
           </Suspense>
+
+          {/* Video/Audio Call Overlay */}
+          {(outgoingCall || incomingCall) && currentUser && (
+            <Suspense fallback={null}>
+              <VideoCall
+                currentUser={currentUser}
+                outgoingCall={outgoingCall}
+                incomingCall={incomingCall}
+                onClose={() => {
+                  setOutgoingCall(null)
+                  setIncomingCall(null)
+                }}
+              />
+            </Suspense>
+          )}
         </div>
       </main>
     </div>

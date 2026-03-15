@@ -11,6 +11,7 @@ import {
   Users,
   FolderOpen,
   CalendarCheck,
+  MessageSquare,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
@@ -64,6 +65,11 @@ const authNavItems = [
     id: 'activity-calendar',
     label: 'Activity Calendar',
     icon: <CalendarCheck className="nav-icon" size={18} />,
+  },
+  {
+    id: 'messaging',
+    label: 'Messages',
+    icon: <MessageSquare className="nav-icon" size={18} />,
   },
 ]
 

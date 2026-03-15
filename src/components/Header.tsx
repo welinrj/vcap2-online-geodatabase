@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import type { UserProfile } from '../types/user'
 import { LogIn } from 'lucide-react'
+import NotificationPanel from './portal/NotificationPanel'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
 
 interface HeaderProps {
@@ -8,9 +9,10 @@ interface HeaderProps {
   user: UserProfile | null
   isAuthenticated: boolean
   onLogin: () => void
+  onNavigateToChat?: (conversationId: string) => void
 }
 
-const Header: FC<HeaderProps> = ({ title, user, isAuthenticated, onLogin }) => {
+const Header: FC<HeaderProps> = ({ title, user, isAuthenticated, onLogin, onNavigateToChat }) => {
   return (
     <header className="header">
       <div className="header-left">
@@ -18,6 +20,9 @@ const Header: FC<HeaderProps> = ({ title, user, isAuthenticated, onLogin }) => {
         <span className="header-badge">DEPC</span>
       </div>
       <div className="header-user">
+        {isAuthenticated && user && (
+          <NotificationPanel currentUser={user} onNavigateToChat={onNavigateToChat} />
+        )}
         {isAuthenticated && user ? (
           <>
             <span className="header-greeting">Welcome, {user.name}</span>
