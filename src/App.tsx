@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
-import { PortalBackground } from './components/ui/portal-background'
+// PortalBackground removed — portal now uses a clean light theme
 import { getUser } from './services/userStore'
 import type { UserProfile } from './types/user'
 import './App.css'
@@ -61,8 +61,6 @@ function App() {
   }
 
   return (
-    <>
-    <PortalBackground />
     <div className="app-layout">
       <Sidebar
         activeSection={activeSection}
@@ -86,7 +84,6 @@ function App() {
         </div>
       </main>
     </div>
-    </>
   )
 }
 

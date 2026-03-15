@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   ProDoc Tracker — Dark Theme
+   ProDoc Tracker — Clean Light Theme
    ═══════════════════════════════════════════════════ */
 
 .pdt {
@@ -59,22 +59,21 @@
 }
 
 .pdt-stat-card {
-  background: rgba(20, 20, 24, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1.15rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
+  box-shadow: var(--shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .pdt-stat-card:hover {
   border-color: var(--color-text-tertiary);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .pdt-stat-icon {
@@ -95,25 +94,21 @@
 .pdt-stat-green .pdt-stat-icon {
   background: var(--color-positive-bg);
   color: var(--color-positive);
-  box-shadow: 0 0 16px rgba(34, 197, 94, 0.15);
 }
 
 .pdt-stat-blue .pdt-stat-icon {
   background: var(--color-accent-blue-bg);
   color: var(--color-accent-blue);
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.15);
 }
 
 .pdt-stat-amber .pdt-stat-icon {
   background: var(--color-accent-amber-bg);
   color: var(--color-accent-amber);
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
 }
 
 .pdt-stat-purple .pdt-stat-icon {
   background: var(--color-accent-purple-bg);
   color: var(--color-accent-purple);
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.15);
 }
 
 .pdt-stat-info {
@@ -153,13 +148,12 @@
 
 /* ProDoc targets */
 .pdt-targets {
-  background: rgba(20, 20, 24, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
 .pdt-target-grid {
@@ -237,13 +231,11 @@
 }
 
 .pdt-fill-green {
-  background: linear-gradient(90deg, var(--color-primary-dim), var(--color-primary));
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+  background: linear-gradient(90deg, #16a34a, var(--color-primary));
 }
 
 .pdt-fill-blue {
-  background: linear-gradient(90deg, #1e40af, var(--color-accent-blue));
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(90deg, #2563eb, var(--color-accent-blue));
 }
 
 .pdt-target-nums {
@@ -255,13 +247,12 @@
 
 /* Area council breakdown */
 .pdt-breakdown {
-  background: rgba(20, 20, 24, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
 .pdt-council-grid {
@@ -318,13 +309,12 @@
 
 /* Coordinates section */
 .pdt-coords-section {
-  background: rgba(20, 20, 24, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
 .pdt-coords-grid {
@@ -392,8 +382,8 @@
 .pdt-tabs {
   display: flex;
   gap: 0.25rem;
-  background: rgba(20, 20, 24, 0.55);
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 0.2rem;
 }
@@ -412,16 +402,16 @@
 
 .pdt-tab:hover {
   color: var(--color-text-secondary);
-  background: rgba(39, 39, 42, 0.3);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .pdt-tab-active {
-  background: var(--color-primary-dim);
+  background: var(--color-primary);
   color: #fff;
 }
 
 .pdt-tab-active:hover {
-  background: var(--color-primary-dim);
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -433,9 +423,9 @@
 .pdt-filter-select {
   font-size: 0.75rem;
   padding: 0.45rem 0.75rem;
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  background: rgba(20, 20, 24, 0.55);
+  background: #ffffff;
   color: var(--color-text-secondary);
   cursor: pointer;
 }
@@ -447,12 +437,11 @@
 
 /* Data table */
 .pdt-table-wrap {
-  background: rgba(20, 20, 24, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(39, 39, 42, 0.5);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .pdt-table {
@@ -468,19 +457,19 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-tertiary);
-  border-bottom: 1px solid rgba(39, 39, 42, 0.5);
-  background: rgba(15, 15, 18, 0.4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
   text-align: left;
   white-space: nowrap;
 }
 
 .pdt-table tbody tr {
-  border-bottom: 1px solid rgba(39, 39, 42, 0.3);
+  border-bottom: 1px solid var(--color-border-light);
   transition: background 0.15s ease;
 }
 
 .pdt-table tbody tr:hover {
-  background: rgba(39, 39, 42, 0.15);
+  background: var(--color-bg-alt);
 }
 
 .pdt-table tbody td {
@@ -491,8 +480,8 @@
 
 .pdt-table tfoot td {
   padding: 0.85rem 0.75rem;
-  border-top: 2px solid rgba(39, 39, 42, 0.5);
-  background: rgba(15, 15, 18, 0.4);
+  border-top: 2px solid var(--color-border);
+  background: var(--color-bg-alt);
 }
 
 .pdt-foot-label {
@@ -606,7 +595,7 @@
 }
 
 .pdt-mb-pending {
-  background: rgba(39, 39, 42, 0.3);
+  background: var(--color-bg-alt);
   color: var(--color-text-tertiary);
 }
 
