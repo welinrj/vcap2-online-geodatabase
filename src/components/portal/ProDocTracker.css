@@ -3,7 +3,9 @@
    ═══════════════════════════════════════════════════ */
 
 .pdt {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -515,22 +517,24 @@
   background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: var(--shadow);
+  max-width: 100%;
 }
 
 .pdt-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  table-layout: fixed;
 }
 
 .pdt-table thead th {
-  padding: 0.85rem 0.75rem;
+  padding: 0.6rem 0.4rem;
   font-weight: 700;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--color-text-tertiary);
   border-bottom: 2px solid var(--color-border);
   background: var(--color-bg-alt);
@@ -550,22 +554,37 @@
 }
 
 .pdt-table tbody td {
-  padding: 0.7rem 0.75rem;
+  padding: 0.45rem 0.4rem;
   color: var(--color-text-secondary);
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pdt-table tfoot td {
-  padding: 0.85rem 0.75rem;
+  padding: 0.6rem 0.4rem;
   border-top: 2px solid var(--color-border);
   background: var(--color-bg-alt);
 }
 
+/* Column widths */
+.pdt-col-id { width: 5%; }
+.pdt-col-name { width: 13%; }
+.pdt-col-council { width: 11%; }
+.pdt-col-beneficiary { width: 12%; }
+.pdt-col-type { width: 9%; }
+.pdt-col-status { width: 7%; }
+.pdt-col-terrestrial { width: 10%; }
+.pdt-col-marine { width: 9%; }
+.pdt-col-mapping { width: 9%; }
+.pdt-col-remarks { width: 15%; }
+
 .pdt-foot-label {
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--color-text-tertiary);
   text-align: right !important;
 }
@@ -577,7 +596,7 @@
 
 .pdt-cell-id {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   color: var(--color-text-tertiary);
 }
 
@@ -587,7 +606,6 @@
 }
 
 .pdt-cell-beneficiary {
-  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -596,17 +614,61 @@
 .pdt-cell-num {
   text-align: right;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   white-space: nowrap;
 }
 
 .pdt-cell-remarks {
-  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   color: var(--color-text-tertiary);
+}
+
+/* Editable cells */
+.pdt-editable {
+  cursor: text;
+  border-radius: 3px;
+  transition: background 0.15s ease, outline 0.15s ease;
+  min-height: 1.4em;
+}
+
+.pdt-editable:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.pdt-editable:focus-within {
+  background: rgba(59, 130, 246, 0.08);
+  outline: 2px solid rgba(59, 130, 246, 0.3);
+  outline-offset: 1px;
+}
+
+.pdt-editable input,
+.pdt-editable select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+  outline: none;
+  font-size: inherit;
+}
+
+.pdt-editable select {
+  cursor: pointer;
+  appearance: none;
+}
+
+.pdt-editable input[type="number"] {
+  text-align: right;
+}
+
+.pdt-editable input::-webkit-inner-spin-button,
+.pdt-editable input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* Type badges */
@@ -692,12 +754,9 @@
     gap: 0.75rem;
   }
 
-  .pdt-table-wrap {
-    overflow-x: auto;
-  }
-
   .pdt-table {
-    min-width: 800px;
+    table-layout: auto;
+    min-width: 700px;
   }
 
   .pdt-toolbar {

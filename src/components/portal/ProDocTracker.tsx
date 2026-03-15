@@ -1,7 +1,7 @@
-import { useState, useMemo, type FC } from 'react'
+import { useState, useMemo, useCallback, type FC, type ChangeEvent } from 'react'
 import {
-  newAreas,
-  existingAreas,
+  newAreas as initialNewAreas,
+  existingAreas as initialExistingAreas,
   PRODOC_TARGETS,
   type ProDocEntry,
 } from '../../data/prodocTrackerData'
@@ -46,12 +46,19 @@ const COLORS = {
   gray: '#e2e8f0',
 }
 
+const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', 'Terrestrial']
+const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
+const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
+
 const ProDocTracker: FC = () => {
   const [tab, setTab] = useState<Tab>('new')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [newAreas, setNewAreas] = useState<ProDocEntry[]>(() => [...initialNewAreas])
+  const [existingAreas, setExistingAreas] = useState<ProDocEntry[]>(() => [...initialExistingAreas])
 
   const data = tab === 'new' ? newAreas : existingAreas
+  const setData = tab === 'new' ? setNewAreas : setExistingAreas
 
   const filtered = useMemo(() => {
     return data.filter((e) => {
@@ -60,6 +67,19 @@ const ProDocTracker: FC = () => {
       return true
     })
   }, [data, typeFilter, statusFilter])
+
+  const updateEntry = useCallback(
+    (index: number, field: keyof ProDocEntry, value: string | number | null) => {
+      setData((prev) => {
+        const updated = [...prev]
+        const entryIndex = prev.indexOf(filtered[index])
+        if (entryIndex === -1) return prev
+        updated[entryIndex] = { ...updated[entryIndex], [field]: value }
+        return updated
+      })
+    },
+    [setData, filtered]
+  )
 
   // Summary stats
   const allEntries = [...newAreas, ...existingAreas]
@@ -378,6 +398,18 @@ const ProDocTracker: FC = () => {
       {/* Data table */}
       <div className="pdt-table-wrap">
         <table className="pdt-table">
+          <colgroup>
+            <col className="pdt-col-id" />
+            <col className="pdt-col-name" />
+            <col className="pdt-col-council" />
+            <col className="pdt-col-beneficiary" />
+            <col className="pdt-col-type" />
+            <col className="pdt-col-status" />
+            <col className="pdt-col-terrestrial" />
+            <col className="pdt-col-marine" />
+            <col className="pdt-col-mapping" />
+            <col className="pdt-col-remarks" />
+          </colgroup>
           <thead>
             <tr>
               <th>ID</th>
@@ -399,7 +431,11 @@ const ProDocTracker: FC = () => {
               </tr>
             ) : (
               filtered.map((entry, i) => (
-                <TableRow key={`${entry.name}-${i}`} entry={entry} />
+                <EditableTableRow
+                  key={`${entry.name}-${i}`}
+                  entry={entry}
+                  onChange={(field, value) => updateEntry(i, field, value)}
+                />
               ))
             )}
           </tbody>
@@ -423,36 +459,104 @@ const ProDocTracker: FC = () => {
   )
 }
 
-const TableRow: FC<{ entry: ProDocEntry }> = ({ entry }) => (
-  <tr>
-    <td className="pdt-cell-id">{entry.id || '\u2014'}</td>
-    <td className="pdt-cell-name">{entry.name}</td>
-    <td>{entry.areaCouncil}</td>
-    <td className="pdt-cell-beneficiary">{entry.beneficiary || '\u2014'}</td>
-    <td>
-      <span className={`pdt-type-badge ${entry.ccaType === 'Marine' ? 'pdt-type-marine' : entry.ccaType === 'Terrestrial' ? 'pdt-type-terrestrial' : 'pdt-type-both'}`}>
-        {entry.ccaType}
-      </span>
-    </td>
-    <td>
-      <span className={`pdt-status-badge ${entry.status === 'New' ? 'pdt-sb-new' : 'pdt-sb-existing'}`}>
-        {entry.status}
-      </span>
-    </td>
-    <td className="pdt-cell-num">{formatHa(entry.hectaresTerrestrial)}</td>
-    <td className="pdt-cell-num">{formatHa(entry.hectaresMarine)}</td>
-    <td>
-      {entry.mappingStatus ? (
-        <span className={`pdt-mapping-badge ${entry.mappingStatus === 'Completed' ? 'pdt-mb-done' : 'pdt-mb-prog'}`}>
-          {entry.mappingStatus === 'Completed' ? <CheckCircle2 size={11} /> : <Clock size={11} />}
-          {entry.mappingStatus}
-        </span>
-      ) : (
-        <span className="pdt-mapping-badge pdt-mb-pending">Pending</span>
-      )}
-    </td>
-    <td className="pdt-cell-remarks">{entry.remarks || '\u2014'}</td>
-  </tr>
-)
+const EditableTableRow: FC<{
+  entry: ProDocEntry
+  onChange: (field: keyof ProDocEntry, value: string | number | null) => void
+}> = ({ entry, onChange }) => {
+  const handleText = (field: keyof ProDocEntry) => (e: ChangeEvent<HTMLInputElement>) => {
+    onChange(field, e.target.value)
+  }
+
+  const handleNumber = (field: keyof ProDocEntry) => (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    onChange(field, val === '' ? null : parseFloat(val))
+  }
+
+  const handleSelect = (field: keyof ProDocEntry) => (e: ChangeEvent<HTMLSelectElement>) => {
+    onChange(field, e.target.value)
+  }
+
+  return (
+    <tr>
+      <td className="pdt-cell-id pdt-editable">
+        <input
+          type="text"
+          value={entry.id}
+          onChange={handleText('id')}
+          placeholder="\u2014"
+        />
+      </td>
+      <td className="pdt-cell-name pdt-editable">
+        <input
+          type="text"
+          value={entry.name}
+          onChange={handleText('name')}
+        />
+      </td>
+      <td className="pdt-editable">
+        <input
+          type="text"
+          value={entry.areaCouncil}
+          onChange={handleText('areaCouncil')}
+        />
+      </td>
+      <td className="pdt-cell-beneficiary pdt-editable">
+        <input
+          type="text"
+          value={entry.beneficiary}
+          onChange={handleText('beneficiary')}
+          placeholder="\u2014"
+        />
+      </td>
+      <td className="pdt-editable">
+        <select value={entry.ccaType} onChange={handleSelect('ccaType')}>
+          {CCA_TYPES.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </td>
+      <td className="pdt-editable">
+        <select value={entry.status} onChange={handleSelect('status')}>
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </td>
+      <td className="pdt-cell-num pdt-editable">
+        <input
+          type="number"
+          step="0.001"
+          value={entry.hectaresTerrestrial ?? ''}
+          onChange={handleNumber('hectaresTerrestrial')}
+          placeholder="\u2014"
+        />
+      </td>
+      <td className="pdt-cell-num pdt-editable">
+        <input
+          type="number"
+          step="0.001"
+          value={entry.hectaresMarine ?? ''}
+          onChange={handleNumber('hectaresMarine')}
+          placeholder="\u2014"
+        />
+      </td>
+      <td className="pdt-editable">
+        <select value={entry.mappingStatus} onChange={handleSelect('mappingStatus')}>
+          {MAPPING_STATUSES.map((ms) => (
+            <option key={ms || 'pending'} value={ms}>{ms || 'Pending'}</option>
+          ))}
+        </select>
+      </td>
+      <td className="pdt-cell-remarks pdt-editable">
+        <input
+          type="text"
+          value={entry.remarks}
+          onChange={handleText('remarks')}
+          placeholder="\u2014"
+        />
+      </td>
+    </tr>
+  )
+}
 
 export default ProDocTracker

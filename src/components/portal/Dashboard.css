@@ -3,7 +3,9 @@
    ═══════════════════════════════════════════════════ */
 
 .dash {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .dash-loading {
@@ -39,6 +41,7 @@
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .dash-hero::after {
