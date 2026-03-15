@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FC } from 'react'
+import { useState, useEffect, useRef, useCallback, type FC } from 'react'
 import type { UserProfile } from '../../types/user'
 import {
   createFolder,
@@ -33,7 +33,6 @@ import {
   Send,
   X,
   Inbox,
-  ExternalLink,
   Edit3,
   Check,
   FileImage,
@@ -101,7 +100,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   useEffect(() => {
     if (!currentUser || tab !== 'my-files') return
     loadContents()
-  }, [currentUser, currentFolderId, tab])
+  }, [currentUser, currentFolderId, tab, loadContents])
 
   // Load shares
   useEffect(() => {
@@ -113,7 +112,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     }
   }, [currentUser, tab])
 
-  async function loadContents() {
+  const loadContents = useCallback(async () => {
     if (!currentUser) return
     setLoading(true)
     try {
@@ -126,7 +125,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentUser, currentFolderId])
 
   function showAlert(type: 'success' | 'error', msg: string) {
     setAlert({ type, msg })
