@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 interface PortalLoaderProps {
   /** Number of nested squares */
@@ -15,11 +15,7 @@ export const PortalLoader: React.FC<PortalLoaderProps> = ({
   speed = 0.5,
   fullScreen = false,
 }) => {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
-
     const styleId = 'nested-squares-styles';
     if (!document.getElementById(styleId)) {
       const style = document.createElement('style');
@@ -75,8 +71,6 @@ export const PortalLoader: React.FC<PortalLoaderProps> = ({
       };
     });
   }, [squareCount]);
-
-  if (!mounted) return null;
 
   const containerStyle: React.CSSProperties = fullScreen
     ? {
