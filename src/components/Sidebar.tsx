@@ -10,6 +10,7 @@ import {
   LogIn,
   Users,
   FolderOpen,
+  CalendarCheck,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
@@ -58,6 +59,11 @@ const authNavItems = [
     id: 'file-manager',
     label: 'File Manager',
     icon: <FolderOpen className="nav-icon" size={18} />,
+  },
+  {
+    id: 'activity-calendar',
+    label: 'Activity Calendar',
+    icon: <CalendarCheck className="nav-icon" size={18} />,
   },
 ]
 
