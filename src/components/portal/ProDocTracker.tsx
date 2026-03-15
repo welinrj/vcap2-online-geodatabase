@@ -100,7 +100,7 @@ function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & R
   return entry
 }
 
-const ProDocTracker: FC = () => {
+const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const [tab, setTab] = useState<Tab>('new')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -470,17 +470,21 @@ const ProDocTracker: FC = () => {
           </button>
         </div>
         <div className="pdt-actions">
-          <button className="pdt-action-btn pdt-action-add" onClick={addRow}>
-            <Plus size={14} />
-            Add Row
-          </button>
-          <button
-            className="pdt-action-btn pdt-action-col"
-            onClick={() => setShowAddCol(!showAddCol)}
-          >
-            <Columns3 size={14} />
-            {showAddCol ? 'Cancel' : 'Add Column'}
-          </button>
+          {!readOnly && (
+            <>
+              <button className="pdt-action-btn pdt-action-add" onClick={addRow}>
+                <Plus size={14} />
+                Add Row
+              </button>
+              <button
+                className="pdt-action-btn pdt-action-col"
+                onClick={() => setShowAddCol(!showAddCol)}
+              >
+                <Columns3 size={14} />
+                {showAddCol ? 'Cancel' : 'Add Column'}
+              </button>
+            </>
+          )}
           <div className="pdt-filters">
             <div className="pdt-filter-wrapper">
               <select
@@ -512,7 +516,7 @@ const ProDocTracker: FC = () => {
       </div>
 
       {/* Add column form */}
-      {showAddCol && (
+      {showAddCol && !readOnly && (
         <div className="pdt-add-col-form">
           <input
             type="text"
@@ -543,18 +547,20 @@ const ProDocTracker: FC = () => {
         <table className="pdt-table">
           <thead>
             <tr>
-              <th className="pdt-th-actions" />
+              {!readOnly && <th className="pdt-th-actions" />}
               {columns.map((col) => (
                 <th key={col.key}>
                   <div className="pdt-th-content">
                     <span>{col.label}</span>
-                    <button
-                      className="pdt-col-remove"
-                      title={`Remove "${col.label}" column`}
-                      onClick={() => removeColumn(col.key)}
-                    >
-                      <X size={12} />
-                    </button>
+                    {!readOnly && (
+                      <button
+                        className="pdt-col-remove"
+                        title={`Remove "${col.label}" column`}
+                        onClick={() => removeColumn(col.key)}
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
                   </div>
                 </th>
               ))}
@@ -563,7 +569,7 @@ const ProDocTracker: FC = () => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + 1} className="pdt-empty">
+                <td colSpan={columns.length + (readOnly ? 0 : 1)} className="pdt-empty">
                   No entries match the current filters.
                 </td>
               </tr>
@@ -579,6 +585,7 @@ const ProDocTracker: FC = () => {
                   }
                   isDeletePending={deleteConfirm === i}
                   onCancelDelete={() => setDeleteConfirm(null)}
+                  readOnly={readOnly}
                 />
               ))
             )}
@@ -586,7 +593,7 @@ const ProDocTracker: FC = () => {
           {filtered.length > 0 && (
             <tfoot>
               <tr>
-                <td />
+                {!readOnly && <td />}
                 {columns.map((col, ci) => {
                   if (col.key === 'hectaresTerrestrial') {
                     return (
@@ -635,7 +642,8 @@ const EditableTableRow: FC<{
   onDelete: () => void
   isDeletePending: boolean
   onCancelDelete: () => void
-}> = ({ entry, columns, onChange, onDelete, isDeletePending, onCancelDelete }) => {
+  readOnly?: boolean
+}> = ({ entry, columns, onChange, onDelete, isDeletePending, onCancelDelete, readOnly }) => {
   const handleText = (field: string) => (e: ChangeEvent<HTMLInputElement>) => {
     onChange(field, e.target.value)
   }
@@ -660,27 +668,49 @@ const EditableTableRow: FC<{
     return ''
   }
 
+  const formatValue = (value: unknown, col: ColumnDef): string => {
+    if (value === null || value === undefined || value === '') return '\u2014'
+    if (col.type === 'number') return Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 })
+    return String(value)
+  }
+
   return (
     <tr className={isDeletePending ? 'pdt-row-delete-pending' : ''}>
-      <td className="pdt-cell-actions">
-        {isDeletePending ? (
-          <div className="pdt-delete-confirm">
-            <button className="pdt-delete-yes" onClick={onDelete} title="Confirm delete">
-              <Trash2 size={12} />
+      {!readOnly && (
+        <td className="pdt-cell-actions">
+          {isDeletePending ? (
+            <div className="pdt-delete-confirm">
+              <button className="pdt-delete-yes" onClick={onDelete} title="Confirm delete">
+                <Trash2 size={12} />
+              </button>
+              <button className="pdt-delete-no" onClick={onCancelDelete} title="Cancel">
+                <X size={12} />
+              </button>
+            </div>
+          ) : (
+            <button className="pdt-row-delete-btn" onClick={onDelete} title="Delete row">
+              <Trash2 size={13} />
             </button>
-            <button className="pdt-delete-no" onClick={onCancelDelete} title="Cancel">
-              <X size={12} />
-            </button>
-          </div>
-        ) : (
-          <button className="pdt-row-delete-btn" onClick={onDelete} title="Delete row">
-            <Trash2 size={13} />
-          </button>
-        )}
-      </td>
+          )}
+        </td>
+      )}
       {columns.map((col) => {
-        const cellClass = `${getCellClass(col.key)} pdt-editable`
+        const cellClass = `${getCellClass(col.key)} ${readOnly ? '' : 'pdt-editable'}`
         const value = rec[col.key]
+
+        if (readOnly) {
+          return (
+            <td key={col.key} className={cellClass}>
+              {col.key === 'mappingStatus' && value ? (
+                <span className={`pdt-status-badge pdt-status-${String(value).toLowerCase().replace(/\s+/g, '-')}`}>
+                  {String(value)}
+                </span>
+              ) : (
+                formatValue(value, col)
+              )}
+            </td>
+          )
+        }
 
         if (col.type === 'select' && col.options) {
           return (

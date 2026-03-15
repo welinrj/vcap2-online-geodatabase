@@ -1,13 +1,16 @@
 import type { FC } from 'react'
 import type { UserProfile } from '../types/user'
+import { LogIn } from 'lucide-react'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
 
 interface HeaderProps {
   title: string
   user: UserProfile | null
+  isAuthenticated: boolean
+  onLogin: () => void
 }
 
-const Header: FC<HeaderProps> = ({ title, user }) => {
+const Header: FC<HeaderProps> = ({ title, user, isAuthenticated, onLogin }) => {
   return (
     <header className="header">
       <div className="header-left">
@@ -15,7 +18,7 @@ const Header: FC<HeaderProps> = ({ title, user }) => {
         <span className="header-badge">DEPC</span>
       </div>
       <div className="header-user">
-        {user && (
+        {isAuthenticated && user ? (
           <>
             <span className="header-greeting">Welcome, {user.name}</span>
             {user.avatar ? (
@@ -26,6 +29,11 @@ const Header: FC<HeaderProps> = ({ title, user }) => {
               </span>
             )}
           </>
+        ) : (
+          <button className="header-login-btn" onClick={onLogin}>
+            <LogIn size={16} />
+            Staff Login
+          </button>
         )}
         <img src={coatOfArms} alt="Vanuatu" style={{ width: 28, height: 28, objectFit: 'contain', opacity: 0.6 }} />
       </div>
