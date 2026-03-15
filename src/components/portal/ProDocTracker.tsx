@@ -292,6 +292,14 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const inProgressCount = allEntries.filter((e) => e.mappingStatus === 'In Progress').length
   const withCoords = allEntries.filter((e) => e.xCoord !== null && e.yCoord !== null)
 
+  // Registration status counts for CCA and MPA
+  const ccaEntries = allEntries.filter((e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial')
+  const mpaEntries = allEntries.filter((e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial')
+  const ccaRegistered = ccaEntries.filter((e) => e.registrationStatus === 'Registered').length
+  const ccaNotRegistered = ccaEntries.filter((e) => e.registrationStatus !== 'Registered').length
+  const mpaRegistered = mpaEntries.filter((e) => e.registrationStatus === 'Registered').length
+  const mpaNotRegistered = mpaEntries.filter((e) => e.registrationStatus !== 'Registered').length
+
   // ProDoc target progress
   const prodocProgress = [
     { key: '1.1' as const, actual: totalNewTerrestrial, label: 'New CCA Terrestrial' },
@@ -411,6 +419,68 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
           <div className="pdt-stat-info">
             <span className="pdt-stat-value">{inProgressCount}</span>
             <span className="pdt-stat-label">In Progress</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Registration Status */}
+      <div className="pdt-registration-section">
+        <h3 className="pdt-section-title">
+          <ShieldCheck size={18} className="pdt-section-icon" />
+          Registration Status
+        </h3>
+        <div className="pdt-registration-grid">
+          <div className="pdt-registration-card">
+            <div className="pdt-registration-title">CCA (Community Conservation Areas)</div>
+            <div className="pdt-registration-bars">
+              <div className="pdt-registration-row">
+                <span className="pdt-registration-label">Registered</span>
+                <div className="pdt-registration-bar-track">
+                  <div
+                    className="pdt-registration-bar-fill pdt-fill-green"
+                    style={{ width: ccaEntries.length > 0 ? `${(ccaRegistered / ccaEntries.length) * 100}%` : '0%' }}
+                  />
+                </div>
+                <span className="pdt-registration-count">{ccaRegistered}</span>
+              </div>
+              <div className="pdt-registration-row">
+                <span className="pdt-registration-label">Not Registered</span>
+                <div className="pdt-registration-bar-track">
+                  <div
+                    className="pdt-registration-bar-fill pdt-fill-amber"
+                    style={{ width: ccaEntries.length > 0 ? `${(ccaNotRegistered / ccaEntries.length) * 100}%` : '0%' }}
+                  />
+                </div>
+                <span className="pdt-registration-count">{ccaNotRegistered}</span>
+              </div>
+            </div>
+            <div className="pdt-registration-total">Total: {ccaEntries.length}</div>
+          </div>
+          <div className="pdt-registration-card">
+            <div className="pdt-registration-title">MPA (Marine Protected Areas)</div>
+            <div className="pdt-registration-bars">
+              <div className="pdt-registration-row">
+                <span className="pdt-registration-label">Registered</span>
+                <div className="pdt-registration-bar-track">
+                  <div
+                    className="pdt-registration-bar-fill pdt-fill-blue"
+                    style={{ width: mpaEntries.length > 0 ? `${(mpaRegistered / mpaEntries.length) * 100}%` : '0%' }}
+                  />
+                </div>
+                <span className="pdt-registration-count">{mpaRegistered}</span>
+              </div>
+              <div className="pdt-registration-row">
+                <span className="pdt-registration-label">Not Registered</span>
+                <div className="pdt-registration-bar-track">
+                  <div
+                    className="pdt-registration-bar-fill pdt-fill-amber"
+                    style={{ width: mpaEntries.length > 0 ? `${(mpaNotRegistered / mpaEntries.length) * 100}%` : '0%' }}
+                  />
+                </div>
+                <span className="pdt-registration-count">{mpaNotRegistered}</span>
+              </div>
+            </div>
+            <div className="pdt-registration-total">Total: {mpaEntries.length}</div>
           </div>
         </div>
       </div>
