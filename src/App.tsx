@@ -20,6 +20,7 @@ const FileManager = lazy(() => import('./components/portal/FileManager'))
 const ActivityCalendar = lazy(() => import('./components/portal/ActivityCalendar'))
 const Messaging = lazy(() => import('./components/portal/Messaging'))
 const VideoCall = lazy(() => import('./components/portal/VideoCall'))
+const Account = lazy(() => import('./components/portal/Account'))
 
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -31,6 +32,7 @@ const sectionTitles: Record<string, string> = {
   'file-manager': 'File Manager',
   'activity-calendar': 'Activity Calendar',
   messaging: 'Messages',
+  account: 'Account Settings',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -156,6 +158,9 @@ function App() {
           {activeSection === 'activity-calendar' && isAuthenticated && <ActivityCalendar currentUser={currentUser} />}
           {activeSection === 'messaging' && isAuthenticated && (
             <Messaging currentUser={currentUser} onStartCall={handleStartCall} />
+          )}
+          {activeSection === 'account' && isAuthenticated && (
+            <Account currentUser={currentUser} onUserUpdated={setCurrentUser} />
           )}
           </Suspense>
 
