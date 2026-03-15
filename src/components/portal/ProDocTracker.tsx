@@ -540,15 +540,7 @@ const ProDocTracker: FC = () => {
 
       {/* Data table */}
       <div className="pdt-table-wrap">
-        <table className="pdt-table" style={{ tableLayout: columns.length > 10 ? 'auto' : 'fixed' }}>
-          {columns.length <= 10 && (
-            <colgroup>
-              <col style={{ width: '32px' }} />
-              {columns.map((col) => (
-                <col key={col.key} className={`pdt-col-${col.key}`} />
-              ))}
-            </colgroup>
-          )}
+        <table className="pdt-table">
           <thead>
             <tr>
               <th className="pdt-th-actions" />
@@ -556,15 +548,13 @@ const ProDocTracker: FC = () => {
                 <th key={col.key}>
                   <div className="pdt-th-content">
                     <span>{col.label}</span>
-                    {!col.builtin && (
-                      <button
-                        className="pdt-col-remove"
-                        title={`Remove "${col.label}" column`}
-                        onClick={() => removeColumn(col.key)}
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
+                    <button
+                      className="pdt-col-remove"
+                      title={`Remove "${col.label}" column`}
+                      onClick={() => removeColumn(col.key)}
+                    >
+                      <X size={12} />
+                    </button>
                   </div>
                 </th>
               ))}
