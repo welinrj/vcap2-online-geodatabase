@@ -304,16 +304,13 @@ export const newAreas: ProDocEntry[] = [
     remarks: '',
     registrationStatus: '',
   },
-]
-
-export const existingAreas: ProDocEntry[] = [
   {
     id: 'MPA250302',
     name: 'Quanlap',
     areaCouncil: 'East Vanualava',
     beneficiary: '',
     ccaType: 'Marine',
-    status: 'Existing',
+    status: 'New',
     xCoord: null,
     yCoord: null,
     scheduledTrip: '03/05/2025',
@@ -329,7 +326,7 @@ export const existingAreas: ProDocEntry[] = [
     areaCouncil: 'Hiu Island (Torres)',
     beneficiary: '',
     ccaType: 'Marine & Terrestrial',
-    status: 'Existing',
+    status: 'New',
     xCoord: null,
     yCoord: null,
     scheduledTrip: '03/05/2025',
@@ -345,7 +342,7 @@ export const existingAreas: ProDocEntry[] = [
     areaCouncil: 'South East Tanna',
     beneficiary: '',
     ccaType: 'Marine & Terrestrial',
-    status: 'Existing',
+    status: 'New',
     xCoord: null,
     yCoord: null,
     scheduledTrip: '',
@@ -361,7 +358,7 @@ export const existingAreas: ProDocEntry[] = [
     areaCouncil: 'South Epi',
     beneficiary: 'Michael Tari poamate',
     ccaType: 'Marine',
-    status: 'Existing',
+    status: 'New',
     xCoord: 168.3909633,
     yCoord: -16.807,
     scheduledTrip: '',
@@ -371,6 +368,9 @@ export const existingAreas: ProDocEntry[] = [
     remarks: '',
     registrationStatus: '',
   },
+]
+
+export const existingAreas: ProDocEntry[] = [
   {
     id: 'CCA-E01',
     name: 'Lake Letas Ramsar Site',
