@@ -84,11 +84,14 @@ export async function exportFullBackup(): Promise<void> {
   const json = JSON.stringify(manifest, null, 2)
   const blob = new Blob([json], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `vcap2-backup-${new Date().toISOString().slice(0, 10)}.json`
-  a.click()
-  URL.revokeObjectURL(url)
+  try {
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `vcap2-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+  } finally {
+    URL.revokeObjectURL(url)
+  }
 
   await logAudit(
     'backup_export',

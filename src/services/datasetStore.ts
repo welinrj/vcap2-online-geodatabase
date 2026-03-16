@@ -187,6 +187,7 @@ export async function migrateFromLocalStorage(): Promise<void> {
     }
 
     // Migrate each dataset to Firestore
+    const migrated: string[] = []
     for (const summary of legacyIndex) {
       const dataRaw = localStorage.getItem(`${LEGACY_STORAGE_KEY}:${summary.id}`)
       if (dataRaw) {
@@ -196,16 +197,19 @@ export async function migrateFromLocalStorage(): Promise<void> {
         if (!existing.exists()) {
           await writeDataset(dataset)
         }
+        migrated.push(summary.id)
       }
     }
 
-    // Clean up localStorage
-    localStorage.removeItem(LEGACY_INDEX_KEY)
-    for (const s of legacyIndex) {
-      localStorage.removeItem(`${LEGACY_STORAGE_KEY}:${s.id}`)
+    // Only clean up localStorage entries that were successfully migrated
+    if (migrated.length === legacyIndex.length) {
+      localStorage.removeItem(LEGACY_INDEX_KEY)
     }
-  } catch {
-    // Migration failure is non-fatal
+    for (const id of migrated) {
+      localStorage.removeItem(`${LEGACY_STORAGE_KEY}:${id}`)
+    }
+  } catch (err) {
+    console.warn('Migration from localStorage partially failed (data preserved):', err)
   }
 }
 
