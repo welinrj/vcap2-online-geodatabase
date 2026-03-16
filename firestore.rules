@@ -92,6 +92,12 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
+    // Protected areas (CCAs & MPAs)
+    match /protectedAreas/{areaId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
     // System configuration (admin only)
     match /system_config/{configId} {
       allow read: if isAuthenticated();
