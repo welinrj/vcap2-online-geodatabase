@@ -134,7 +134,7 @@ const ProtectedAreas: FC = () => {
 
   async function handleDeleteArea(id: string) {
     const area = areas.find((a) => a.id === id)
-    if (!window.confirm(`Delete "${area?.name}"? This cannot be undone.`)) return
+    if (!window.confirm(`Delete "${area?.name}"? It will be moved to Trash and can be restored.`)) return
     await deleteProtectedArea(id)
     // Also delete from GitHub
     const config = getSyncSettings()

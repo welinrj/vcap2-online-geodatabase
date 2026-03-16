@@ -5,12 +5,15 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   query,
   where,
+  orderBy,
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore'
+import { logAudit } from './auditLog'
 
 // ─── Types ─────────────────────────────────────────
 
@@ -89,28 +92,40 @@ export async function listFolders(ownerId: string, parentId: string | null): Pro
     where('parentId', '==', parentId),
   )
   const snap = await getDocs(q)
-  return snap.docs.map((d) => {
-    const data = d.data()
-    return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
-  })
+  return snap.docs
+    .filter((d) => !d.data()._deleted)
+    .map((d) => {
+      const data = d.data()
+      return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
+    })
 }
 
+/**
+ * Soft-delete a folder and all its contents.
+ * Files and subfolders are marked as deleted but preserved.
+ */
 export async function deleteFolder(folderId: string): Promise<void> {
   if (!db) return
-  // Delete all files in folder
+  const folderSnap = await getDoc(doc(db, FOLDERS_COL, folderId))
+  const folderName = folderSnap.exists() ? (folderSnap.data().name as string) : folderId
+
+  // Soft-delete all files in folder
   const filesQ = query(collection(db, FILES_COL), where('folderId', '==', folderId))
   const filesSnap = await getDocs(filesQ)
-  for (const d of filesSnap.docs) await deleteDoc(d.ref)
-  // Delete child folders recursively
+  for (const d of filesSnap.docs) {
+    await updateDoc(d.ref, { _deleted: true, _deletedAt: new Date().toISOString() })
+  }
+  // Soft-delete child folders recursively
   const childQ = query(collection(db, FOLDERS_COL), where('parentId', '==', folderId))
   const childSnap = await getDocs(childQ)
   for (const d of childSnap.docs) await deleteFolder(d.id)
-  // Delete shares referencing this folder
-  const sharesQ = query(collection(db, SHARES_COL), where('itemId', '==', folderId))
-  const sharesSnap = await getDocs(sharesQ)
-  for (const d of sharesSnap.docs) await deleteDoc(d.ref)
-  // Delete the folder itself
-  await deleteDoc(doc(db, FOLDERS_COL, folderId))
+  // Soft-delete the folder itself
+  await updateDoc(doc(db, FOLDERS_COL, folderId), {
+    _deleted: true,
+    _deletedAt: new Date().toISOString(),
+  })
+
+  await logAudit('soft_delete', 'folder', folderId, folderName, `${filesSnap.size} files, ${childSnap.size} subfolders`)
 }
 
 export async function renameFolder(folderId: string, newName: string): Promise<void> {
@@ -157,19 +172,74 @@ export async function listFiles(folderId: string, ownerId: string): Promise<File
     where('ownerId', '==', ownerId),
   )
   const snap = await getDocs(q)
-  return snap.docs.map((d) => {
-    const data = d.data()
-    return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
-  })
+  return snap.docs
+    .filter((d) => !d.data()._deleted)
+    .map((d) => {
+      const data = d.data()
+      return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
+    })
 }
 
+/**
+ * Soft-delete a file. Data is preserved and can be restored.
+ */
 export async function deleteFile(fileId: string): Promise<void> {
   if (!db) return
-  // Delete shares referencing this file
-  const sharesQ = query(collection(db, SHARES_COL), where('itemId', '==', fileId))
-  const sharesSnap = await getDocs(sharesQ)
-  for (const d of sharesSnap.docs) await deleteDoc(d.ref)
-  await deleteDoc(doc(db, FILES_COL, fileId))
+  const fileSnap = await getDoc(doc(db, FILES_COL, fileId))
+  const fileName = fileSnap.exists() ? (fileSnap.data().name as string) : fileId
+
+  await updateDoc(doc(db, FILES_COL, fileId), {
+    _deleted: true,
+    _deletedAt: new Date().toISOString(),
+  })
+
+  await logAudit('soft_delete', 'file', fileId, fileName)
+}
+
+/** Restore a soft-deleted file */
+export async function restoreFile(fileId: string): Promise<void> {
+  if (!db) return
+  await updateDoc(doc(db, FILES_COL, fileId), {
+    _deleted: false,
+    _deletedAt: '',
+  })
+  await logAudit('restore', 'file', fileId, fileId)
+}
+
+/** Restore a soft-deleted folder and its contents */
+export async function restoreFolder(folderId: string): Promise<void> {
+  if (!db) return
+  // Restore files in folder
+  const filesQ = query(collection(db, FILES_COL), where('folderId', '==', folderId), where('_deleted', '==', true))
+  const filesSnap = await getDocs(filesQ)
+  for (const d of filesSnap.docs) {
+    await updateDoc(d.ref, { _deleted: false, _deletedAt: '' })
+  }
+  // Restore child folders recursively
+  const childQ = query(collection(db, FOLDERS_COL), where('parentId', '==', folderId), where('_deleted', '==', true))
+  const childSnap = await getDocs(childQ)
+  for (const d of childSnap.docs) await restoreFolder(d.id)
+  // Restore the folder itself
+  await updateDoc(doc(db, FOLDERS_COL, folderId), { _deleted: false, _deletedAt: '' })
+  await logAudit('restore', 'folder', folderId, folderId)
+}
+
+/** List all soft-deleted files and folders (trash) */
+export async function listTrash(ownerId: string): Promise<{ files: FileEntry[]; folders: FileFolder[] }> {
+  if (!db) return { files: [], folders: [] }
+  const filesQ = query(collection(db, FILES_COL), where('ownerId', '==', ownerId), where('_deleted', '==', true))
+  const foldersQ = query(collection(db, FOLDERS_COL), where('ownerId', '==', ownerId), where('_deleted', '==', true))
+  const [filesSnap, foldersSnap] = await Promise.all([getDocs(filesQ), getDocs(foldersQ)])
+  return {
+    files: filesSnap.docs.map((d) => {
+      const data = d.data()
+      return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
+    }),
+    folders: foldersSnap.docs.map((d) => {
+      const data = d.data()
+      return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
+    }),
+  }
 }
 
 export async function getFile(fileId: string): Promise<FileEntry | null> {

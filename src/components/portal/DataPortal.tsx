@@ -83,7 +83,7 @@ const DataPortal: FC<DataPortalProps> = ({ onNavigate }) => {
   async function handleDelete(id: string) {
     const ds = datasets.find((d) => d.id === id)
     const confirmed = window.confirm(
-      `Delete dataset "${ds?.metadata.name ?? id}"? This cannot be undone.`,
+      `Delete dataset "${ds?.metadata.name ?? id}"? It will be moved to Trash and can be restored.`,
     )
     if (confirmed) {
       await deleteDataset(id)

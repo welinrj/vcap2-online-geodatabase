@@ -10,6 +10,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 import { db } from './firebase'
+import { logAudit } from './auditLog'
 import type { PortalCategory } from '../types/geospatial'
 
 const COLLECTION = 'portal_categories'
@@ -100,7 +101,10 @@ export async function saveCategory(cat: PortalCategory): Promise<void> {
 /** Delete a category */
 export async function deleteCategory(id: string): Promise<void> {
   if (!db) return
+  const snap = await getDoc(doc(db, COLLECTION, id))
+  const name = snap.exists() ? (snap.data().name as string) : id
   await deleteDoc(doc(db, COLLECTION, id))
+  await logAudit('delete', 'category', id, name)
 }
 
 /** Real-time listener for categories */

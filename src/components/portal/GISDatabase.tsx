@@ -4,6 +4,9 @@ import {
   listDatasets,
   getDataset,
   deleteDataset,
+  restoreDataset,
+  purgeDataset,
+  listDeletedDatasets,
   exportAllDatasets,
   importDatasets,
   getStorageEstimate,
@@ -11,6 +14,7 @@ import {
   migrateFromLocalStorage,
   onDatasetsChanged,
 } from '../../services/datasetStore'
+import { exportFullBackup } from '../../services/backupService'
 import {
   syncDatasets,
   getSyncSettings,
@@ -45,6 +49,11 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
   const [syncing, setSyncing] = useState(false)
   const [syncStatus, setSyncStatus] = useState('')
   const [lastSync, setLastSync] = useState<string | null>(null)
+
+  // Trash state
+  const [showTrash, setShowTrash] = useState(false)
+  const [trashedDatasets, setTrashedDatasets] = useState<DatasetSummary[]>([])
+  const [trashLoading, setTrashLoading] = useState(false)
 
   // Load sync state on mount
   useEffect(() => {
@@ -128,7 +137,7 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
 
   async function handleDelete(id: string) {
     const ds = datasets.find((d) => d.id === id)
-    if (!window.confirm(`Delete "${ds?.metadata.name}"? This cannot be undone.`)) return
+    if (!window.confirm(`Delete "${ds?.metadata.name}"? It will be moved to Trash and can be restored.`)) return
     await deleteDataset(id)
     // Also delete from GitHub
     const config = getSyncSettings()
@@ -223,6 +232,44 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
       setSyncStatus(err instanceof Error ? err.message : 'Sync failed')
     } finally {
       setSyncing(false)
+    }
+  }
+
+  async function handleShowTrash() {
+    setShowTrash(!showTrash)
+    if (!showTrash) {
+      setTrashLoading(true)
+      try {
+        const deleted = await listDeletedDatasets()
+        setTrashedDatasets(deleted)
+      } catch {
+        setTrashedDatasets([])
+      }
+      setTrashLoading(false)
+    }
+  }
+
+  async function handleRestore(id: string) {
+    await restoreDataset(id)
+    setTrashedDatasets((prev) => prev.filter((d) => d.id !== id))
+    await refresh()
+    setImportStatus('Dataset restored from trash.')
+  }
+
+  async function handlePurge(id: string) {
+    const ds = trashedDatasets.find((d) => d.id === id)
+    if (!window.confirm(`Permanently delete "${ds?.metadata.name}"? This CANNOT be undone.`)) return
+    await purgeDataset(id)
+    setTrashedDatasets((prev) => prev.filter((d) => d.id !== id))
+  }
+
+  async function handleFullBackup() {
+    setImportStatus('Creating full portal backup...')
+    try {
+      await exportFullBackup()
+      setImportStatus('Full backup downloaded.')
+    } catch (err) {
+      setImportStatus(`Backup failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
 
@@ -503,6 +550,68 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
           <MapViewer data={preview.data} height="350px" />
         </div>
       )}
+
+      {/* Trash & Backup section */}
+      <div className="db-sync-section" style={{ marginTop: '1rem' }}>
+        <div className="db-sync-row">
+          <div className="db-sync-info">
+            <strong>Data Protection</strong>
+            <span className="db-sync-last">Deleted items are moved to Trash and can be restored</span>
+          </div>
+          <div className="db-sync-actions">
+            <button className="btn btn-sm" onClick={handleShowTrash}>
+              {showTrash ? 'Hide Trash' : 'View Trash'}
+            </button>
+            <button className="btn btn-sm btn-primary" onClick={handleFullBackup}>
+              Full Portal Backup
+            </button>
+          </div>
+        </div>
+
+        {showTrash && (
+          <div style={{ marginTop: '0.75rem' }}>
+            {trashLoading ? (
+              <p style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Loading trash...</p>
+            ) : trashedDatasets.length === 0 ? (
+              <p style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Trash is empty.</p>
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Format</th>
+                      <th>Features</th>
+                      <th>Size</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trashedDatasets.map((ds) => (
+                      <tr key={ds.id}>
+                        <td>{ds.metadata.name}</td>
+                        <td><span className="badge badge-format">{ds.format.toUpperCase()}</span></td>
+                        <td>{ds.featureCount.toLocaleString()}</td>
+                        <td>{formatBytes(ds.sizeBytes)}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button className="btn btn-sm btn-primary" onClick={() => handleRestore(ds.id)}>
+                              Restore
+                            </button>
+                            <button className="btn btn-sm btn-danger" onClick={() => handlePurge(ds.id)}>
+                              Delete Forever
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

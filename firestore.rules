@@ -25,77 +25,111 @@ service cloud.firestore {
 
     // User profiles
     match /users/{userId} {
-      // Anyone can read user profiles (for collaboration features)
       allow read: if true;
-
-      // Users can create their own profile during signup
       allow create: if isOwner(userId);
-
-      // Users can update their own profile
-      // Admins can update any profile
       allow update: if isOwner(userId) || isAdmin();
-
-      // Only admins can delete user profiles
       allow delete: if isAdmin();
     }
 
-    // Dataset metadata (public read, authenticated write)
+    // Dataset metadata (public read, editor write)
     match /dataset_metadata/{datasetId} {
-      // Public read access for all datasets
       allow read: if true;
-
-      // Editors and admins can create, update, delete
       allow create, update: if isEditor();
-      allow delete: if isEditor() || isAdmin();
+      allow delete: if isAdmin(); // Only admins can permanently delete
     }
 
-    // Full datasets (public read, authenticated write)
+    // Full datasets with chunks subcollection
     match /datasets/{datasetId} {
-      // Public read access
       allow read: if true;
-
-      // Editors and admins can create, update, delete
       allow create, update: if isEditor();
-      allow delete: if isEditor() || isAdmin();
+      allow delete: if isAdmin(); // Only admins can permanently delete
+
+      // Dataset chunks subcollection
+      match /chunks/{chunkId} {
+        allow read: if true;
+        allow create, update: if isEditor();
+        allow delete: if isAdmin();
+      }
     }
 
-    // Field observations (for real-time dashboard)
-    // Stored in Realtime Database, not Firestore
-    // But we can keep metadata here
+    // Field observations metadata
     match /field_observations_meta/{observationId} {
       allow read: if true;
       allow create: if isAuthenticated();
       allow update, delete: if isEditor() || isAdmin();
     }
 
-    // Portal categories
+    // Portal categories — editors can create/update, only admins can hard-delete
     match /portal_categories/{categoryId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isEditor();
+      allow delete: if isAdmin();
     }
 
-    // Portal configuration
+    // Portal configuration — editors can update, admins can delete
     match /portal_config/{configId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isEditor();
+      allow delete: if isAdmin();
     }
 
-    // ProDocs
+    // ProDoc tracker data — editors can modify, admins can delete
+    match /prodoc-tracker/{docId} {
+      allow read: if true;
+      allow create, update: if isEditor();
+      allow delete: if isAdmin();
+    }
+
+    // ProDocs collection
     match /prodocs/{docId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isEditor();
+      allow delete: if isAdmin();
     }
 
     // NBSAP targets
     match /nbsap_targets/{targetId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isEditor();
+      allow delete: if isAdmin();
     }
 
-    // Protected areas (CCAs & MPAs)
+    // Protected areas (CCAs & MPAs) — editors can create/update, only admins can hard-delete
     match /protectedAreas/{areaId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create, update: if isEditor();
+      allow delete: if isAdmin();
+    }
+
+    // Activities — authenticated users can create/update own, editors can manage all
+    match /activities/{activityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isEditor();
+    }
+
+    // File manager — folders
+    match /fm_folders/{folderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAdmin(); // Hard-delete only by admin
+    }
+
+    // File manager — files
+    match /fm_files/{fileId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAdmin(); // Hard-delete only by admin
+    }
+
+    // File manager — shares
+    match /fm_shares/{shareId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow delete: if isAuthenticated();
     }
 
     // System configuration (admin only)
@@ -104,12 +138,31 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Activity logs (write-only for users, read for admins)
-    match /activity_logs/{logId} {
-      allow read: if isAdmin();
+    // Audit logs — write-once, immutable, readable by editors and admins
+    match /audit_logs/{logId} {
+      allow read: if isEditor();
       allow create: if isAuthenticated();
       allow update, delete: if false; // Logs are immutable
     }
 
+    // Activity logs (legacy) — immutable
+    match /activity_logs/{logId} {
+      allow read: if isEditor();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // Messaging
+    match /conversations/{convId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /messages/{msgId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
