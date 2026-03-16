@@ -1,7 +1,7 @@
 import { useState, type FC, type FormEvent } from 'react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import type { UserProfile } from '../types/user'
-import { createUser, findUserByName, updateUser } from '../services/userStore'
+import { findUserByName } from '../services/userStore'
 import app from '../config/firebase'
 import { WavyBackground } from './ui/wavy-background'
 
@@ -34,16 +34,29 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
 
     setLoading(true)
     try {
-      let user = await findUserByName(STAFF_USER_NAME)
+      // Read is public — try to find existing staff user in Firestore
+      let user: UserProfile | null = null
+      try {
+        user = await findUserByName(STAFF_USER_NAME)
+      } catch {
+        // Firestore unavailable — fall through to local profile
+      }
+
+      // Build a local admin profile if not found in Firestore (no write needed)
       if (!user) {
-        user = await createUser(STAFF_USER_NAME, null)
+        user = {
+          id: 'vcap2_staff',
+          name: STAFF_USER_NAME,
+          role: 'admin',
+          createdAt: new Date().toISOString(),
+        }
+      } else if (user.role !== 'admin') {
+        user = { ...user, role: 'admin' }
       }
-      // Ensure the staff account is always admin
-      if (user.role !== 'admin') {
-        user = (await updateUser(user.id, { role: 'admin' })) ?? user
-      }
+
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
+      sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
       onSuccess(user)
     } catch {
       setError('Something went wrong. Please try again.')
@@ -69,6 +82,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       await updateLastLogin(user.id)
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
+      sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
       onSuccess(user)
     } catch (err: unknown) {
       console.error('Login error:', err)
@@ -77,8 +91,12 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         setError('No account found with this email')
       } else if (code === 'auth/wrong-password') {
         setError('Incorrect password')
+      } else if (code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+        setError('Invalid email or password')
       } else if (code === 'auth/invalid-email') {
         setError('Invalid email address')
+      } else if (code === 'auth/user-disabled') {
+        setError('This account has been disabled')
       } else if (code === 'auth/too-many-requests') {
         setError('Too many failed attempts. Please try again later')
       } else {
@@ -97,6 +115,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       await updateLastLogin(user.id)
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
+      sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
       onSuccess(user)
     } catch (err: unknown) {
       console.error('Google login error:', err)
@@ -139,6 +158,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
       await updateLastLogin(user.id)
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
+      sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
       onSuccess(user)
     } catch (err: unknown) {
       console.error('Sign-up error:', err)

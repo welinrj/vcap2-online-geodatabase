@@ -57,9 +57,18 @@ function App() {
   useEffect(() => {
     const userId = sessionStorage.getItem('vcap2_user_id')
     if (staffAuth && userId) {
-      getUser(userId).then((user) => {
-        if (user) setCurrentUser(user)
-      })
+      const restoreFromSession = () => {
+        const stored = sessionStorage.getItem('vcap2_user_profile')
+        if (stored) {
+          try { setCurrentUser(JSON.parse(stored)) } catch { /* ignore */ }
+        }
+      }
+      getUser(userId)
+        .then((user) => {
+          if (user) setCurrentUser(user)
+          else restoreFromSession()
+        })
+        .catch(restoreFromSession)
     }
   }, [staffAuth])
 
@@ -77,6 +86,7 @@ function App() {
   const handleLogout = () => {
     sessionStorage.removeItem('vcap2_staff_auth')
     sessionStorage.removeItem('vcap2_user_id')
+    sessionStorage.removeItem('vcap2_user_profile')
     setStaffAuth(false)
     setCurrentUser(null)
     setActiveSection('dashboard')
