@@ -105,9 +105,45 @@ vi.mock('firebase/app', () => ({
   initializeApp: () => ({}),
 }))
 
+vi.mock('firebase/auth', () => ({
+  getAuth: () => ({}),
+  signInWithEmailAndPassword: () => Promise.resolve({ user: { uid: 'test-uid', email: 'test@example.com', displayName: 'VCAP2 Staff' } }),
+  createUserWithEmailAndPassword: () => Promise.resolve({ user: { uid: 'test-uid' } }),
+  signOut: () => Promise.resolve(),
+  GoogleAuthProvider: class {},
+  signInWithPopup: () => Promise.resolve({ user: { uid: 'test-uid', email: 'test@example.com', displayName: 'VCAP2 Staff' } }),
+  onAuthStateChanged: () => () => {},
+  updateProfile: () => Promise.resolve(),
+  sendPasswordResetEmail: () => Promise.resolve(),
+  updateEmail: () => Promise.resolve(),
+  updatePassword: () => Promise.resolve(),
+  deleteUser: () => Promise.resolve(),
+}))
+
+vi.mock('firebase/storage', () => ({
+  getStorage: () => ({}),
+}))
+
+vi.mock('firebase/database', () => ({
+  getDatabase: () => ({}),
+  ref: () => ({}),
+  onValue: () => () => {},
+  off: () => {},
+  set: () => Promise.resolve(),
+  remove: () => Promise.resolve(),
+  push: () => ({ key: 'mock-key' }),
+  onChildAdded: () => () => {},
+  get: () => Promise.resolve({ exists: () => false, val: () => null }),
+  child: () => ({}),
+}))
+
 vi.mock('firebase/firestore', () => ({
   getFirestore: () => ({}),
   enableMultiTabIndexedDbPersistence: () => Promise.resolve(),
+  serverTimestamp: () => ({ toDate: () => new Date() }),
+  where: () => ({}),
+  limit: () => ({}),
+  Timestamp: { fromDate: (d: Date) => d, now: () => new Date() },
   collection: mockCollection,
   doc: mockDoc,
   getDocs: mockGetDocs,
