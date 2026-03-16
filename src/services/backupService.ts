@@ -12,8 +12,6 @@ import {
   doc,
   getDoc,
   setDoc,
-  query,
-  orderBy,
 } from 'firebase/firestore'
 import { logAudit } from './auditLog'
 
