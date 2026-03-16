@@ -12,7 +12,6 @@ import {
   Search,
   Download,
   FileText,
-  FileImage,
   Trash2,
 } from 'lucide-react'
 import type { UserProfile } from '../../types/user'
@@ -382,11 +381,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                             </div>
                           ) : (
                             <div className="msg-attachment-file">
-                              {msg.attachmentMimeType?.startsWith('image/') ? (
-                                <FileImage size={16} />
-                              ) : (
-                                <FileText size={16} />
-                              )}
+                              <FileText size={16} />
                               <span>{msg.attachmentName}</span>
                             </div>
                           )}

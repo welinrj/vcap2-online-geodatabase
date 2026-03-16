@@ -6,6 +6,10 @@ function getAudioContext(): AudioContext {
   if (!audioCtx) {
     audioCtx = new AudioContext()
   }
+  // Resume if suspended (browsers suspend AudioContext until user interaction)
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume()
+  }
   return audioCtx
 }
 
