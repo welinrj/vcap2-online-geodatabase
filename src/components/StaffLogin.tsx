@@ -20,7 +20,9 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [staffPassword, setStaffPassword] = useState('')
   const [loginMode, setLoginMode] = useState<'firebase' | 'staff'>(useFirebase ? 'firebase' : 'staff')
+  const [showSignUp, setShowSignUp] = useState(false)
 
   const handleFallbackLogin = async (e: FormEvent) => {
     e.preventDefault()
@@ -110,6 +112,50 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     }
   }
 
+  const handleSignUp = async (e: FormEvent) => {
+    e.preventDefault()
+    if (staffPassword !== STAFF_PASSWORD) {
+      setError('Incorrect staff password. You need the staff password to create an account.')
+      setStaffPassword('')
+      return
+    }
+    if (!email.trim()) {
+      setError('Please enter your email')
+      return
+    }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { createUser: createFirebaseUser, updateLastLogin } = await import('../services/firebaseAuth')
+      const user = await createFirebaseUser(email, password, {
+        name: email.split('@')[0],
+        role: 'admin',
+        organization: '',
+      })
+      await updateLastLogin(user.id)
+      sessionStorage.setItem('vcap2_staff_auth', '1')
+      sessionStorage.setItem('vcap2_user_id', user.id)
+      onSuccess(user)
+    } catch (err: unknown) {
+      console.error('Sign-up error:', err)
+      const code = (err as { code?: string }).code
+      if (code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists. Try signing in instead.')
+      } else if (code === 'auth/weak-password') {
+        setError('Password is too weak. Use at least 6 characters.')
+      } else if (code === 'auth/invalid-email') {
+        setError('Invalid email address')
+      } else {
+        setError('Account creation failed. Please try again.')
+      }
+      setLoading(false)
+    }
+  }
+
   const brandPanel = (
     <div className="login-brand">
       <img src={vcap2Logo} alt="VCAP2" />
@@ -122,6 +168,8 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     setError('')
     setPassword('')
     setEmail('')
+    setStaffPassword('')
+    setShowSignUp(false)
     setLoginMode(loginMode === 'firebase' ? 'staff' : 'firebase')
   }
 
@@ -138,7 +186,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     <div className="login-container">
       {brandPanel}
       <div className="login-panel">
-        {loginMode === 'firebase' ? (
+        {loginMode === 'firebase' && !showSignUp ? (
           <form className="login-form" onSubmit={handleFirebaseLogin}>
             <h2>Staff Login</h2>
             <p className="login-description">
@@ -198,10 +246,66 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
             <button
               type="button"
               className="login-mode-toggle"
+              onClick={() => { setError(''); setShowSignUp(true) }}
+            >
+              Create new account
+            </button>
+
+            <button
+              type="button"
+              className="login-mode-toggle"
               onClick={switchMode}
             >
               Use staff password instead
             </button>
+          </form>
+        ) : loginMode === 'firebase' && showSignUp ? (
+          <form className="login-form" onSubmit={handleSignUp}>
+            <h2>Create Account</h2>
+            <p className="login-description">
+              Enter the staff password and your new account details.
+            </p>
+            {error && <div className="login-error" role="alert">{error}</div>}
+
+            <label className="login-label" htmlFor="signup-staff-pw">Staff Password</label>
+            <input
+              id="signup-staff-pw"
+              className="login-input"
+              type="password"
+              value={staffPassword}
+              onChange={(e) => { setStaffPassword(e.target.value); setError('') }}
+              placeholder="Enter staff password to verify"
+              autoFocus
+            />
+
+            <label className="login-label" htmlFor="signup-email">Email</label>
+            <input
+              id="signup-email"
+              className="login-input"
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError('') }}
+              placeholder="your.email@example.com"
+            />
+
+            <label className="login-label" htmlFor="signup-password">New Password</label>
+            <input
+              id="signup-password"
+              className="login-input"
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError('') }}
+              placeholder="At least 6 characters"
+            />
+
+            <div className="login-actions">
+              <button type="button" className="login-btn login-btn-secondary" onClick={() => { setShowSignUp(false); setError(''); setStaffPassword('') }}>
+                Back to Login
+              </button>
+              <button type="submit" className="login-btn login-btn-primary" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Account'}
+              </button>
+            </div>
           </form>
         ) : (
           <form className="login-form" onSubmit={handleFallbackLogin}>
