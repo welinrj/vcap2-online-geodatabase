@@ -34,24 +34,66 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
 
     setLoading(true)
     try {
-      // Read is public — try to find existing staff user in Firestore
       let user: UserProfile | null = null
-      try {
-        user = await findUserByName(STAFF_USER_NAME)
-      } catch {
-        // Firestore unavailable — fall through to local profile
-      }
 
-      // Build a local admin profile if not found in Firestore (no write needed)
-      if (!user) {
-        user = {
-          id: 'vcap2_staff',
-          name: STAFF_USER_NAME,
-          role: 'admin',
-          createdAt: new Date().toISOString(),
+      // Try anonymous Firebase Auth to get Firestore write access
+      try {
+        const { signInAnonymously } = await import('firebase/auth')
+        const { auth, db } = await import('../config/firebase')
+        const cred = await signInAnonymously(auth)
+        const uid = cred.user.uid
+
+        // Check if staff user already exists in Firestore
+        const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore')
+        const docRef = doc(db, 'users', uid)
+        const docSnap = await getDoc(docRef)
+
+        if (docSnap.exists()) {
+          const data = docSnap.data()
+          user = {
+            id: uid,
+            name: data.name ?? STAFF_USER_NAME,
+            role: 'admin',
+            email: data.email,
+            organization: data.organization,
+            createdAt: data.createdAt?.toDate?.().toISOString() ?? new Date().toISOString(),
+          }
+          // Ensure admin role
+          if (data.role !== 'admin') {
+            await setDoc(docRef, { role: 'admin' }, { merge: true })
+          }
+        } else {
+          // Create staff admin profile in Firestore
+          user = {
+            id: uid,
+            name: STAFF_USER_NAME,
+            role: 'admin',
+            createdAt: new Date().toISOString(),
+          }
+          await setDoc(docRef, {
+            ...user,
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp(),
+          })
         }
-      } else if (user.role !== 'admin') {
-        user = { ...user, role: 'admin' }
+      } catch {
+        // Anonymous auth or Firestore unavailable — use local profile
+        try {
+          user = await findUserByName(STAFF_USER_NAME)
+        } catch {
+          // Firestore read also failed
+        }
+
+        if (!user) {
+          user = {
+            id: 'vcap2_staff',
+            name: STAFF_USER_NAME,
+            role: 'admin',
+            createdAt: new Date().toISOString(),
+          }
+        } else if (user.role !== 'admin') {
+          user = { ...user, role: 'admin' }
+        }
       }
 
       sessionStorage.setItem('vcap2_staff_auth', '1')
