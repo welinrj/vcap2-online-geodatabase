@@ -88,8 +88,13 @@ export async function getCategory(id: string): Promise<PortalCategory | null> {
 /** Create or update a category */
 export async function saveCategory(cat: PortalCategory): Promise<void> {
   if (!db) return
-  const { id, datasetCount: _dc, ...data } = cat
-  await setDoc(doc(db, COLLECTION, id), data)
+  await setDoc(doc(db, COLLECTION, cat.id), {
+    name: cat.name,
+    description: cat.description,
+    icon: cat.icon,
+    color: cat.color,
+    sortOrder: cat.sortOrder,
+  })
 }
 
 /** Delete a category */
