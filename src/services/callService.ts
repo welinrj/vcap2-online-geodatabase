@@ -3,6 +3,7 @@ import {
   ref,
   set,
   onValue,
+  onChildAdded,
   remove,
   off,
 } from 'firebase/database'
@@ -56,24 +57,30 @@ export async function setCallAnswer(callId: string, answer: string): Promise<voi
 export async function endCall(callId: string): Promise<void> {
   if (!realtimeDb) return
   await set(ref(realtimeDb, `${CALLS_PATH}/${callId}/status`), 'ended')
-  // Cleanup after a short delay
-  setTimeout(async () => {
-    try {
-      await remove(ref(realtimeDb!, `${CALLS_PATH}/${callId}`))
-      await remove(ref(realtimeDb!, `${ICE_CANDIDATES_PATH}/${callId}`))
-    } catch {
-      // Ignore cleanup errors
-    }
-  }, 3000)
+  scheduleCallCleanup(callId)
 }
 
 export async function declineCall(callId: string): Promise<void> {
   if (!realtimeDb) return
   await set(ref(realtimeDb, `${CALLS_PATH}/${callId}/status`), 'declined')
+  scheduleCallCleanup(callId)
+}
+
+/** Cleanup call data after delay, verifying the call is still ended/declined */
+function scheduleCallCleanup(callId: string): void {
   setTimeout(async () => {
+    if (!realtimeDb) return
     try {
-      await remove(ref(realtimeDb!, `${CALLS_PATH}/${callId}`))
-      await remove(ref(realtimeDb!, `${ICE_CANDIDATES_PATH}/${callId}`))
+      const callRef = ref(realtimeDb, `${CALLS_PATH}/${callId}`)
+      // Verify the call is still in a terminal state before removing
+      const { get } = await import('firebase/database')
+      const snap = await get(callRef)
+      if (!snap.exists()) return
+      const status = (snap.val() as CallSignal)?.status
+      if (status === 'ended' || status === 'declined') {
+        await remove(callRef)
+        await remove(ref(realtimeDb!, `${ICE_CANDIDATES_PATH}/${callId}`))
+      }
     } catch {
       // Ignore cleanup errors
     }
@@ -102,19 +109,17 @@ export function onIceCandidates(
 ): () => void {
   if (!realtimeDb) return () => {}
   const path = ref(realtimeDb, `${ICE_CANDIDATES_PATH}/${callId}/${role}`)
-  const handler = onValue(path, (snap) => {
+  // Use onChildAdded instead of onValue to avoid replaying all candidates
+  // on every update. onChildAdded fires once per new candidate only.
+  const unsub = onChildAdded(path, (snap) => {
     if (!snap.exists()) return
-    const data = snap.val() as Record<string, string>
-    Object.values(data).forEach((candidateJson) => {
-      try {
-        callback(JSON.parse(candidateJson))
-      } catch {
-        // Ignore parse errors
-      }
-    })
+    try {
+      callback(JSON.parse(snap.val() as string))
+    } catch {
+      // Ignore parse errors
+    }
   })
-  // Return cleanup (onValue returns an Unsubscribe)
-  void handler
+  void unsub
   return () => off(path)
 }
 

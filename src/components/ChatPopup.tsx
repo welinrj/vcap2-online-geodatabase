@@ -12,7 +12,6 @@ import {
   Search,
   Download,
   FileText,
-  FileImage,
   Trash2,
   Minimize2,
 } from 'lucide-react'
@@ -395,11 +394,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                               </div>
                             ) : (
                               <div className="msg-attachment-file">
-                                {msg.attachmentMimeType?.startsWith('image/') ? (
-                                  <FileImage size={14} />
-                                ) : (
-                                  <FileText size={14} />
-                                )}
+                                <FileText size={14} />
                                 <span>{msg.attachmentName}</span>
                               </div>
                             )}

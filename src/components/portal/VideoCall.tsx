@@ -55,6 +55,7 @@ export default function VideoCall({
   const [screenSharing, setScreenSharing] = useState(false)
   const [callType, setCallType] = useState<'video' | 'audio'>('video')
   const [remoteName, setRemoteName] = useState('')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -151,7 +152,7 @@ export default function VideoCall({
           cleanup()
         }
         if (signal.answer && pc.remoteDescription === null) {
-          pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal.answer)))
+          pc.setRemoteDescription(JSON.parse(signal.answer))
         }
       })
       cleanupRef.current.push(unsub)
@@ -175,6 +176,13 @@ export default function VideoCall({
       startRingtone()
     } catch (err) {
       console.error('Failed to initiate call:', err)
+      if (err instanceof DOMException && err.name === 'NotAllowedError') {
+        setErrorMsg('Camera/microphone permission denied. Please allow access and try again.')
+      } else if (err instanceof DOMException && err.name === 'NotFoundError') {
+        setErrorMsg('No camera or microphone found on this device.')
+      } else {
+        setErrorMsg('Failed to start the call. Please try again.')
+      }
       setCallStatus('ended')
     }
   }
@@ -226,7 +234,7 @@ export default function VideoCall({
       // Set remote offer and create answer
       const offer = incomingCall.offer
       if (offer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(offer)))
+        await pc.setRemoteDescription(JSON.parse(offer))
         const answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
         await setCallAnswer(callId, JSON.stringify(answer))
@@ -235,6 +243,13 @@ export default function VideoCall({
       setCallStatus('active')
     } catch (err) {
       console.error('Failed to answer call:', err)
+      if (err instanceof DOMException && err.name === 'NotAllowedError') {
+        setErrorMsg('Camera/microphone permission denied. Please allow access and try again.')
+      } else if (err instanceof DOMException && err.name === 'NotFoundError') {
+        setErrorMsg('No camera or microphone found on this device.')
+      } else {
+        setErrorMsg('Failed to answer the call. Please try again.')
+      }
       setCallStatus('ended')
     }
   }
@@ -295,8 +310,21 @@ export default function VideoCall({
         const sender = pc.getSenders().find((s) => s.track?.kind === 'video')
         if (sender) await sender.replaceTrack(screenTrack)
         if (localVideoRef.current) localVideoRef.current.srcObject = screenStream
-        screenTrack.onended = () => {
-          toggleScreenShare()
+        screenTrack.onended = async () => {
+          // Revert to camera directly instead of calling toggleScreenShare()
+          // to avoid recursive state loops
+          screenStreamRef.current?.getTracks().forEach((t) => t.stop())
+          screenStreamRef.current = null
+          const camStream = localStreamRef.current
+          if (camStream) {
+            const camTrack = camStream.getVideoTracks()[0]
+            if (camTrack) {
+              const videoSender = pc.getSenders().find((s) => s.track?.kind === 'video')
+              if (videoSender) await videoSender.replaceTrack(camTrack)
+            }
+            if (localVideoRef.current) localVideoRef.current.srcObject = camStream
+          }
+          setScreenSharing(false)
         }
         setScreenSharing(true)
       } catch {
@@ -341,6 +369,7 @@ export default function VideoCall({
       <div className="vc-overlay">
         <div className="vc-ringing-card">
           <h3>Call {callStatus === 'declined' ? 'Declined' : 'Ended'}</h3>
+          {errorMsg && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '0.5rem 0' }}>{errorMsg}</p>}
           <button className="vc-btn vc-btn-close" onClick={onClose}>
             <X size={16} /> Close
           </button>
