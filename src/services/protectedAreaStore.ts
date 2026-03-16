@@ -192,9 +192,10 @@ export async function addAttachment(
   const area = await getProtectedArea(areaId)
   if (!area) return null
 
-  const data = await new Promise<string>((resolve) => {
+  const data = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(new Error('Failed to read file'))
     reader.readAsDataURL(file)
   })
 
@@ -268,6 +269,7 @@ export async function updateAreaGitHubSha(
 }
 
 export function downloadAttachment(attachment: ProtectedAreaAttachment): void {
+  if (!attachment?.data || !attachment?.name) return
   const a = document.createElement('a')
   a.href = attachment.data
   a.download = attachment.name

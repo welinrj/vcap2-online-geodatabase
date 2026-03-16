@@ -63,7 +63,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
     if (!needsUsers) return
     if (allUsers.length > 0) return // already loaded
     listUsers().then(setAllUsers).catch(() => {})
-  }, [needsUsers]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [needsUsers, allUsers.length])
 
   // Subscribe to conversations
   useEffect(() => {
@@ -88,10 +88,14 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
       ) {
         const lastMsg = msgs[msgs.length - 1]
         if (lastMsg.senderId !== currentUser.id) {
-          if (lastMsg.attachmentName) {
-            playAttachmentSound()
-          } else {
-            playMessageSound()
+          try {
+            if (lastMsg.attachmentName) {
+              playAttachmentSound()
+            } else {
+              playMessageSound()
+            }
+          } catch {
+            // Audio playback may fail if user hasn't interacted with page yet
           }
         }
       }
@@ -178,18 +182,22 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
     const text = draft.trim()
     setDraft('')
     await sendMessage(activeConv.id, currentUser.id, currentUser.name, text)
-    // Notify other participants
+    // Notify other participants (non-blocking — failed notifications shouldn't affect UX)
     const others = activeConv.participants.filter((p) => p !== currentUser.id)
     for (const uid of others) {
-      await createNotification({
-        userId: uid,
-        type: 'message',
-        title: activeConv.type === 'group' ? (activeConv.name || 'Group') : currentUser.name,
-        body: text.slice(0, 100),
-        conversationId: activeConv.id,
-        fromUserId: currentUser.id,
-        fromUserName: currentUser.name,
-      })
+      try {
+        await createNotification({
+          userId: uid,
+          type: 'message',
+          title: activeConv.type === 'group' ? (activeConv.name || 'Group') : currentUser.name,
+          body: text.slice(0, 100),
+          conversationId: activeConv.id,
+          fromUserId: currentUser.id,
+          fromUserName: currentUser.name,
+        })
+      } catch {
+        // Notification failure is non-fatal — message was already sent
+      }
     }
   }
 

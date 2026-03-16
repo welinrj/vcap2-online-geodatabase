@@ -24,11 +24,14 @@ const DatasetDetail: FC<DatasetDetailProps> = ({
     const json = JSON.stringify(data, null, 2)
     const blob = new Blob([json], { type: 'application/geo+json' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${metadata.name.replace(/\s+/g, '_')}.geojson`
-    a.click()
-    URL.revokeObjectURL(url)
+    try {
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${metadata.name.replace(/\s+/g, '_')}.geojson`
+      a.click()
+    } finally {
+      URL.revokeObjectURL(url)
+    }
   }
 
   return (

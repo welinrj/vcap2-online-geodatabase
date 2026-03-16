@@ -92,7 +92,7 @@ const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
       const bounds = layer.getBounds()
       if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] })
     }
-  }, [features, selectedIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [features, selectedIdx, selectFeature])
 
   // Map click → place new point (when in point-add mode)
   useEffect(() => {
@@ -121,7 +121,7 @@ const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
       map.off('click', onMapClick)
       map.getContainer().style.cursor = ''
     }
-  }, [addMode, allPropKeys]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [addMode, allPropKeys, selectFeature])
 
   const selectFeature = useCallback((idx: number, feature: Feature) => {
     setSelectedIdx(idx)
@@ -320,7 +320,7 @@ const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
             )}
             {features.map((f, idx) => (
               <div
-                key={idx}
+                key={`${idx}-${f.geometry?.type}-${JSON.stringify(f.geometry && 'coordinates' in f.geometry ? (f.geometry.coordinates as number[])[0] : idx)}`}
                 className={`fe-item ${selectedIdx === idx ? 'fe-item-selected' : ''}`}
                 onClick={() => selectFeature(idx, f)}
               >

@@ -128,18 +128,27 @@ const Dashboard: FC = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
     Promise.all([
       migrateFromLocalStorage(),
       listDatasets(),
       seedDefaultCategories(),
     ]).then(([, ds, cats]) => {
-      setDatasets(ds)
-      setCategories(cats)
+      if (!cancelled) {
+        setDatasets(ds)
+        setCategories(cats)
+      }
     }).catch((err) => {
       console.warn('Failed to load dashboard data:', err)
+      // Still try to load what we can
+      if (!cancelled) {
+        listDatasets().then(setDatasets).catch(() => {})
+        seedDefaultCategories().then(setCategories).catch(() => {})
+      }
     }).finally(() => {
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     })
+    return () => { cancelled = true }
   }, [])
 
   if (loading) {

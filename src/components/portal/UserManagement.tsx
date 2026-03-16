@@ -48,7 +48,13 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
   const isAdmin = currentUser?.role === 'admin'
 
   useEffect(() => {
-    loadUsers()
+    let cancelled = false
+    setLoading(true)
+    listUsers()
+      .then((all) => { if (!cancelled) setUsers(all) })
+      .catch(() => { if (!cancelled) setActionMsg({ text: 'Failed to load users', type: 'error' }) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
   async function loadUsers() {

@@ -106,6 +106,8 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       ])
       setFolders(f)
       setFiles(fi)
+    } catch {
+      showAlert('error', 'Failed to load folder contents')
     } finally {
       setLoading(false)
     }
@@ -213,12 +215,17 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   }
 
   async function handleDownloadFile(file: FileEntry) {
-    // If file data isn't loaded (list only returns metadata), fetch it
-    if (!file.data) {
-      const full = await getFile(file.id)
-      if (full) downloadFile(full)
-    } else {
-      downloadFile(file)
+    try {
+      // If file data isn't loaded (list only returns metadata), fetch it
+      if (!file.data) {
+        const full = await getFile(file.id)
+        if (full) downloadFile(full)
+        else showAlert('error', 'File data not found')
+      } else {
+        downloadFile(file)
+      }
+    } catch {
+      showAlert('error', 'Failed to download file')
     }
   }
 
@@ -307,7 +314,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
           {/* Breadcrumb */}
           <div className="fm-breadcrumb">
             {breadcrumb.map((b, i) => (
-              <span key={i} className="fm-breadcrumb-item">
+              <span key={b.id ?? 'root'} className="fm-breadcrumb-item">
                 {i > 0 && <ChevronRight size={14} className="fm-breadcrumb-sep" />}
                 <button
                   className={`fm-breadcrumb-btn ${i === breadcrumb.length - 1 ? 'fm-breadcrumb-current' : ''}`}
