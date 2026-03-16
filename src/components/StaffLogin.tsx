@@ -20,6 +20,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loginMode, setLoginMode] = useState<'firebase' | 'staff'>(useFirebase ? 'firebase' : 'staff')
 
   const handleFallbackLogin = async (e: FormEvent) => {
     e.preventDefault()
@@ -117,20 +118,27 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     </div>
   )
 
-  if (useFirebase) {
-    return (
-      <WavyBackground
-        colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
-        backgroundFill="#0c1520"
-        blur={5}
-        speed="slow"
-        waveOpacity={0.85}
-        containerClassName="!h-auto min-h-screen"
-        className="w-full"
-      >
-      <div className="login-container">
-        {brandPanel}
-        <div className="login-panel">
+  const switchMode = () => {
+    setError('')
+    setPassword('')
+    setEmail('')
+    setLoginMode(loginMode === 'firebase' ? 'staff' : 'firebase')
+  }
+
+  return (
+    <WavyBackground
+      colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
+      backgroundFill="#0c1520"
+      blur={5}
+      speed="slow"
+      waveOpacity={0.85}
+      containerClassName="!h-auto min-h-screen"
+      className="w-full"
+    >
+    <div className="login-container">
+      {brandPanel}
+      <div className="login-panel">
+        {loginMode === 'firebase' ? (
           <form className="login-form" onSubmit={handleFirebaseLogin}>
             <h2>Staff Login</h2>
             <p className="login-description">
@@ -149,9 +157,9 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
               autoFocus
             />
 
-            <label className="login-label" htmlFor="staff-password">Password</label>
+            <label className="login-label" htmlFor="staff-password-firebase">Password</label>
             <input
-              id="staff-password"
+              id="staff-password-firebase"
               className="login-input"
               type="password"
               value={password}
@@ -186,52 +194,54 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
               </svg>
               {loading ? 'Signing in...' : 'Continue with Google'}
             </button>
+
+            <button
+              type="button"
+              className="login-mode-toggle"
+              onClick={switchMode}
+            >
+              Use staff password instead
+            </button>
           </form>
-        </div>
-      </div>
-      </WavyBackground>
-    )
-  }
+        ) : (
+          <form className="login-form" onSubmit={handleFallbackLogin}>
+            <h2>Staff Login</h2>
+            <p className="login-description">
+              Enter the staff password to access the portal.
+            </p>
+            {error && <div className="login-error" role="alert">{error}</div>}
 
-  return (
-    <WavyBackground
-      colors={['#22c55e', '#06b6d4', '#3b82f6', '#4ade80', '#0891b2']}
-      backgroundFill="#0c1520"
-      blur={5}
-      speed="slow"
-      waveOpacity={0.85}
-      containerClassName="!h-auto min-h-screen"
-      className="w-full"
-    >
-    <div className="login-container">
-      {brandPanel}
-      <div className="login-panel">
-        <form className="login-form" onSubmit={handleFallbackLogin}>
-          <h2>Staff Login</h2>
-          <p className="login-description">
-            Enter the staff password to access the portal.
-          </p>
-          {error && <div className="login-error" role="alert">{error}</div>}
+            <label className="login-label" htmlFor="staff-password">Password</label>
+            <input
+              id="staff-password"
+              className="login-input"
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError('') }}
+              placeholder="Enter staff password"
+              autoFocus
+            />
 
-          <label className="login-label" htmlFor="staff-password">Password</label>
-          <input
-            id="staff-password"
-            className="login-input"
-            type="password"
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setError('') }}
-            placeholder="Enter staff password"
-          />
+            <div className="login-actions">
+              <button type="button" className="login-btn login-btn-secondary" onClick={onCancel}>
+                Back to Public
+              </button>
+              <button type="submit" className="login-btn login-btn-primary" disabled={loading}>
+                {loading ? 'Signing in...' : 'Log In'}
+              </button>
+            </div>
 
-          <div className="login-actions">
-            <button type="button" className="login-btn login-btn-secondary" onClick={onCancel}>
-              Back to Public
-            </button>
-            <button type="submit" className="login-btn login-btn-primary" disabled={loading}>
-              Log In
-            </button>
-          </div>
-        </form>
+            {useFirebase && (
+              <button
+                type="button"
+                className="login-mode-toggle"
+                onClick={switchMode}
+              >
+                Sign in with email or Google instead
+              </button>
+            )}
+          </form>
+        )}
       </div>
     </div>
     </WavyBackground>

@@ -641,6 +641,23 @@
   cursor: not-allowed;
 }
 
+.login-mode-toggle {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-primary, #22c55e);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-mode-toggle:hover {
+  opacity: 0.8;
+}
+
 /* ─── Logout ──────────────────────────────────────── */
 .logout-btn {
   color: var(--color-text-tertiary) !important;
