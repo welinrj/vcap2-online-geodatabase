@@ -58,6 +58,7 @@ export interface DatasetMetadata {
   crs: string
   status: DatasetStatus
   category: ProDocCategory
+  portalCategory?: string // portal_categories document ID
 }
 
 export interface GeoDataset {
@@ -73,6 +74,20 @@ export interface GeoDataset {
   data: FeatureCollection<Geometry, GeoJsonProperties>
   /** SHA of the file on GitHub (set after sync) */
   githubSha?: string
+}
+
+/**
+ * Portal category — dynamic categories stored in Firestore
+ * for organising datasets on the public portal.
+ */
+export interface PortalCategory {
+  id: string
+  name: string
+  description: string
+  icon: string          // lucide icon name
+  color: string         // hex colour for badge/accent
+  sortOrder: number
+  datasetCount?: number // derived at runtime
 }
 
 export interface DatasetSummary {

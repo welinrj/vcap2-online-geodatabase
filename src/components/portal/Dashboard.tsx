@@ -1,6 +1,8 @@
 import { useState, useEffect, lazy, Suspense, type FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
+import type { PortalCategory } from '../../types/geospatial'
 import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../services/datasetStore'
+import { seedDefaultCategories } from '../../services/portalCategoryStore'
 import { formatArea } from '../../services/protectedAreaStore'
 import { newAreas, existingAreas, PRODOC_TARGETS, type ProDocEntry } from '../../data/prodocTrackerData'
 import {
@@ -19,6 +21,12 @@ import {
   AlertCircle,
   Target,
   TreePine,
+  Waves,
+  Thermometer,
+  Users,
+  Building2,
+  Folder,
+  FolderOpen,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -99,17 +107,36 @@ function sumMarine(entries: ProDocEntry[]): number {
     .reduce((s, e) => s + (e.hectaresMarine ?? 0), 0)
 }
 
+/** Map icon names from Firestore to lucide components */
+const CATEGORY_ICONS: Record<string, typeof Folder> = {
+  TreePine,
+  Waves,
+  Thermometer,
+  Users,
+  Building2,
+  Folder,
+  FolderOpen,
+}
+
+function getCategoryIcon(name: string) {
+  return CATEGORY_ICONS[name] ?? Folder
+}
+
 const Dashboard: FC = () => {
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
+  const [categories, setCategories] = useState<PortalCategory[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Run migration and dataset fetch in parallel — migration is a no-op if
-    // no legacy localStorage data exists, so it doesn't need to finish first.
-    Promise.all([migrateFromLocalStorage(), listDatasets()]).then(([, ds]) => {
+    Promise.all([
+      migrateFromLocalStorage(),
+      listDatasets(),
+      seedDefaultCategories(),
+    ]).then(([, ds, cats]) => {
       setDatasets(ds)
+      setCategories(cats)
     }).catch((err) => {
-      console.warn('Failed to load datasets:', err)
+      console.warn('Failed to load dashboard data:', err)
     }).finally(() => {
       setLoading(false)
     })
@@ -273,6 +300,41 @@ const Dashboard: FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Portal Data Categories */}
+      {categories.length > 0 && (
+        <div className="dash-categories">
+          <div className="dash-section-header">
+            <div>
+              <h3 className="dash-section-title">
+                <FolderOpen size={18} className="dash-section-icon" />
+                Data Categories
+              </h3>
+              <p className="dash-section-desc">Browse datasets by thematic category</p>
+            </div>
+          </div>
+          <div className="dash-category-grid">
+            {categories.map((cat) => {
+              const Icon = getCategoryIcon(cat.icon)
+              const count = datasets.filter((d) => d.metadata.portalCategory === cat.id).length
+              return (
+                <div className="dash-category-card" key={cat.id} style={{ borderTopColor: cat.color }}>
+                  <div className="dash-category-icon" style={{ color: cat.color }}>
+                    <Icon size={24} />
+                  </div>
+                  <div className="dash-category-info">
+                    <span className="dash-category-name">{cat.name}</span>
+                    <span className="dash-category-desc">{cat.description}</span>
+                  </div>
+                  <span className="dash-category-count" style={{ background: cat.color }}>
+                    {count}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quick stats — CCA & MPA summary */}
       <div className="dash-stats dash-stats-6">
