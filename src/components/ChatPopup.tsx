@@ -65,7 +65,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
   useEffect(() => {
     if (!isOpen) return
     if (allUsers.length > 0) return // already loaded
-    listUsers().then(setAllUsers)
+    listUsers().then(setAllUsers).catch(() => {})
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to conversations

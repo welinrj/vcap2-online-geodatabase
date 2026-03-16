@@ -30,9 +30,9 @@ const ActivityPlanner: FC<ActivityPlannerProps> = ({ currentUser }) => {
   const [filterType, setFilterType] = useState<string>('')
 
   useEffect(() => {
-    listProtectedAreas().then(setAreas)
-    listAllActivities().then(setActivities)
-    listUsers().then(setAllUsers)
+    listProtectedAreas().then(setAreas).catch(() => {})
+    listAllActivities().then(setActivities).catch(() => {})
+    listUsers().then(setAllUsers).catch(() => {})
   }, [])
 
   async function addActivity(a: Omit<Activity, 'id' | 'createdAt'>) {

@@ -108,6 +108,9 @@ const Dashboard: FC = () => {
     // no legacy localStorage data exists, so it doesn't need to finish first.
     Promise.all([migrateFromLocalStorage(), listDatasets()]).then(([, ds]) => {
       setDatasets(ds)
+    }).catch((err) => {
+      console.warn('Failed to load datasets:', err)
+    }).finally(() => {
       setLoading(false)
     })
   }, [])

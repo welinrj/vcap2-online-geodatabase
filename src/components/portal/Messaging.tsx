@@ -62,7 +62,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
   useEffect(() => {
     if (!needsUsers) return
     if (allUsers.length > 0) return // already loaded
-    listUsers().then(setAllUsers)
+    listUsers().then(setAllUsers).catch(() => {})
   }, [needsUsers]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to conversations
