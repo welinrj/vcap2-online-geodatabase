@@ -121,9 +121,9 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   useEffect(() => {
     if (!currentUser) return
     if (tab === 'shared-with-me') {
-      listSharedWithMe(currentUser.id).then(setSharedWithMe)
+      listSharedWithMe(currentUser.id).then(setSharedWithMe).catch(() => {})
     } else if (tab === 'sent') {
-      listMyShares(currentUser.id).then(setSentShares)
+      listMyShares(currentUser.id).then(setSentShares).catch(() => {})
     }
   }, [currentUser, tab])
 

@@ -127,6 +127,8 @@ const DashboardMap: FC = () => {
       setCcaCount(ccas)
       setMpaCount(mpas)
       setAreasLoaded(true)
+    }).catch(() => {
+      setAreasLoaded(true)
     })
 
     // Load uploaded datasets
@@ -197,7 +199,7 @@ const DashboardMap: FC = () => {
       }
 
       setDatasetLayers(layers)
-    })
+    }).catch(() => {})
 
     return () => {
       map.remove()
