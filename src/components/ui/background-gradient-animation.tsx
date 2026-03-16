@@ -74,25 +74,27 @@ export const BackgroundGradientAnimation = ({
     let tgX = 0;
     let tgY = 0;
     let animId = 0;
+    let lastFrame = 0;
+    const FRAME_INTERVAL = 50; // ~20fps instead of 60fps — sufficient for a background effect
 
-    function move() {
+    function move(now: number) {
+      animId = requestAnimationFrame(move);
+      if (now - lastFrame < FRAME_INTERVAL) return;
+      lastFrame = now;
       curX += (tgX - curX) / 20;
       curY += (tgY - curY) / 20;
       if (interactiveRef.current) {
         interactiveRef.current.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px)`;
       }
-      animId = requestAnimationFrame(move);
     }
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (interactiveRef.current) {
-        const rect = interactiveRef.current.getBoundingClientRect();
-        tgX = event.clientX - rect.left;
-        tgY = event.clientY - rect.top;
-      }
+      // Just store target coords — no getBoundingClientRect() per event
+      tgX = event.clientX;
+      tgY = event.clientY;
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mousemove", handleMouseMove, { passive: true });
     animId = requestAnimationFrame(move);
 
     return () => {

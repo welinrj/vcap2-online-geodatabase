@@ -104,13 +104,12 @@ const Dashboard: FC = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function load() {
-      await migrateFromLocalStorage()
-      const ds = await listDatasets()
+    // Run migration and dataset fetch in parallel — migration is a no-op if
+    // no legacy localStorage data exists, so it doesn't need to finish first.
+    Promise.all([migrateFromLocalStorage(), listDatasets()]).then(([, ds]) => {
       setDatasets(ds)
       setLoading(false)
-    }
-    load()
+    })
   }, [])
 
   if (loading) {

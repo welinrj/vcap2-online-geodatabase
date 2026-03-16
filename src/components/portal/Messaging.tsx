@@ -57,10 +57,13 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
     prevMsgCount.current = 0
   }, [])
 
-  // Load users
+  // Load users only when needed (new chat or group modal opened)
+  const needsUsers = showNewChat || showNewGroup
   useEffect(() => {
+    if (!needsUsers) return
+    if (allUsers.length > 0) return // already loaded
     listUsers().then(setAllUsers)
-  }, [])
+  }, [needsUsers]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to conversations
   useEffect(() => {
