@@ -79,13 +79,13 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     try {
       const { signInWithEmail, updateLastLogin } = await import('../services/firebaseAuth')
       const user = await signInWithEmail(email, password)
-      await updateLastLogin(user.id)
+      updateLastLogin(user.id).catch(() => {})
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
       sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
       onSuccess(user)
     } catch (err: unknown) {
-      console.error('Login error:', err)
+      console.error('Firebase login error:', err)
       const code = (err as { code?: string }).code
       if (code === 'auth/user-not-found') {
         setError('No account found with this email')
@@ -99,8 +99,14 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         setError('This account has been disabled')
       } else if (code === 'auth/too-many-requests') {
         setError('Too many failed attempts. Please try again later')
+      } else if (code === 'auth/operation-not-allowed') {
+        setError('Email/password sign-in is not enabled. Use the staff password instead.')
+      } else if (code === 'auth/network-request-failed') {
+        setError('Network error. Please check your connection and try again.')
+      } else if (code === 'auth/configuration-not-found') {
+        setError('Firebase authentication is not configured. Use the staff password instead.')
       } else {
-        setError('Login failed. Please check your credentials.')
+        setError(`Login failed${code ? ` (${code})` : ''}. Try using the staff password instead.`)
       }
       setLoading(false)
     }
@@ -112,7 +118,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     try {
       const { signInWithGoogle, updateLastLogin } = await import('../services/firebaseAuth')
       const user = await signInWithGoogle()
-      await updateLastLogin(user.id)
+      updateLastLogin(user.id).catch(() => {})
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
       sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
@@ -124,8 +130,10 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         setError('Sign-in cancelled')
       } else if (code === 'auth/popup-blocked') {
         setError('Pop-up blocked. Please allow pop-ups for this site')
+      } else if (code === 'auth/operation-not-allowed') {
+        setError('Google sign-in is not enabled. Use the staff password instead.')
       } else {
-        setError('Google sign-in failed. Please try again.')
+        setError(`Google sign-in failed${code ? ` (${code})` : ''}. Try using the staff password instead.`)
       }
       setLoading(false)
     }
@@ -155,7 +163,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         role: 'admin',
         organization: '',
       })
-      await updateLastLogin(user.id)
+      updateLastLogin(user.id).catch(() => {})
       sessionStorage.setItem('vcap2_staff_auth', '1')
       sessionStorage.setItem('vcap2_user_id', user.id)
       sessionStorage.setItem('vcap2_user_profile', JSON.stringify(user))
