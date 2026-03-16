@@ -61,10 +61,12 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
     prevMsgCount.current = 0
   }, [])
 
-  // Load users
+  // Load users only when popup is opened (avoid Firestore query while closed)
   useEffect(() => {
+    if (!isOpen) return
+    if (allUsers.length > 0) return // already loaded
     listUsers().then(setAllUsers)
-  }, [])
+  }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to conversations
   useEffect(() => {
