@@ -121,6 +121,9 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const [dragOverColIndex, setDragOverColIndex] = useState<number | null>(null)
   const initialLoadDone = useRef(false)
 
+  // IDs that have been reclassified from Existing → New
+  const RECLASSIFIED_TO_NEW = new Set(['MPA250302', 'MPA250301', 'MTPA2501', 'MPA2402'])
+
   // Load saved data from Firestore on mount
   useEffect(() => {
     if (initialLoadDone.current) return
@@ -128,8 +131,17 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     loadProDocData()
       .then((saved) => {
         if (saved) {
-          setNewAreas(saved.newAreas)
-          setExistingAreas(saved.existingAreas)
+          // Migrate any areas that were reclassified from Existing → New
+          const migratedFromExisting = saved.existingAreas.filter((e) =>
+            RECLASSIFIED_TO_NEW.has(e.id),
+          ).map((e) => ({ ...e, status: 'New' as const }))
+          const prunedExisting = saved.existingAreas.filter((e) =>
+            !RECLASSIFIED_TO_NEW.has(e.id),
+          )
+          const alreadyInNew = new Set(saved.newAreas.map((e) => e.id))
+          const toAppend = migratedFromExisting.filter((e) => !alreadyInNew.has(e.id))
+          setNewAreas([...saved.newAreas, ...toAppend])
+          setExistingAreas(prunedExisting)
           setColumns(saved.columns)
         }
       })
