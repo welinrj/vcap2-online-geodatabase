@@ -7,8 +7,10 @@ async function loginAsStaff() {
   // The app now shows a public portal by default; click "Staff Login" to open login form
   fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
   await waitFor(() => {
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
   })
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@vcap2.org' } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'VCAP2@2026' } })
   fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
   await waitFor(() => {
@@ -31,18 +33,19 @@ describe('App', () => {
   it('shows login form when Staff Login is clicked', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
   })
 
-  it('shows error for wrong password', async () => {
+  it('shows error when email is missing', async () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
     await waitFor(() => {
-      expect(screen.getByLabelText('Password')).toBeInTheDocument()
+      expect(screen.getByLabelText('Email')).toBeInTheDocument()
     })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong' } })
     fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('Incorrect password')
+    expect(screen.getByRole('alert')).toHaveTextContent('Please enter your email')
   })
 
   it('logs in with staff password and grants access', async () => {

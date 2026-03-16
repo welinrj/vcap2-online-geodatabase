@@ -42,9 +42,16 @@ function ensureFirebaseConfigured(): void {
 export async function signInWithEmail(email: string, password: string): Promise<UserProfile> {
   ensureFirebaseConfigured()
   const userCredential = await signInWithEmailAndPassword(auth!, email, password)
-  const profile = await getUserProfile(userCredential.user.uid)
+  const user = userCredential.user
+
+  let profile = await getUserProfile(user.uid)
   if (!profile) {
-    throw new Error('User profile not found')
+    profile = await createUserProfile(user.uid, {
+      email: user.email || email,
+      name: user.displayName || email.split('@')[0],
+      role: 'editor',
+      organization: '',
+    })
   }
   return profile
 }
