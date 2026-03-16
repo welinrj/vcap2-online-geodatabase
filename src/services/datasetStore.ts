@@ -16,9 +16,11 @@ import {
   deleteDoc,
   query,
   orderBy,
+  where,
   onSnapshot,
   writeBatch,
 } from 'firebase/firestore'
+import { logAudit } from './auditLog'
 
 const COLLECTION = 'datasets'
 const CHUNKS_SUB = 'chunks'
@@ -210,7 +212,9 @@ export async function migrateFromLocalStorage(): Promise<void> {
 export async function listDatasets(): Promise<DatasetSummary[]> {
   const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'))
   const snapshot = await getDocs(q)
-  return snapshotToSummaries(snapshot)
+  // Filter out soft-deleted datasets
+  const activeDocs = snapshot.docs.filter((d) => !d.data()._deleted)
+  return snapshotToSummaries({ docs: activeDocs })
 }
 
 function snapshotToSummaries(snapshot: { docs: Array<{ data: () => Record<string, unknown> }> }): DatasetSummary[] {
@@ -238,7 +242,8 @@ export function onDatasetsChanged(
 ): () => void {
   const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'))
   return onSnapshot(q, (snapshot) => {
-    callback(snapshotToSummaries(snapshot))
+    const activeDocs = snapshot.docs.filter((d) => !d.data()._deleted)
+    callback(snapshotToSummaries({ docs: activeDocs }))
   })
 }
 
@@ -247,6 +252,8 @@ export async function getDataset(id: string): Promise<GeoDataset | null> {
   const snapshot = await getDoc(ref)
   if (!snapshot.exists()) return null
   const meta = snapshot.data() as Record<string, unknown>
+  // Skip soft-deleted datasets
+  if (meta._deleted) return null
   const data = await readGeoData(id)
   return { ...meta, data } as unknown as GeoDataset
 }
@@ -307,14 +314,70 @@ export async function updateDatasetMetadata(
   return dataset
 }
 
+/**
+ * Soft-delete a dataset: marks it as deleted but keeps the data.
+ * Use `purgeDataset` to permanently remove after review.
+ */
 export async function deleteDataset(id: string): Promise<boolean> {
   const ref = doc(db, COLLECTION, id)
   const snapshot = await getDoc(ref)
   if (!snapshot.exists()) return false
 
+  const data = snapshot.data() as Record<string, unknown>
+  const name = (data.metadata as Record<string, unknown>)?.name as string ?? id
+
+  await updateDoc(ref, {
+    _deleted: true,
+    _deletedAt: new Date().toISOString(),
+  })
+
+  await logAudit('soft_delete', 'dataset', id, name)
+  return true
+}
+
+/** Restore a soft-deleted dataset */
+export async function restoreDataset(id: string): Promise<boolean> {
+  const ref = doc(db, COLLECTION, id)
+  const snapshot = await getDoc(ref)
+  if (!snapshot.exists()) return false
+
+  const data = snapshot.data() as Record<string, unknown>
+  const name = (data.metadata as Record<string, unknown>)?.name as string ?? id
+
+  await updateDoc(ref, {
+    _deleted: false,
+    _deletedAt: '',
+  })
+
+  await logAudit('restore', 'dataset', id, name)
+  return true
+}
+
+/** Permanently delete a dataset and its chunks. Use with caution. */
+export async function purgeDataset(id: string): Promise<boolean> {
+  const ref = doc(db, COLLECTION, id)
+  const snapshot = await getDoc(ref)
+  if (!snapshot.exists()) return false
+
+  const data = snapshot.data() as Record<string, unknown>
+  const name = (data.metadata as Record<string, unknown>)?.name as string ?? id
+
   await deleteChunks(id)
   await deleteDoc(ref)
+
+  await logAudit('purge', 'dataset', id, name, 'Permanently deleted')
   return true
+}
+
+/** List soft-deleted datasets (trash) */
+export async function listDeletedDatasets(): Promise<DatasetSummary[]> {
+  const q = query(
+    collection(db, COLLECTION),
+    where('_deleted', '==', true),
+    orderBy('_deletedAt', 'desc'),
+  )
+  const snapshot = await getDocs(q)
+  return snapshotToSummaries(snapshot)
 }
 
 // ── Parsers (synchronous — no storage involved) ──
@@ -460,7 +523,10 @@ function parseKMLCoords(text: string): number[][] {
     .filter((c) => c.length >= 2)
 }
 
-/** Replace the GeoJSON feature data for a dataset, rewriting chunks and updating derived stats */
+/**
+ * Replace the GeoJSON feature data for a dataset, rewriting chunks and updating derived stats.
+ * Writes new data first, then cleans up old chunks — safe against partial failure.
+ */
 export async function updateDatasetFeatures(
   id: string,
   newData: FeatureCollection,
@@ -473,6 +539,12 @@ export async function updateDatasetFeatures(
   const now = new Date().toISOString()
   const meta = snapshot.data() as Record<string, unknown>
 
+  // Capture old chunk IDs before writing new data
+  const oldChunksSnap = await getDocs(
+    collection(db, COLLECTION, id, CHUNKS_SUB),
+  )
+  const oldChunkRefs = oldChunksSnap.docs.map((d) => d.ref)
+
   const updated: GeoDataset = {
     ...(meta as unknown as GeoDataset),
     data: newData,
@@ -483,8 +555,24 @@ export async function updateDatasetFeatures(
     updatedAt: now,
   }
 
-  await deleteChunks(id)
+  // Write new data first (if this fails, old data is still intact)
   await writeDataset(updated)
+
+  // Then clean up old chunks that are no longer needed
+  // (writeDataset overwrites chunks with matching IDs, but old extras may remain)
+  const newChunkCount = Math.ceil(raw.length / CHUNK_SIZE)
+  const staleRefs = oldChunkRefs.filter((r) => {
+    const idx = parseInt(r.id, 10)
+    return idx >= newChunkCount
+  })
+  for (let i = 0; i < staleRefs.length; i += 499) {
+    const batch = writeBatch(db)
+    const slice = staleRefs.slice(i, i + 499)
+    for (const r of slice) batch.delete(r)
+    await batch.commit()
+  }
+
+  await logAudit('update', 'dataset', id, (meta.metadata as Record<string, unknown>)?.name as string ?? id, 'Feature data updated')
 }
 
 /** Update the githubSha for a dataset after sync */

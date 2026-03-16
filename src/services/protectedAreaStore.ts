@@ -17,8 +17,10 @@ import {
   deleteDoc,
   query,
   orderBy,
+  where,
   onSnapshot,
 } from 'firebase/firestore'
+import { logAudit } from './auditLog'
 
 const COLLECTION = 'protectedAreas'
 
@@ -43,7 +45,9 @@ function toSummary(area: ProtectedArea): ProtectedAreaSummary {
 export async function listProtectedAreas(): Promise<ProtectedAreaSummary[]> {
   const q = query(collection(db, COLLECTION), orderBy('updatedAt', 'desc'))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((d) => toSummary(d.data() as ProtectedArea))
+  return snapshot.docs
+    .filter((d) => !d.data()._deleted)
+    .map((d) => toSummary(d.data() as ProtectedArea))
 }
 
 /**
@@ -55,7 +59,11 @@ export function onProtectedAreasChanged(
 ): () => void {
   const q = query(collection(db, COLLECTION), orderBy('updatedAt', 'desc'))
   return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map((d) => toSummary(d.data() as ProtectedArea)))
+    callback(
+      snapshot.docs
+        .filter((d) => !d.data()._deleted)
+        .map((d) => toSummary(d.data() as ProtectedArea)),
+    )
   })
 }
 
@@ -120,13 +128,61 @@ export async function updateProtectedArea(
   return area
 }
 
+/**
+ * Soft-delete a protected area. Data is preserved and can be restored.
+ */
 export async function deleteProtectedArea(id: string): Promise<boolean> {
   const ref = doc(db, COLLECTION, id)
   const snapshot = await getDoc(ref)
   if (!snapshot.exists()) return false
 
-  await deleteDoc(ref)
+  const data = snapshot.data() as ProtectedArea
+  await updateDoc(ref, {
+    _deleted: true,
+    _deletedAt: new Date().toISOString(),
+  })
+
+  await logAudit('soft_delete', 'protectedArea', id, data.name)
   return true
+}
+
+/** Restore a soft-deleted protected area */
+export async function restoreProtectedArea(id: string): Promise<boolean> {
+  const ref = doc(db, COLLECTION, id)
+  const snapshot = await getDoc(ref)
+  if (!snapshot.exists()) return false
+
+  const data = snapshot.data() as ProtectedArea
+  await updateDoc(ref, {
+    _deleted: false,
+    _deletedAt: '',
+  })
+
+  await logAudit('restore', 'protectedArea', id, data.name)
+  return true
+}
+
+/** Permanently delete a protected area */
+export async function purgeProtectedArea(id: string): Promise<boolean> {
+  const ref = doc(db, COLLECTION, id)
+  const snapshot = await getDoc(ref)
+  if (!snapshot.exists()) return false
+
+  const data = snapshot.data() as ProtectedArea
+  await deleteDoc(ref)
+  await logAudit('purge', 'protectedArea', id, data.name, 'Permanently deleted')
+  return true
+}
+
+/** List soft-deleted protected areas (trash) */
+export async function listDeletedProtectedAreas(): Promise<ProtectedAreaSummary[]> {
+  const q = query(
+    collection(db, COLLECTION),
+    where('_deleted', '==', true),
+    orderBy('_deletedAt', 'desc'),
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((d) => toSummary(d.data() as ProtectedArea))
 }
 
 export async function addAttachment(

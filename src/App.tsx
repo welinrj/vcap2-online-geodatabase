@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation'
 import { PortalLoader } from './components/ui/customizable-loader-spinner-transition'
 import ChatPopup from './components/ChatPopup'
@@ -148,6 +149,7 @@ function App() {
           onNavigateToChat={handleNavigateToChat}
         />
         <div className="dashboard-content">
+          <ErrorBoundary>
           <Suspense fallback={<PortalLoader squareCount={10} speed={0.5} />}>
           {activeSection === 'dashboard' && <Dashboard />}
           {activeSection === 'gis-database' && isAuthenticated && <GISDatabase />}
@@ -164,6 +166,7 @@ function App() {
             <Account currentUser={currentUser} onUserUpdated={setCurrentUser} />
           )}
           </Suspense>
+          </ErrorBoundary>
 
           {/* Video/Audio Call Overlay */}
           {(outgoingCall || incomingCall) && currentUser && (
