@@ -21,7 +21,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [staffPassword, setStaffPassword] = useState('')
-  const [loginMode, setLoginMode] = useState<'firebase' | 'staff'>(useFirebase ? 'firebase' : 'staff')
+  const [loginMode, setLoginMode] = useState<'firebase' | 'staff'>('staff')
   const [showSignUp, setShowSignUp] = useState(false)
 
   const handleFallbackLogin = async (e: FormEvent) => {
