@@ -35,6 +35,16 @@ const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
 
   const allPropKeys = dataset.properties
 
+  const selectFeature = useCallback((idx: number, feature: Feature) => {
+    setSelectedIdx(idx)
+    setEditProps(
+      Object.fromEntries(
+        Object.entries(feature.properties ?? {}).map(([k, v]) => [k, String(v ?? '')]),
+      ),
+    )
+    setAddMode('none')
+  }, [])
+
   // Init map once
   useEffect(() => {
     if (!mapContainerRef.current) return
@@ -122,16 +132,6 @@ const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
       map.getContainer().style.cursor = ''
     }
   }, [addMode, allPropKeys, selectFeature])
-
-  const selectFeature = useCallback((idx: number, feature: Feature) => {
-    setSelectedIdx(idx)
-    setEditProps(
-      Object.fromEntries(
-        Object.entries(feature.properties ?? {}).map(([k, v]) => [k, String(v ?? '')]),
-      ),
-    )
-    setAddMode('none')
-  }, [])
 
   function handleDeleteFeature(idx: number) {
     setFeatures((prev) => prev.filter((_, i) => i !== idx))
