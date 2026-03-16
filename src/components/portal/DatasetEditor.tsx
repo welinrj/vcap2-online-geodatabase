@@ -1,6 +1,7 @@
-import { useState, type FC } from 'react'
-import type { DatasetMetadata, DatasetStatus, ProDocCategory } from '../../types/geospatial'
+import { useState, useEffect, type FC } from 'react'
+import type { DatasetMetadata, DatasetStatus, ProDocCategory, PortalCategory } from '../../types/geospatial'
 import { PRODOC_CATEGORIES } from '../../types/geospatial'
+import { listCategories } from '../../services/portalCategoryStore'
 
 interface DatasetEditorProps {
   metadata: DatasetMetadata
@@ -22,7 +23,13 @@ const DatasetEditor: FC<DatasetEditorProps> = ({
   const [status, setStatus] = useState<DatasetStatus>(metadata.status)
   const [crs, setCrs] = useState(metadata.crs)
   const [category, setCategory] = useState<ProDocCategory>(metadata.category ?? '')
+  const [portalCategory, setPortalCategory] = useState(metadata.portalCategory ?? '')
+  const [portalCategories, setPortalCategories] = useState<PortalCategory[]>([])
   const [tagsInput, setTagsInput] = useState(metadata.tags.join(', '))
+
+  useEffect(() => {
+    listCategories().then(setPortalCategories).catch(() => {})
+  }, [])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -30,7 +37,7 @@ const DatasetEditor: FC<DatasetEditorProps> = ({
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean)
-    onSave({ name, description, source, license, status, crs, tags, category })
+    onSave({ name, description, source, license, status, crs, tags, category, portalCategory: portalCategory || undefined })
   }
 
   return (
@@ -121,6 +128,24 @@ const DatasetEditor: FC<DatasetEditorProps> = ({
             ))}
           </select>
         </div>
+
+        {portalCategories.length > 0 && (
+          <div className="form-group">
+            <label htmlFor="edit-portal-category">Portal Category</label>
+            <select
+              id="edit-portal-category"
+              value={portalCategory}
+              onChange={(e) => setPortalCategory(e.target.value)}
+            >
+              <option value="">— No portal category —</option>
+              {portalCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="form-group">
           <label htmlFor="edit-tags">Tags (comma-separated)</label>

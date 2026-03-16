@@ -269,6 +269,7 @@ export async function addDataset(
     crs: metadata.crs ?? 'EPSG:4326',
     status: metadata.status ?? 'active',
     category: metadata.category ?? '',
+    portalCategory: metadata.portalCategory ?? undefined,
   }
 
   const dataset: GeoDataset = {
