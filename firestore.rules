@@ -68,6 +68,30 @@ service cloud.firestore {
       allow update, delete: if isEditor() || isAdmin();
     }
 
+    // Portal categories
+    match /portal_categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Portal configuration
+    match /portal_config/{configId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // ProDocs
+    match /prodocs/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // NBSAP targets
+    match /nbsap_targets/{targetId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
     // System configuration (admin only)
     match /system_config/{configId} {
       allow read: if isAuthenticated();
