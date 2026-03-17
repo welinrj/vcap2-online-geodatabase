@@ -1,88 +1,36 @@
 {
   "type": "FeatureCollection",
-  "name": "Vanuatu Provinces",
-  "crs": {
-    "type": "name",
-    "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" }
-  },
+  "note": "Placeholder bounding boxes. Replace with authoritative GADM/VNSO boundary data. Properties must include NAME_1 matching: Malampa, Penama, Sanma, Shefa, Tafea, Torba.",
   "features": [
     {
       "type": "Feature",
-      "properties": {
-        "name": "Torba",
-        "code": "TOB",
-        "capital": "Sola",
-        "islands": ["Vanua Lava", "Gaua", "Mota", "Mota Lava", "Torres Islands"]
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[[166.5, -13.2], [167.8, -13.2], [167.8, -14.5], [166.5, -14.5], [166.5, -13.2]]]
-      }
+      "properties": { "NAME_1": "Torba",   "ID": 1 },
+      "geometry": { "type": "Polygon", "coordinates": [[[166.5,-13.2],[167.5,-13.2],[167.5,-14.0],[166.5,-14.0],[166.5,-13.2]]] }
     },
     {
       "type": "Feature",
-      "properties": {
-        "name": "Sanma",
-        "code": "SAM",
-        "capital": "Luganville",
-        "islands": ["Espiritu Santo", "Malo", "Aore"]
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[[166.5, -14.5], [167.5, -14.5], [167.5, -15.8], [166.5, -15.8], [166.5, -14.5]]]
-      }
+      "properties": { "NAME_1": "Sanma",   "ID": 2 },
+      "geometry": { "type": "Polygon", "coordinates": [[[166.5,-14.0],[167.7,-14.0],[167.7,-15.1],[166.5,-15.1],[166.5,-14.0]]] }
     },
     {
       "type": "Feature",
-      "properties": {
-        "name": "Penama",
-        "code": "PEN",
-        "capital": "Saratamata",
-        "islands": ["Ambae", "Maewo", "Pentecost"]
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[[167.5, -14.8], [168.5, -14.8], [168.5, -16.5], [167.5, -16.5], [167.5, -14.8]]]
-      }
+      "properties": { "NAME_1": "Penama",  "ID": 3 },
+      "geometry": { "type": "Polygon", "coordinates": [[[167.5,-14.8],[168.2,-14.8],[168.2,-15.8],[167.5,-15.8],[167.5,-14.8]]] }
     },
     {
       "type": "Feature",
-      "properties": {
-        "name": "Malampa",
-        "code": "MAP",
-        "capital": "Lakatoro",
-        "islands": ["Malakula", "Ambrym", "Paama"]
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[[167.0, -15.8], [168.2, -15.8], [168.2, -17.2], [167.0, -17.2], [167.0, -15.8]]]
-      }
+      "properties": { "NAME_1": "Malampa", "ID": 4 },
+      "geometry": { "type": "Polygon", "coordinates": [[[166.8,-15.8],[168.0,-15.8],[168.0,-17.0],[166.8,-17.0],[166.8,-15.8]]] }
     },
     {
       "type": "Feature",
-      "properties": {
-        "name": "Shefa",
-        "code": "SEE",
-        "capital": "Port Vila",
-        "islands": ["Efate", "Epi", "Shepherd Islands"]
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[[167.8, -17.2], [168.8, -17.2], [168.8, -18.5], [167.8, -18.5], [167.8, -17.2]]]
-      }
+      "properties": { "NAME_1": "Shefa",   "ID": 5 },
+      "geometry": { "type": "Polygon", "coordinates": [[[167.5,-17.0],[168.5,-17.0],[168.5,-18.2],[167.5,-18.2],[167.5,-17.0]]] }
     },
     {
       "type": "Feature",
-      "properties": {
-        "name": "Tafea",
-        "code": "TAE",
-        "capital": "Isangel",
-        "islands": ["Tanna", "Erromango", "Aniwa", "Futuna", "Aneityum"]
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[[168.8, -18.5], [170.2, -18.5], [170.2, -20.5], [168.8, -20.5], [168.8, -18.5]]]
-      }
+      "properties": { "NAME_1": "Tafea",   "ID": 6 },
+      "geometry": { "type": "Polygon", "coordinates": [[[168.0,-18.5],[170.0,-18.5],[170.0,-20.3],[168.0,-20.3],[168.0,-18.5]]] }
     }
   ]
 }
