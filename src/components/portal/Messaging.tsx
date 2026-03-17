@@ -40,6 +40,8 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
   const [messages, setMessages] = useState<Message[]>([])
   const [draft, setDraft] = useState('')
   const [allUsers, setAllUsers] = useState<UserProfile[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [chatError, setChatError] = useState<string | null>(null)
   const [showNewChat, setShowNewChat] = useState(false)
   const [showNewGroup, setShowNewGroup] = useState(false)
   const [groupName, setGroupName] = useState('')
@@ -62,7 +64,11 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
   useEffect(() => {
     if (!needsUsers) return
     if (allUsers.length > 0) return // already loaded
-    listUsers().then(setAllUsers).catch(() => {})
+    setUsersLoading(true)
+    listUsers()
+      .then(setAllUsers)
+      .catch(() => {})
+      .finally(() => setUsersLoading(false))
   }, [needsUsers, allUsers.length])
 
   // Subscribe to conversations
@@ -134,18 +140,23 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
   // Start direct chat
   const startDirectChat = async (user: UserProfile) => {
     if (!currentUser) return
-    let conv = await findDirectConversation(currentUser.id, user.id)
-    if (!conv) {
-      conv = await createConversation(
-        'direct',
-        [currentUser.id, user.id],
-        { [currentUser.id]: currentUser.name, [user.id]: user.name },
-        currentUser.id,
-      )
+    setChatError(null)
+    try {
+      let conv = await findDirectConversation(currentUser.id, user.id)
+      if (!conv) {
+        conv = await createConversation(
+          'direct',
+          [currentUser.id, user.id],
+          { [currentUser.id]: currentUser.name, [user.id]: user.name },
+          currentUser.id,
+        )
+      }
+      setActiveConv(conv)
+      setShowNewChat(false)
+      setUserSearch('')
+    } catch {
+      setChatError('Could not start chat. Please try again.')
     }
-    setActiveConv(conv)
-    setShowNewChat(false)
-    setUserSearch('')
   }
 
   // Create group chat
@@ -458,11 +469,11 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
 
       {/* New Direct Chat Modal */}
       {showNewChat && (
-        <div className="msg-modal-overlay" onClick={() => setShowNewChat(false)}>
+        <div className="msg-modal-overlay" onClick={() => { setShowNewChat(false); setChatError(null) }}>
           <div className="msg-modal" onClick={(e) => e.stopPropagation()}>
             <div className="msg-modal-header">
               <h4>New Chat</h4>
-              <button className="msg-icon-btn" onClick={() => setShowNewChat(false)}>
+              <button className="msg-icon-btn" onClick={() => { setShowNewChat(false); setChatError(null) }}>
                 <X size={16} />
               </button>
             </div>
@@ -476,24 +487,28 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                 autoFocus
               />
             </div>
+            {chatError && <div className="msg-empty" style={{ color: '#ef4444' }}>{chatError}</div>}
             <div className="msg-user-list">
-              {filteredUsers.map((user) => (
-                <button key={user.id} className="msg-user-item" onClick={() => startDirectChat(user)}>
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="msg-user-avatar" />
-                  ) : (
-                    <span className="msg-user-avatar msg-user-avatar-fallback">
-                      {user.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                  <div className="msg-user-info">
-                    <div className="msg-user-name">{user.name}</div>
-                    {user.organization && <div className="msg-user-org">{user.organization}</div>}
-                  </div>
-                </button>
-              ))}
-              {filteredUsers.length === 0 && (
+              {usersLoading ? (
+                <div className="msg-empty">Loading users…</div>
+              ) : filteredUsers.length === 0 ? (
                 <div className="msg-empty">No users found</div>
+              ) : (
+                filteredUsers.map((user) => (
+                  <button key={user.id} className="msg-user-item" onClick={() => startDirectChat(user)}>
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="msg-user-avatar" />
+                    ) : (
+                      <span className="msg-user-avatar msg-user-avatar-fallback">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <div className="msg-user-info">
+                      <div className="msg-user-name">{user.name}</div>
+                      {user.organization && <div className="msg-user-org">{user.organization}</div>}
+                    </div>
+                  </button>
+                ))
               )}
             </div>
           </div>
@@ -545,7 +560,10 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
               </div>
             )}
             <div className="msg-user-list">
-              {filteredUsers.map((user) => {
+              {usersLoading ? (
+                <div className="msg-empty">Loading users…</div>
+              ) : (
+              filteredUsers.map((user) => {
                 const isSelected = selectedUsers.includes(user.id)
                 return (
                   <button
@@ -571,7 +589,8 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                     {isSelected && <span className="msg-check">&#10003;</span>}
                   </button>
                 )
-              })}
+              })
+              )}
             </div>
             <div className="msg-modal-footer">
               <button
