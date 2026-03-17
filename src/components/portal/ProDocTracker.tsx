@@ -58,6 +58,9 @@ const COLORS = {
   gray: '#e2e8f0',
 }
 
+// IDs reclassified from Existing → New (migration applied on Firestore load)
+const RECLASSIFIED_TO_NEW = new Set(['MPA250302', 'MPA250301', 'MTPA2501', 'MPA2402'])
+
 const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', 'Terrestrial']
 const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
 const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
@@ -128,8 +131,19 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     loadProDocData()
       .then((saved) => {
         if (saved) {
-          setNewAreas(saved.newAreas)
-          setExistingAreas(saved.existingAreas)
+          // Migrate any areas reclassified from Existing → New in a single pass
+          const { toMigrate, prunedExisting } = saved.existingAreas.reduce(
+            (acc, e) => {
+              if (RECLASSIFIED_TO_NEW.has(e.id)) acc.toMigrate.push({ ...e, status: 'New' as const })
+              else acc.prunedExisting.push(e)
+              return acc
+            },
+            { toMigrate: [] as ProDocEntry[], prunedExisting: [] as ProDocEntry[] },
+          )
+          const alreadyInNew = new Set(saved.newAreas.map((e) => e.id))
+          const toAppend = toMigrate.filter((e) => !alreadyInNew.has(e.id))
+          setNewAreas([...saved.newAreas, ...toAppend])
+          setExistingAreas(prunedExisting)
           setColumns(saved.columns)
         }
       })
