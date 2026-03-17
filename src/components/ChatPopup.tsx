@@ -42,6 +42,8 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
   const [messages, setMessages] = useState<Message[]>([])
   const [draft, setDraft] = useState('')
   const [allUsers, setAllUsers] = useState<UserProfile[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [chatError, setChatError] = useState<string | null>(null)
   const [showNewChat, setShowNewChat] = useState(false)
   const [showNewGroup, setShowNewGroup] = useState(false)
   const [groupName, setGroupName] = useState('')
@@ -61,12 +63,17 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
     prevMsgCount.current = 0
   }, [])
 
-  // Load users only when popup is opened (avoid Firestore query while closed)
+  // Load users when new chat or group modal opens
+  const needsUsers = showNewChat || showNewGroup
   useEffect(() => {
-    if (!isOpen) return
+    if (!needsUsers) return
     if (allUsers.length > 0) return // already loaded
-    listUsers().then(setAllUsers).catch(() => {})
-  }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+    setUsersLoading(true)
+    listUsers()
+      .then(setAllUsers)
+      .catch(() => {})
+      .finally(() => setUsersLoading(false))
+  }, [needsUsers, allUsers.length])
 
   // Subscribe to conversations
   useEffect(() => {
@@ -135,18 +142,23 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
   )
 
   const startDirectChat = async (user: UserProfile) => {
-    let conv = await findDirectConversation(currentUser.id, user.id)
-    if (!conv) {
-      conv = await createConversation(
-        'direct',
-        [currentUser.id, user.id],
-        { [currentUser.id]: currentUser.name, [user.id]: user.name },
-        currentUser.id,
-      )
+    setChatError(null)
+    try {
+      let conv = await findDirectConversation(currentUser.id, user.id)
+      if (!conv) {
+        conv = await createConversation(
+          'direct',
+          [currentUser.id, user.id],
+          { [currentUser.id]: currentUser.name, [user.id]: user.name },
+          currentUser.id,
+        )
+      }
+      setActiveConv(conv)
+      setShowNewChat(false)
+      setUserSearch('')
+    } catch {
+      setChatError('Could not start chat. Please try again.')
     }
-    setActiveConv(conv)
-    setShowNewChat(false)
-    setUserSearch('')
   }
 
   const handleCreateGroup = async () => {
@@ -458,7 +470,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
           {showNewChat && (
             <div className="chat-popup-body">
               <div className="chat-popup-sub-header">
-                <button className="chat-popup-back" onClick={() => { setShowNewChat(false); setUserSearch('') }}>
+                <button className="chat-popup-back" onClick={() => { setShowNewChat(false); setUserSearch(''); setChatError(null) }}>
                   <ArrowLeft size={16} />
                 </button>
                 <h5>New Chat</h5>
@@ -473,24 +485,28 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                   autoFocus
                 />
               </div>
+              {chatError && <div className="msg-empty" style={{ color: '#ef4444' }}>{chatError}</div>}
               <div className="chat-popup-convs">
-                {filteredUsers.map((user) => (
-                  <button key={user.id} className="msg-user-item" onClick={() => startDirectChat(user)}>
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="msg-user-avatar" />
-                    ) : (
-                      <span className="msg-user-avatar msg-user-avatar-fallback">
-                        {user.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <div className="msg-user-info">
-                      <div className="msg-user-name">{user.name}</div>
-                      {user.organization && <div className="msg-user-org">{user.organization}</div>}
-                    </div>
-                  </button>
-                ))}
-                {filteredUsers.length === 0 && (
+                {usersLoading ? (
+                  <div className="msg-empty">Loading users…</div>
+                ) : filteredUsers.length === 0 ? (
                   <div className="msg-empty">No users found</div>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <button key={user.id} className="msg-user-item" onClick={() => startDirectChat(user)}>
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="msg-user-avatar" />
+                      ) : (
+                        <span className="msg-user-avatar msg-user-avatar-fallback">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <div className="msg-user-info">
+                        <div className="msg-user-name">{user.name}</div>
+                        {user.organization && <div className="msg-user-org">{user.organization}</div>}
+                      </div>
+                    </button>
+                  ))
                 )}
               </div>
             </div>
@@ -541,33 +557,37 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                 </div>
               )}
               <div className="chat-popup-convs">
-                {filteredUsers.map((user) => {
-                  const isSelected = selectedUsers.includes(user.id)
-                  return (
-                    <button
-                      key={user.id}
-                      className={`msg-user-item ${isSelected ? 'msg-user-selected' : ''}`}
-                      onClick={() => {
-                        setSelectedUsers((s) =>
-                          isSelected ? s.filter((x) => x !== user.id) : [...s, user.id],
-                        )
-                      }}
-                    >
-                      {user.avatar ? (
-                        <img src={user.avatar} alt={user.name} className="msg-user-avatar" />
-                      ) : (
-                        <span className="msg-user-avatar msg-user-avatar-fallback">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <div className="msg-user-info">
-                        <div className="msg-user-name">{user.name}</div>
-                        {user.organization && <div className="msg-user-org">{user.organization}</div>}
-                      </div>
-                      {isSelected && <span className="msg-check">&#10003;</span>}
-                    </button>
-                  )
-                })}
+                {usersLoading ? (
+                  <div className="msg-empty">Loading users…</div>
+                ) : (
+                  filteredUsers.map((user) => {
+                    const isSelected = selectedUsers.includes(user.id)
+                    return (
+                      <button
+                        key={user.id}
+                        className={`msg-user-item ${isSelected ? 'msg-user-selected' : ''}`}
+                        onClick={() => {
+                          setSelectedUsers((s) =>
+                            isSelected ? s.filter((x) => x !== user.id) : [...s, user.id],
+                          )
+                        }}
+                      >
+                        {user.avatar ? (
+                          <img src={user.avatar} alt={user.name} className="msg-user-avatar" />
+                        ) : (
+                          <span className="msg-user-avatar msg-user-avatar-fallback">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <div className="msg-user-info">
+                          <div className="msg-user-name">{user.name}</div>
+                          {user.organization && <div className="msg-user-org">{user.organization}</div>}
+                        </div>
+                        {isSelected && <span className="msg-check">&#10003;</span>}
+                      </button>
+                    )
+                  })
+                )}
               </div>
               {selectedUsers.length > 0 && (
                 <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--color-border-light)' }}>
