@@ -109,6 +109,7 @@ vi.mock('firebase/auth', () => ({
   getAuth: () => ({}),
   signInWithEmailAndPassword: () => Promise.resolve({ user: { uid: 'test-uid', email: 'test@example.com', displayName: 'VCAP2 Staff' } }),
   createUserWithEmailAndPassword: () => Promise.resolve({ user: { uid: 'test-uid' } }),
+  signInAnonymously: () => Promise.resolve({ user: { uid: 'test-uid', email: null, displayName: null } }),
   signOut: () => Promise.resolve(),
   GoogleAuthProvider: class {},
   signInWithPopup: () => Promise.resolve({ user: { uid: 'test-uid', email: 'test@example.com', displayName: 'VCAP2 Staff' } }),
@@ -148,6 +149,11 @@ vi.mock('firebase/firestore', () => ({
   doc: mockDoc,
   getDocs: mockGetDocs,
   getDoc: mockGetDoc,
+  addDoc: async (ref: { collectionPath: string }, data: Record<string, unknown>) => {
+    const id = 'auto_' + Math.random().toString(36).slice(2, 10)
+    store.set(`${ref.collectionPath}/${id}`, { ...data })
+    return mockDoc({}, ref.collectionPath, id)
+  },
   setDoc: mockSetDoc,
   updateDoc: mockUpdateDoc,
   deleteDoc: mockDeleteDoc,
