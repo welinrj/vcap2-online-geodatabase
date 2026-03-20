@@ -154,24 +154,36 @@ async def get_current_user(
 # ── Role-based access ─────────────────────────────────────────────────────────
 
 
-def require_role(role: str):
+def require_role(*roles: str):
     """
-    Dependency factory.  Ensures the authenticated user holds the given realm
-    role.  Returns the User object so downstream handlers can use it directly.
+    Dependency factory.  Ensures the authenticated user holds *at least one* of
+    the given realm roles.  Returns the User object so downstream handlers can
+    use it directly.
 
     Usage::
 
         @router.get("/admin")
         async def admin_only(user: User = Depends(require_role("admin"))):
             ...
+
+        @router.post("/data")
+        async def data_entry(user: User = Depends(require_role("admin", "data_entry"))):
+            ...
     """
 
     async def _check(user: User = Depends(get_current_user)) -> User:
-        if not user.has_role(role):
+        if not any(user.has_role(r) for r in roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role '{role}' is required to access this resource.",
+                detail=f"One of roles {list(roles)} is required to access this resource.",
             )
         return user
 
     return _check
+
+
+# Convenience aliases for common role combinations
+require_admin = require_role("admin")
+require_analyst = require_role("admin", "analyst")
+require_data_entry = require_role("admin", "data_entry")
+require_editor = require_role("admin", "data_entry", "editor")

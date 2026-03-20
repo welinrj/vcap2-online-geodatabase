@@ -14,13 +14,14 @@ import logging
 from decimal import Decimal
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import User, get_current_user
+from app.auth import User, get_current_user, require_analyst
 from app.database import get_db
+from app.rate_limit import limiter
 from app.models.activities import Activity
 from app.models.financials import FinancialTransaction
 from app.models.indicators import Indicator, IndicatorValue
@@ -106,9 +107,11 @@ async def get_merl_summary(
 
 
 @router.get("/reports/export/pdf")
+@limiter.limit("5/minute")
 async def export_pdf(
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_analyst),
 ) -> StreamingResponse:
     """
     Generate a PDF MERL summary report and stream it to the client.
@@ -130,9 +133,11 @@ async def export_pdf(
 
 
 @router.get("/reports/export/excel")
+@limiter.limit("5/minute")
 async def export_excel(
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_analyst),
 ) -> StreamingResponse:
     """
     Generate an Excel MERL workbook and stream it to the client.

@@ -17,7 +17,7 @@ from geoalchemy2.functions import ST_MakePoint, ST_SetSRID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import User, get_current_user
+from app.auth import User, get_current_user, require_data_entry
 from app.database import get_db
 from app.models.events import (
     GeoJSONFeature,
@@ -94,7 +94,7 @@ async def list_events(
 async def create_event(
     payload: LDEventCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_data_entry),
 ) -> LDEventResponse:
     """Record a new Loss & Damage event.  Automatically builds PostGIS geometry."""
     data = payload.model_dump()
@@ -117,11 +117,12 @@ async def get_events_map(
     province: Optional[str] = Query(default=None),
     verified: Optional[bool] = Query(default=None),
     year: Optional[int] = Query(default=None),
+    limit: int = Query(default=2000, ge=1, le=5000, description="Max features to return"),
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> GeoJSONFeatureCollection:
     """
-    Return a GeoJSON FeatureCollection of all matching L&D events.
+    Return a GeoJSON FeatureCollection of matching L&D events (capped).
     Only events with lat/lon coordinates will have non-null geometry.
     """
     from sqlalchemy import extract, func
@@ -135,7 +136,7 @@ async def get_events_map(
         stmt = stmt.where(LDEvent.verified == verified)
     if year:
         stmt = stmt.where(extract("year", LDEvent.event_date) == year)
-    stmt = stmt.order_by(LDEvent.event_date.desc())
+    stmt = stmt.order_by(LDEvent.event_date.desc()).limit(limit)
 
     result = await db.execute(stmt)
     events = result.scalars().all()

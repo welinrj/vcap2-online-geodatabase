@@ -18,10 +18,13 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 from app.database import check_db_connection, dispose_engine
+from app.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +81,10 @@ def create_app() -> FastAPI:
         openapi_url=_openapi_url,
         lifespan=lifespan,
     )
+
+    # ── Rate limiting ──────────────────────────────────────────────────────
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # ── Security headers middleware ────────────────────────────────────────
     class SecurityHeadersMiddleware(BaseHTTPMiddleware):

@@ -19,7 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import User, get_current_user
+from app.auth import User, get_current_user, require_data_entry
 from app.database import get_clickhouse, get_db
 from app.models.indicators import (
     Indicator,
@@ -198,7 +198,7 @@ async def add_indicator_value(
     indicator_id: int,
     payload: IndicatorValueCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_data_entry),
 ) -> IndicatorValueResponse:
     """Record a new value against an indicator."""
     # Verify indicator exists

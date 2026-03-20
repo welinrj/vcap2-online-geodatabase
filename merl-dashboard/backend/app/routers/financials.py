@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import User, get_current_user
+from app.auth import User, get_current_user, require_data_entry
 from app.database import get_clickhouse, get_db
 from app.models.financials import (
     DomainFinancialSummary,
@@ -178,7 +178,7 @@ async def list_transactions(
 async def create_transaction(
     payload: TransactionCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_data_entry),
 ) -> TransactionResponse:
     """Record a new financial transaction."""
     tx = FinancialTransaction(**payload.model_dump(), created_by=user.email)

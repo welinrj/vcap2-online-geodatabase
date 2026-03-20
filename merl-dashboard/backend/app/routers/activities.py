@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import User, get_current_user
+from app.auth import User, get_current_user, require_editor, require_role
 from app.database import get_db
 from app.models.activities import (
     Activity,
@@ -137,11 +137,11 @@ async def update_activity_status(
     activity_id: int,
     payload: ActivityUpdate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_editor),
 ) -> ActivityResponse:
     """
     Partial update for an activity.  Accepts any subset of ActivityUpdate fields.
-    Only non-None values are applied.
+    Only non-None values are applied.  Requires 'admin', 'data_entry', or 'editor' role.
     """
     stmt = (
         select(Activity)
@@ -156,9 +156,15 @@ async def update_activity_status(
             detail=f"Activity {activity_id} not found.",
         )
 
+    # Explicit allowlist to prevent mass-assignment of protected fields
+    _ALLOWED_FIELDS = {
+        "name", "description", "status", "completion_percentage",
+        "actual_start_date", "actual_end_date", "budget_spent", "notes",
+    }
     update_data = payload.model_dump(exclude_unset=True, exclude_none=True)
     for field_name, value in update_data.items():
-        setattr(activity, field_name, value)
+        if field_name in _ALLOWED_FIELDS:
+            setattr(activity, field_name, value)
 
     await db.flush()
     await db.refresh(activity)
@@ -173,7 +179,7 @@ async def update_activity_status(
 async def create_activity(
     payload: ActivityCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_editor),
 ) -> ActivityResponse:
     """Create a new activity."""
     # Check for duplicate code

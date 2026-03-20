@@ -18,12 +18,13 @@ from typing import Any, Dict, List, Optional
 
 import aiofiles
 import pandas as pd
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import User, get_current_user
+from app.auth import User, get_current_user, require_data_entry
 from app.config import settings
+from app.rate_limit import limiter
 from app.database import get_db
 from app.models.events import CommunityEngagement, LDEvent
 from app.models.financials import FinancialTransaction
@@ -73,9 +74,9 @@ class OfflineEngagementRecord(BaseModel):
 
 
 class OfflineSyncPayload(BaseModel):
-    device_id: str = Field(..., description="Unique identifier for the field device.")
-    sync_timestamp: str
-    engagements: List[OfflineEngagementRecord] = Field(default_factory=list)
+    device_id: str = Field(..., description="Unique identifier for the field device.", max_length=200)
+    sync_timestamp: str = Field(..., max_length=100)
+    engagements: List[OfflineEngagementRecord] = Field(default_factory=list, max_length=500)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -142,11 +143,13 @@ def _coerce_decimal(val: Any) -> Optional[Decimal]:
 
 
 @router.post("/uploads/csv", status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def upload_csv(
+    request: Request,
     target: str = "indicator_values",
     file: UploadFile = File(..., description="CSV file to ingest"),
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_data_entry),
 ) -> dict:
     """
     Parse an uploaded CSV file, validate required columns, and bulk-insert rows
@@ -196,6 +199,14 @@ async def upload_csv(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Missing required columns: {missing}",
+        )
+
+    # Cap row count to prevent memory exhaustion / DoS via huge CSVs
+    MAX_CSV_ROWS = 10_000
+    if len(df) > MAX_CSV_ROWS:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"CSV contains {len(df)} rows, exceeding the maximum of {MAX_CSV_ROWS}.",
         )
 
     df = df.where(pd.notna(df), None)  # Replace NaN with None
@@ -313,10 +324,12 @@ async def upload_csv(
 
 
 @router.post("/uploads/field-data", status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def upload_field_data(
+    request: Request,
     payload: OfflineSyncPayload,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_data_entry),
 ) -> dict:
     """
     Accept an offline field data synchronisation payload and insert
