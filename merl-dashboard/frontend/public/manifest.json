@@ -1,0 +1,22 @@
+{
+  "name": "MERL Dashboard - Vanuatu L&D Fund",
+  "short_name": "MERL Dashboard",
+  "description": "Monitoring, Evaluation, Research and Learning platform for the Vanuatu Loss and Damage Fund Development Project",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
