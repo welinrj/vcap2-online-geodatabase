@@ -13,7 +13,6 @@ import {
   CalendarCheck,
   MessageSquare,
   UserCog,
-  BarChart3,
 } from 'lucide-react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
@@ -38,11 +37,6 @@ const publicNavItems = [
     id: 'prodoc-tracker',
     label: 'ProDoc Tracker',
     icon: <FileBarChart2 className="nav-icon" size={18} />,
-  },
-  {
-    id: 'merl-dashboard',
-    label: 'MERL Dashboard',
-    icon: <BarChart3 className="nav-icon" size={18} />,
   },
 ]
 
