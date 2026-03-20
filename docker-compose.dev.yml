@@ -1,0 +1,144 @@
+version: '3.8'
+
+# =============================================================================
+# DEVELOPMENT OVERRIDES
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# This file overrides the base docker-compose.yml for local development:
+#   - Hot-reload for backend (Uvicorn --reload) and frontend (Vite dev server)
+#   - Source code mounted as volumes so changes are reflected immediately
+#   - Reduced healthcheck intervals for faster feedback
+#   - Additional dev tooling: pgAdmin, ClickHouse UI (Tabix)
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # BACKEND — Hot-reload via Uvicorn --reload flag
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      target: development
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--log-level", "debug"]
+    environment:
+      ENVIRONMENT: development
+      LOG_LEVEL: debug
+      # Disable strict JWT validation locally — use a dev Keycloak realm or mock
+      DEV_DISABLE_AUTH: "false"
+    volumes:
+      - ./backend/app:/app/app:rw
+      - uploads_data:/app/uploads
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # FRONTEND — Vite dev server with HMR
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    environment:
+      VITE_API_URL: http://localhost/api
+      VITE_KEYCLOAK_URL: http://localhost/auth
+      NODE_ENV: development
+    volumes:
+      - ./frontend/src:/app/src:rw
+      - ./frontend/public:/app/public:rw
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+
+  # ---------------------------------------------------------------------------
+  # POSTGRES — Reduced healthcheck interval in dev
+  # ---------------------------------------------------------------------------
+  postgres:
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    # Expose port already declared in base, but explict for clarity
+    ports:
+      - "5432:5432"
+
+  # ---------------------------------------------------------------------------
+  # CLICKHOUSE — Reduced healthcheck interval in dev
+  # ---------------------------------------------------------------------------
+  clickhouse:
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # AIRFLOW — Mount DAGs directory as writable for active development
+  # ---------------------------------------------------------------------------
+  airflow:
+    volumes:
+      - airflow_logs:/opt/airflow/logs
+      - ./airflow/dags:/opt/airflow/dags:rw
+      - backups_data:/opt/airflow/backups
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "true"
+
+  # ---------------------------------------------------------------------------
+  # SUPERSET — Mount config as writable for rapid iteration
+  # ---------------------------------------------------------------------------
+  superset:
+    volumes:
+      - superset_data:/app/superset_home
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py:rw
+
+  # ---------------------------------------------------------------------------
+  # PGADMIN — PostgreSQL web administration UI (dev only)
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:8.4
+    container_name: merl-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@merl.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-devpassword}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - merl-net
+
+  # ---------------------------------------------------------------------------
+  # TABIX — ClickHouse web UI (dev only)
+  # Tabix is a lightweight browser-based ClickHouse query UI.
+  # ---------------------------------------------------------------------------
+  tabix:
+    image: spoonest/clickhouse-tabix-web-client:stable
+    container_name: merl-tabix
+    environment:
+      # Pre-configure Tabix to point at the local ClickHouse instance
+      CH_SERVER: http://localhost:8123
+    ports:
+      - "8124:80"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - merl-net
+
+# =============================================================================
+# ADDITIONAL DEV VOLUMES
+# =============================================================================
+volumes:
+  pgadmin_data:
+    driver: local

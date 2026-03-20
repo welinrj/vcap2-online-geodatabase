@@ -1,0 +1,36 @@
+{
+  "type": "FeatureCollection",
+  "note": "Placeholder bounding boxes. Replace with authoritative GADM/VNSO boundary data. Properties must include NAME_1 matching: Malampa, Penama, Sanma, Shefa, Tafea, Torba.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "NAME_1": "Torba",   "ID": 1 },
+      "geometry": { "type": "Polygon", "coordinates": [[[166.5,-13.2],[167.5,-13.2],[167.5,-14.0],[166.5,-14.0],[166.5,-13.2]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "NAME_1": "Sanma",   "ID": 2 },
+      "geometry": { "type": "Polygon", "coordinates": [[[166.5,-14.0],[167.7,-14.0],[167.7,-15.1],[166.5,-15.1],[166.5,-14.0]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "NAME_1": "Penama",  "ID": 3 },
+      "geometry": { "type": "Polygon", "coordinates": [[[167.5,-14.8],[168.2,-14.8],[168.2,-15.8],[167.5,-15.8],[167.5,-14.8]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "NAME_1": "Malampa", "ID": 4 },
+      "geometry": { "type": "Polygon", "coordinates": [[[166.8,-15.8],[168.0,-15.8],[168.0,-17.0],[166.8,-17.0],[166.8,-15.8]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "NAME_1": "Shefa",   "ID": 5 },
+      "geometry": { "type": "Polygon", "coordinates": [[[167.5,-17.0],[168.5,-17.0],[168.5,-18.2],[167.5,-18.2],[167.5,-17.0]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "NAME_1": "Tafea",   "ID": 6 },
+      "geometry": { "type": "Polygon", "coordinates": [[[168.0,-18.5],[170.0,-18.5],[170.0,-20.3],[168.0,-20.3],[168.0,-18.5]]] }
+    }
+  ]
+}
