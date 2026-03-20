@@ -124,11 +124,16 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const [dragOverColIndex, setDragOverColIndex] = useState<number | null>(null)
   const initialLoadDone = useRef(false)
 
-  // Load saved data from Firestore on mount
+  // Load saved data from Firestore on mount (with timeout to avoid hanging)
   useEffect(() => {
     if (initialLoadDone.current) return
     initialLoadDone.current = true
-    loadProDocData()
+    const TIMEOUT_MS = 8_000
+    const loadWithTimeout = Promise.race([
+      loadProDocData(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), TIMEOUT_MS)),
+    ])
+    loadWithTimeout
       .then((saved) => {
         if (saved) {
           // Migrate any areas reclassified from Existing → New in a single pass
