@@ -26,8 +26,7 @@
     "baseUrl": ".",
     "allowJs": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@merl/*": ["./merl-dashboard/frontend/src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
