@@ -42,7 +42,6 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
   const [messages, setMessages] = useState<Message[]>([])
   const [draft, setDraft] = useState('')
   const [allUsers, setAllUsers] = useState<UserProfile[]>([])
-  const [usersLoading, setUsersLoading] = useState(false)
   const [chatError, setChatError] = useState<string | null>(null)
   const [showNewChat, setShowNewChat] = useState(false)
   const [showNewGroup, setShowNewGroup] = useState(false)
@@ -65,14 +64,15 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
 
   // Load users when new chat or group modal opens
   const needsUsers = showNewChat || showNewGroup
+  const usersLoading = needsUsers && allUsers.length === 0
   useEffect(() => {
     if (!needsUsers) return
     if (allUsers.length > 0) return // already loaded
-    setUsersLoading(true)
+    let cancelled = false
     listUsers()
-      .then(setAllUsers)
+      .then((users) => { if (!cancelled) setAllUsers(users) })
       .catch(() => {})
-      .finally(() => setUsersLoading(false))
+    return () => { cancelled = true }
   }, [needsUsers, allUsers.length])
 
   // Subscribe to conversations
