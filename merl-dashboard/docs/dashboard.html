@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MERL Dashboard - Vanuatu L&amp;D Fund Development Project</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#f0fdf4;margin:0}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);padding:24px;margin-bottom:16px}
+.stat-card{text-align:center;padding:20px}
+.stat-value{font-size:2rem;font-weight:700;color:#065f46}
+.stat-label{font-size:.875rem;color:#6b7280;margin-top:4px}
+.badge{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:600}
+.badge-completed{background:#d1fae5;color:#065f46}
+.badge-in_progress{background:#fef3c7;color:#92400e}
+.badge-planned{background:#dbeafe;color:#1e40af}
+.badge-delayed{background:#fee2e2;color:#991b1b}
+.tab{padding:10px 20px;cursor:pointer;border-bottom:3px solid transparent;font-weight:500;color:#6b7280;background:none;border-top:0;border-left:0;border-right:0}
+.tab.active{border-bottom-color:#059669;color:#059669}
+.tab:hover{color:#059669}
+#map{height:400px;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;background:#f9fafb;border-bottom:2px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;color:#6b7280}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6;font-size:.875rem}
+tr:hover{background:#f0fdf4}
+.progress-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:#059669;border-radius:4px;transition:width .5s}
+.loading{display:flex;justify-content:center;align-items:center;min-height:200px;color:#6b7280}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#059669;border-radius:50%;animation:spin .8s linear infinite;margin-right:12px}
+.error-banner{background:#fee2e2;color:#991b1b;padding:12px 24px;text-align:center;font-size:.875rem}
+</style>
+</head>
+<body>
+
+<nav class="bg-white shadow-sm border-b border-green-100">
+<div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">M</div>
+<div>
+<h1 class="text-lg font-bold text-gray-900">MERL Dashboard</h1>
+<p class="text-xs text-gray-500">Vanuatu Loss &amp; Damage Fund Development Project</p>
+</div>
+</div>
+<div class="text-sm text-gray-500">Last updated: <span id="lastUpdated">Loading...</span></div>
+</div>
+</nav>
+
+<div id="errorBanner" class="error-banner" style="display:none"></div>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+<div id="kpiRow" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6"></div>
+
+<div class="flex border-b border-gray-200 mb-6 overflow-x-auto">
+<button class="tab active" data-tab="overview">Overview</button>
+<button class="tab" data-tab="indicators">Indicators</button>
+<button class="tab" data-tab="activities">Activities</button>
+<button class="tab" data-tab="financials">Financials</button>
+<button class="tab" data-tab="events">L&amp;D Events</button>
+<button class="tab" data-tab="community">Community</button>
+<button class="tab" data-tab="learning">Learning</button>
+</div>
+
+<div id="content"><div class="loading"><div class="spinner"></div>Loading dashboard data...</div></div>
+</div>
+
+<script>
+// Supabase configuration
+const SUPABASE_URL = 'https://ppffqjeuixxffoxfwezo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwZmZxamV1aXh4ZmZveGZ3ZXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3OTMwMjIsImV4cCI6MjA4OTM2OTAyMn0.nIpc4MxK-TWKVRA9rV9bEO4xjuwJl4kB25ty2veQbb8';
+const API = SUPABASE_URL + '/rest/v1';
+const HEADERS = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+};
+
+let D = {};
+
+async function fetchAll() {
+  try {
+    const endpoints = [
+      'indicators', 'indicator_values', 'activities', 'activity_milestones',
+      'financial_transactions', 'ld_events', 'community_engagements', 'learning_entries'
+    ];
+    const results = await Promise.all(
+      endpoints.map(e => fetch(API + '/' + e + '?select=*', {headers: HEADERS}).then(r => {
+        if (!r.ok) throw new Error('Failed to fetch ' + e + ': ' + r.status);
+        return r.json();
+      }))
+    );
+    endpoints.forEach((e, i) => D[e] = results[i]);
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-VU', {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    renderKPIs();
+    renderTab('overview');
+  } catch (err) {
+    document.getElementById('errorBanner').style.display = 'block';
+    document.getElementById('errorBanner').textContent = 'Error loading data: ' + err.message;
+    document.getElementById('content').innerHTML = '<div class="card" style="text-align:center;color:#991b1b"><p>Failed to load dashboard data. Please check your connection and try again.</p></div>';
+  }
+}
+
+function renderKPIs() {
+  const acts = D.activities || [];
+  const eng = D.community_engagements || [];
+  const tx = D.financial_transactions || [];
+  const evts = D.ld_events || [];
+  const lessons = D.learning_entries || [];
+  const completed = acts.filter(a => a.status === 'completed').length;
+  const totalParticipants = eng.reduce((s, e) => s + e.total_participants, 0);
+  const disbursed = tx.filter(t => t.transaction_type === 'disbursement').reduce((s, t) => s + Number(t.amount_vuv), 0);
+
+  const kpis = [
+    {value: acts.length, label: 'Total Activities', color: '#059669'},
+    {value: completed + '/' + acts.length, label: 'Completed', color: '#7c3aed'},
+    {value: totalParticipants.toLocaleString(), label: 'Participants', color: '#2563eb'},
+    {value: evts.length, label: 'L&D Events', color: '#dc2626'},
+    {value: 'VUV ' + Math.round(disbursed / 1e6) + 'M', label: 'Disbursed', color: '#d97706'},
+    {value: lessons.length, label: 'Lessons', color: '#059669'},
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k =>
+    '<div class="card stat-card"><div class="stat-value" style="color:' + k.color + '">' + k.value + '</div><div class="stat-label">' + k.label + '</div></div>'
+  ).join('');
+}
+
+function renderTab(tab) {
+  const c = document.getElementById('content');
+  if (tab === 'overview') renderOverview(c);
+  else if (tab === 'indicators') renderIndicators(c);
+  else if (tab === 'activities') renderActivities(c);
+  else if (tab === 'financials') renderFinancials(c);
+  else if (tab === 'events') renderEvents(c);
+  else if (tab === 'community') renderCommunity(c);
+  else if (tab === 'learning') renderLearning(c);
+}
+
+function getLatestValues() {
+  const lv = {};
+  (D.indicator_values || []).forEach(iv => {
+    if (!lv[iv.indicator_id] || iv.reporting_period > lv[iv.indicator_id].reporting_period)
+      lv[iv.indicator_id] = iv;
+  });
+  return lv;
+}
+
+function renderOverview(c) {
+  c.innerHTML = `
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card"><h3 class="text-lg font-semibold mb-4">Activity Status</h3><canvas id="actChart"></canvas></div>
+      <div class="card"><h3 class="text-lg font-semibold mb-4">Engagement by Province</h3><canvas id="engChart"></canvas></div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6 mt-4">
+      <div class="card"><h3 class="text-lg font-semibold mb-4">Financial Overview</h3><canvas id="finChart"></canvas></div>
+      <div class="card"><h3 class="text-lg font-semibold mb-4">Indicator Progress</h3><div id="indProgress"></div></div>
+    </div>`;
+
+  // Activity status doughnut
+  const statuses = ['completed', 'in_progress', 'planned', 'delayed'];
+  const statusCounts = statuses.map(s => D.activities.filter(a => a.status === s).length);
+  new Chart(document.getElementById('actChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Completed', 'In Progress', 'Planned', 'Delayed'],
+      datasets: [{data: statusCounts, backgroundColor: ['#059669', '#f59e0b', '#3b82f6', '#ef4444']}]
+    },
+    options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+  });
+
+  // Engagement by province bar
+  const provs = [...new Set(D.community_engagements.map(e => e.province))].sort();
+  const provCounts = provs.map(p => D.community_engagements.filter(e => e.province === p).reduce((s, e) => s + e.total_participants, 0));
+  new Chart(document.getElementById('engChart'), {
+    type: 'bar',
+    data: {labels: provs, datasets: [{label: 'Participants', data: provCounts, backgroundColor: '#059669'}]},
+    options: {responsive: true, plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true}}}
+  });
+
+  // Financial overview
+  const disbursed = D.financial_transactions.filter(t => t.transaction_type === 'disbursement').reduce((s, t) => s + Number(t.amount_vuv), 0);
+  const expended = D.financial_transactions.filter(t => t.transaction_type === 'expenditure').reduce((s, t) => s + Number(t.amount_vuv), 0);
+  const totalBudget = D.activities.reduce((s, a) => s + Number(a.budget_vuv || 0), 0);
+  new Chart(document.getElementById('finChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Total Budget', 'Disbursed', 'Expended'],
+      datasets: [{data: [totalBudget, disbursed, expended], backgroundColor: ['#3b82f6', '#059669', '#f59e0b']}]
+    },
+    options: {responsive: true, indexAxis: 'y', plugins: {legend: {display: false}}, scales: {x: {ticks: {callback: v => 'VUV ' + Math.round(v / 1e6) + 'M'}}}}
+  });
+
+  // Indicator progress bars
+  const lv = getLatestValues();
+  document.getElementById('indProgress').innerHTML = D.indicators.slice(0, 8).map(ind => {
+    const latest = lv[ind.id];
+    const current = latest ? Number(latest.value) : Number(ind.baseline_value);
+    const target = Number(ind.target_value);
+    const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+    return '<div class="mb-3"><div class="flex justify-between text-sm"><span class="font-medium">' + ind.code + '</span><span class="text-gray-500">' + pct + '%</span></div><div class="progress-bar mt-1"><div class="progress-fill" style="width:' + pct + '%"></div></div></div>';
+  }).join('');
+}
+
+function renderIndicators(c) {
+  const lv = getLatestValues();
+  c.innerHTML = '<div class="card"><h3 class="text-lg font-semibold mb-4">Results Framework Indicators</h3><div style="overflow-x:auto"><table><thead><tr><th>Code</th><th>Indicator</th><th>Domain</th><th>Baseline</th><th>Current</th><th>Target</th><th>Progress</th></tr></thead><tbody>' +
+    D.indicators.map(ind => {
+      const latest = lv[ind.id];
+      const current = latest ? Number(latest.value) : Number(ind.baseline_value);
+      const target = Number(ind.target_value);
+      const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+      return '<tr><td class="font-mono font-semibold">' + ind.code + '</td><td>' + ind.name + '</td><td><span class="badge" style="background:#f0fdf4">' + ind.domain + '</span></td><td>' + ind.baseline_value + '</td><td class="font-semibold">' + current + '</td><td>' + ind.target_value + '</td><td><div class="flex items-center gap-2"><div class="progress-bar" style="width:100px"><div class="progress-fill" style="width:' + pct + '%"></div></div><span class="text-xs">' + pct + '%</span></div></td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+}
+
+function renderActivities(c) {
+  c.innerHTML = '<div class="card"><h3 class="text-lg font-semibold mb-4">Project Activities</h3><div style="overflow-x:auto"><table><thead><tr><th>Code</th><th>Activity</th><th>Domain</th><th>Phase</th><th>Status</th><th>Budget (VUV)</th><th>Period</th></tr></thead><tbody>' +
+    D.activities.map(a =>
+      '<tr><td class="font-mono font-semibold">' + a.code + '</td><td>' + a.name + '</td><td>' + a.domain + '</td><td>' + a.phase + '</td><td><span class="badge badge-' + a.status + '">' + a.status.replace('_', ' ') + '</span></td><td>' + Number(a.budget_vuv).toLocaleString() + '</td><td class="text-xs">' + (a.start_date || '') + ' to ' + (a.end_date || '') + '</td></tr>'
+    ).join('') + '</tbody></table></div></div>';
+}
+
+function renderFinancials(c) {
+  const tx = D.financial_transactions;
+  const disbursed = tx.filter(t => t.transaction_type === 'disbursement').reduce((s, t) => s + Number(t.amount_vuv), 0);
+  const expended = tx.filter(t => t.transaction_type === 'expenditure').reduce((s, t) => s + Number(t.amount_vuv), 0);
+
+  c.innerHTML = '<div class="grid md:grid-cols-3 gap-4 mb-4">' +
+    '<div class="card stat-card"><div class="stat-value" style="color:#059669">VUV ' + Math.round(disbursed / 1e6) + 'M</div><div class="stat-label">Total Disbursed</div></div>' +
+    '<div class="card stat-card"><div class="stat-value" style="color:#d97706">VUV ' + Math.round(expended / 1e6) + 'M</div><div class="stat-label">Total Expended</div></div>' +
+    '<div class="card stat-card"><div class="stat-value" style="color:#3b82f6">VUV ' + Math.round((disbursed - expended) / 1e6) + 'M</div><div class="stat-label">Balance</div></div></div>' +
+    '<div class="card"><h3 class="text-lg font-semibold mb-4">Transaction Register</h3><div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount (VUV)</th><th>Amount (NZD)</th><th>Approved By</th></tr></thead><tbody>' +
+    tx.map(t =>
+      '<tr><td>' + t.transaction_date + '</td><td>' + t.description + '</td><td><span class="badge badge-' + (t.transaction_type === 'disbursement' ? 'completed' : t.transaction_type === 'refund' ? 'delayed' : 'in_progress') + '">' + t.transaction_type + '</span></td><td class="font-mono">' + Number(t.amount_vuv).toLocaleString() + '</td><td class="font-mono">' + Number(t.amount_nzd).toLocaleString() + '</td><td>' + (t.approved_by || '') + '</td></tr>'
+    ).join('') + '</tbody></table></div></div>';
+}
+
+function renderEvents(c) {
+  c.innerHTML = '<div class="card mb-4"><h3 class="text-lg font-semibold mb-4">Loss &amp; Damage Events Map</h3><div id="map"></div></div>' +
+    '<div class="card"><h3 class="text-lg font-semibold mb-4">Event Registry</h3><div style="overflow-x:auto"><table><thead><tr><th>Event</th><th>Type</th><th>Onset</th><th>Period</th><th>Provinces</th><th>Economic Loss (VUV)</th></tr></thead><tbody>' +
+    D.ld_events.map(e =>
+      '<tr><td class="font-semibold">' + e.event_name + '</td><td><span class="badge badge-delayed">' + e.event_type + '</span></td><td>' + e.onset_type.replace('_', ' ') + '</td><td>' + (e.start_date || '') + ' to ' + (e.end_date || 'ongoing') + '</td><td>' + (e.provinces_affected || []).join(', ') + '</td><td class="font-mono">' + (e.economic_loss_vuv ? 'VUV ' + Number(e.economic_loss_vuv).toLocaleString() : 'Not assessed') + '</td></tr>'
+    ).join('') + '</tbody></table></div></div>';
+
+  setTimeout(() => {
+    const map = L.map('map').setView([-16, 167.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    D.ld_events.forEach(e => {
+      if (e.latitude && e.longitude) {
+        L.marker([e.latitude, e.longitude]).addTo(map)
+          .bindPopup('<b>' + e.event_name + '</b><br>' + e.event_type + ' (' + e.onset_type.replace('_', ' ') + ')<br>' + (e.provinces_affected || []).join(', '));
+      }
+    });
+  }, 100);
+}
+
+function renderCommunity(c) {
+  const eng = D.community_engagements;
+  const totalP = eng.reduce((s, e) => s + e.total_participants, 0);
+  const femaleP = eng.reduce((s, e) => s + e.female_participants, 0);
+  const youthP = eng.reduce((s, e) => s + e.youth_participants, 0);
+  const disP = eng.reduce((s, e) => s + e.disability_participants, 0);
+
+  c.innerHTML = '<div class="grid md:grid-cols-4 gap-4 mb-4">' +
+    '<div class="card stat-card"><div class="stat-value">' + totalP + '</div><div class="stat-label">Total Participants</div></div>' +
+    '<div class="card stat-card"><div class="stat-value" style="color:#7c3aed">' + Math.round(femaleP / totalP * 100) + '%</div><div class="stat-label">Female Participation</div></div>' +
+    '<div class="card stat-card"><div class="stat-value" style="color:#2563eb">' + youthP + '</div><div class="stat-label">Youth Participants</div></div>' +
+    '<div class="card stat-card"><div class="stat-value" style="color:#d97706">' + disP + '</div><div class="stat-label">Persons w/ Disability</div></div></div>' +
+    '<div class="card"><h3 class="text-lg font-semibold mb-4">Community Engagements</h3><div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Community</th><th>Island</th><th>Province</th><th>Type</th><th>Total</th><th>Female</th><th>Youth</th><th>PwD</th></tr></thead><tbody>' +
+    eng.map(e =>
+      '<tr><td>' + e.engagement_date + '</td><td>' + e.community_name + '</td><td>' + e.island + '</td><td>' + e.province + '</td><td><span class="badge badge-completed">' + e.engagement_type + '</span></td><td>' + e.total_participants + '</td><td>' + e.female_participants + '</td><td>' + e.youth_participants + '</td><td>' + e.disability_participants + '</td></tr>'
+    ).join('') + '</tbody></table></div></div>';
+}
+
+function renderLearning(c) {
+  c.innerHTML = '<div class="card"><h3 class="text-lg font-semibold mb-4">Learning Entries</h3>' +
+    D.learning_entries.map(l =>
+      '<div class="border-b border-gray-100 pb-4 mb-4"><div class="flex items-center gap-2 mb-2">' +
+      '<span class="badge badge-' + (l.lesson_type === 'success' ? 'completed' : l.lesson_type === 'challenge' ? 'delayed' : 'planned') + '">' + l.lesson_type + '</span>' +
+      '<span class="badge" style="background:#f3f4f6">' + l.domain + '</span>' +
+      '<span class="text-xs text-gray-400">' + l.entry_date + '</span></div>' +
+      '<h4 class="font-semibold">' + l.title + '</h4>' +
+      '<p class="text-sm text-gray-600 mt-1">' + l.description + '</p>' +
+      (l.action_taken ? '<p class="text-sm text-green-700 mt-2"><strong>Action taken:</strong> ' + l.action_taken + '</p>' : '') +
+      '</div>'
+    ).join('') + '</div>';
+}
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    renderTab(this.dataset.tab);
+  });
+});
+
+// Initialize
+fetchAll();
+</script>
+</body>
+</html>

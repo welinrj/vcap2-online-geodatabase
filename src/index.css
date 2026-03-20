@@ -109,6 +109,147 @@
   opacity: 0.35;
 }
 
+/* ═══════════════════════════════════════════════════
+   MERL Dashboard — Embedded component styles
+   ═══════════════════════════════════════════════════ */
+
+@keyframes merl-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes merl-slide-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.merl-wrapper .animate-fade-in {
+  animation: merl-fade-in 0.3s ease;
+}
+
+.merl-wrapper .animate-slide-in {
+  animation: merl-slide-in 0.3s ease;
+}
+
+/* Card */
+.merl-wrapper .card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  padding: 1.25rem;
+}
+
+/* Buttons */
+.merl-wrapper .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+}
+
+.merl-wrapper .btn-primary {
+  background: #1d4ed8;
+  color: #fff;
+}
+.merl-wrapper .btn-primary:hover {
+  background: #1e40af;
+}
+
+.merl-wrapper .btn-secondary {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+.merl-wrapper .btn-secondary:hover {
+  background: #f9fafb;
+}
+
+.merl-wrapper .btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+.merl-wrapper .btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* Badges */
+.merl-wrapper .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.merl-wrapper .badge-green  { background: #dcfce7; color: #166534; }
+.merl-wrapper .badge-blue   { background: #dbeafe; color: #1e40af; }
+.merl-wrapper .badge-yellow { background: #fef9c3; color: #854d0e; }
+.merl-wrapper .badge-red    { background: #fee2e2; color: #991b1b; }
+.merl-wrapper .badge-gray   { background: #f3f4f6; color: #374151; }
+.merl-wrapper .badge-purple { background: #f3e8ff; color: #6b21a8; }
+.merl-wrapper .badge-orange { background: #ffedd5; color: #9a3412; }
+
+/* Form fields */
+.merl-wrapper .field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.merl-wrapper .field-input {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.merl-wrapper .field-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.merl-wrapper .field-error {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+}
+
+/* Scrollbar */
+.merl-wrapper .scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Leaflet overrides inside MERL */
+.merl-wrapper .leaflet-container {
+  font-family: inherit;
+  z-index: 0;
+}
+
+.merl-wrapper .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
 *,
 *::before,
 *::after {

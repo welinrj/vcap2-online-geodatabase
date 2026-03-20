@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@merl': path.resolve(__dirname, './merl-dashboard/frontend/src'),
     },
   },
   test: {
