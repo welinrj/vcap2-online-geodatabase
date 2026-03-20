@@ -59,8 +59,8 @@ export default function Financials() {
   const { data: txData, isLoading: loadingTx, error } = useQuery({
     queryKey: ['transactions', page, typeFilter],
     queryFn: () =>
-      axios
-        .get('/api/financials/transactions', {
+      api
+        .get('/financials/transactions', {
           params: {
             page,
             per_page: PAGE_SIZE,
