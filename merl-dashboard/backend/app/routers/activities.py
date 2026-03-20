@@ -166,6 +166,9 @@ async def update_activity_status(
         if field_name in _ALLOWED_FIELDS:
             setattr(activity, field_name, value)
 
+    # Audit trail: record who made the update
+    activity.updated_by = user.email
+
     await db.flush()
     await db.refresh(activity)
     return ActivityResponse.model_validate(activity)

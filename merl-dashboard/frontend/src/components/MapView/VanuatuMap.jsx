@@ -163,7 +163,7 @@ export default function VanuatuMap() {
       <div class="text-sm">
         <strong class="font-semibold">${escapeHtml(name)}</strong>
         <br/>
-        <span class="text-gray-500">${count} community engagement${count !== 1 ? 's' : ''}</span>
+        <span class="text-gray-500">${escapeHtml(count)} community engagement${count !== 1 ? 's' : ''}</span>
       </div>
     `);
     layer.on('mouseover', () => layer.setStyle({ weight: 2, opacity: 1 }));

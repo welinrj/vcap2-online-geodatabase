@@ -183,13 +183,13 @@ async def upload_csv(
 
     saved_path = await _save_upload(file, user.email)
 
-    # Parse CSV
+    # Parse CSV with safety limits to prevent memory exhaustion
     try:
-        df = pd.read_csv(saved_path)
+        df = pd.read_csv(saved_path, nrows=10_000, low_memory=True)
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Could not parse CSV: {exc}",
+            detail="Could not parse CSV file.",
         )
 
     # Validate required columns

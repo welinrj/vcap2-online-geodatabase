@@ -54,6 +54,7 @@ class Activity(Base):
     budget_spent: Mapped[Optional[float]] = mapped_column(Numeric(15, 2), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -168,6 +169,7 @@ class ActivityResponse(BaseModel):
     budget_spent: Optional[float]
     notes: Optional[str]
     is_active: bool
+    updated_by: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     milestones: List[MilestoneResponse] = Field(default_factory=list)

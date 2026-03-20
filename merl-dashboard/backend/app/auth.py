@@ -112,7 +112,7 @@ async def get_current_user(
             algorithms=["RS256"],
             audience=settings.KEYCLOAK_CLIENT_ID,
             issuer=settings.keycloak_issuer,
-            options={"verify_at_hash": False},
+            options={"verify_at_hash": True},
         )
     except ExpiredSignatureError:
         raise HTTPException(

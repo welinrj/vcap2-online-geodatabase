@@ -145,14 +145,20 @@ async def export_excel(
     """
     summary = await _build_merl_summary(db)
 
-    # Fetch full tables for Excel sheets
+    # Fetch capped datasets for Excel sheets to prevent memory exhaustion
     ind_result = await db.execute(
-        select(Indicator).where(Indicator.is_active == True)  # noqa: E712
+        select(Indicator)
+        .where(Indicator.is_active == True)  # noqa: E712
+        .order_by(Indicator.code)
+        .limit(2000)
     )
     indicators = ind_result.scalars().all()
 
     act_result = await db.execute(
-        select(Activity).where(Activity.is_active == True)  # noqa: E712
+        select(Activity)
+        .where(Activity.is_active == True)  # noqa: E712
+        .order_by(Activity.code)
+        .limit(2000)
     )
     activities = act_result.scalars().all()
 
