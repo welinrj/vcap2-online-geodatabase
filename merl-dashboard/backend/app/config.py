@@ -44,8 +44,12 @@ class Settings(BaseSettings):
 
     # ── Security ──────────────────────────────────────────────────────────────
     SECRET_KEY: str = Field(
-        default="change-me-in-production-use-a-long-random-string",
+        ...,  # required — no insecure default; must be set explicitly
         min_length=32,
+        description=(
+            "A strong random secret. Generate with: "
+            'python -c "import secrets; print(secrets.token_hex(32))"'
+        ),
     )
 
     # ── Redis / Celery ────────────────────────────────────────────────────────

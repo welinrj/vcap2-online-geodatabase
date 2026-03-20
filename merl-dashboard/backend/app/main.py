@@ -15,9 +15,10 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 from app.database import check_db_connection, dispose_engine
@@ -54,6 +55,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 def create_app() -> FastAPI:
+    # Disable interactive API docs in production to avoid leaking the full
+    # API schema to unauthenticated attackers.
+    _docs_url = "/docs" if settings.DEBUG else None
+    _redoc_url = "/redoc" if settings.DEBUG else None
+    _openapi_url = "/openapi.json" if settings.DEBUG else None
+
     app = FastAPI(
         title="MERL Dashboard API",
         version="1.0.0",
@@ -66,19 +73,44 @@ def create_app() -> FastAPI:
             "email": "merl@example.com",
         },
         license_info={"name": "Proprietary"},
-        docs_url="/docs",
-        redoc_url="/redoc",
-        openapi_url="/openapi.json",
+        docs_url=_docs_url,
+        redoc_url=_redoc_url,
+        openapi_url=_openapi_url,
         lifespan=lifespan,
     )
+
+    # ── Security headers middleware ────────────────────────────────────────
+    class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            response: Response = await call_next(request)
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["X-XSS-Protection"] = "1; mode=block"
+            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+            response.headers["Permissions-Policy"] = (
+                "camera=(), microphone=(), geolocation=(self)"
+            )
+            if not settings.DEBUG:
+                response.headers["Strict-Transport-Security"] = (
+                    "max-age=63072000; includeSubDomains; preload"
+                )
+            return response
+
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # ── Middleware ────────────────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "X-CSRFToken",
+            "X-Requested-With",
+        ],
     )
 
     # ── Routers ───────────────────────────────────────────────────────────────

@@ -92,11 +92,15 @@ class EngagementResponse(BaseModel):
 
 
 def _query_gedsi_summary(province: Optional[str], period: Optional[str]) -> dict:
+    # Use parameterised queries to prevent SQL injection
     conditions: List[str] = []
+    params: dict = {}
     if province:
-        conditions.append(f"province = '{province}'")
+        conditions.append("province = %(province)s")
+        params["province"] = province
     if period:
-        conditions.append(f"period_label = '{period}'")
+        conditions.append("period_label = %(period)s")
+        params["period"] = period
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
 
     with get_clickhouse() as ch:
@@ -114,7 +118,8 @@ def _query_gedsi_summary(province: Optional[str], period: Optional[str]) -> dict
                 countIf(province IS NOT NULL) AS engagements_with_province
             FROM community_engagements
             {where}
-            """
+            """,
+            params,
         )
         province_rows = ch.execute(
             f"""
@@ -123,7 +128,8 @@ def _query_gedsi_summary(province: Optional[str], period: Optional[str]) -> dict
             {where}
             GROUP BY province
             ORDER BY total DESC
-            """
+            """,
+            params,
         )
 
     r = rows[0]
@@ -241,5 +247,4 @@ async def get_gedsi_summary(
         logger.error("ClickHouse GEDSI summary error: %s", exc)
         return {
             "error": "Analytics service temporarily unavailable.",
-            "detail": str(exc),
         }

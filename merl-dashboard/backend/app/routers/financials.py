@@ -38,9 +38,10 @@ router = APIRouter()
 def _query_financial_summary(period_label: Optional[str]) -> FinancialSummary:
     """Run synchronous ClickHouse aggregation query."""
     with get_clickhouse() as ch:
-        where_clause = (
-            f"WHERE period_label = '{period_label}'" if period_label else ""
-        )
+        # Use parameterised queries to prevent SQL injection
+        where_clause = "WHERE period_label = %(period_label)s" if period_label else ""
+        params = {"period_label": period_label} if period_label else {}
+
         domain_rows = ch.execute(
             f"""
             SELECT
@@ -52,7 +53,8 @@ def _query_financial_summary(period_label: Optional[str]) -> FinancialSummary:
             {where_clause}
             GROUP BY domain
             ORDER BY domain
-            """
+            """,
+            params,
         )
         totals_row = ch.execute(
             f"""
@@ -62,7 +64,8 @@ def _query_financial_summary(period_label: Optional[str]) -> FinancialSummary:
                 sumIf(amount, transaction_type = 'expenditure')  AS total_spent
             FROM financial_transactions
             {where_clause}
-            """
+            """,
+            params,
         )
         type_rows = ch.execute(
             f"""
@@ -70,7 +73,8 @@ def _query_financial_summary(period_label: Optional[str]) -> FinancialSummary:
             FROM financial_transactions
             {where_clause}
             GROUP BY transaction_type
-            """
+            """,
+            params,
         )
 
     committed = Decimal(str(totals_row[0][0] or 0))

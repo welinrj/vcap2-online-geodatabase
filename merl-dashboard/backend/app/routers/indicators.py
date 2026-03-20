@@ -132,7 +132,7 @@ async def get_dashboard_kpis(
         return result
     except Exception as exc:
         logger.warning("ClickHouse unavailable, returning empty dashboard: %s", exc)
-        return {"source": "unavailable", "domains": [], "error": str(exc)}
+        return {"source": "unavailable", "domains": []}
 
 
 @router.get("/indicators/{indicator_id}/progress", response_model=IndicatorProgress)

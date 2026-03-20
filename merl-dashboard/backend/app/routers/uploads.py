@@ -82,22 +82,40 @@ class OfflineSyncPayload(BaseModel):
 
 
 async def _save_upload(file: UploadFile, user_email: str) -> Path:
-    """Persist the uploaded file to UPLOAD_DIR and return the saved path."""
+    """Persist the uploaded file to UPLOAD_DIR and return the saved path.
+
+    Reads the file in chunks to prevent memory exhaustion from oversized uploads.
+    """
     upload_dir = Path(settings.UPLOAD_DIR)
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    safe_name = f"{uuid.uuid4().hex}_{Path(file.filename or 'upload').name}"
+    # Sanitise filename: strip directory components and limit length
+    raw_name = Path(file.filename or "upload").name
+    # Remove any non-alphanumeric chars except dots, hyphens, underscores
+    import re
+    safe_suffix = re.sub(r"[^\w.\-]", "_", raw_name)[:200]
+    safe_name = f"{uuid.uuid4().hex}_{safe_suffix}"
     dest = upload_dir / safe_name
 
-    content = await file.read()
-    if len(content) > settings.max_upload_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_SIZE_MB} MB.",
-        )
+    max_bytes = settings.max_upload_bytes
+    total_written = 0
+    chunk_size = 256 * 1024  # 256 KB chunks
 
     async with aiofiles.open(dest, "wb") as fp:
-        await fp.write(content)
+        while True:
+            chunk = await file.read(chunk_size)
+            if not chunk:
+                break
+            total_written += len(chunk)
+            if total_written > max_bytes:
+                # Clean up the partial file before rejecting
+                await fp.close()
+                dest.unlink(missing_ok=True)
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"File exceeds maximum allowed size of {settings.MAX_UPLOAD_SIZE_MB} MB.",
+                )
+            await fp.write(chunk)
 
     return dest
 
@@ -150,6 +168,14 @@ async def upload_csv(
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Only CSV files are accepted.",
+        )
+
+    # Validate file extension as well (content-type alone is attacker-controlled)
+    _ext = Path(file.filename or "").suffix.lower()
+    if _ext not in (".csv",):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Only .csv file extensions are accepted.",
         )
 
     saved_path = await _save_upload(file, user.email)
@@ -260,9 +286,11 @@ async def upload_csv(
                 errors.append(f"Row {idx}: {exc}")
 
     # Persist the document upload metadata record
+    # Sanitise the original filename to prevent stored XSS
+    _raw_original = Path(file.filename or "upload.csv").name[:500]
     doc = DocumentUpload(
         filename=saved_path.name,
-        original_filename=file.filename or "upload.csv",
+        original_filename=_raw_original,
         file_path=str(saved_path),
         file_size_bytes=saved_path.stat().st_size,
         content_type="text/csv",

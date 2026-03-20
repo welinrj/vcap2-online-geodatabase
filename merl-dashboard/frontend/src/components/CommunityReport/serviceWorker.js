@@ -23,7 +23,7 @@ const PRECACHE_URLS = [
 
 // ── Install: pre-cache shell ──────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing…');
+  // Service worker installing
   event.waitUntil(
     caches
       .open(STATIC_CACHE)
@@ -34,7 +34,7 @@ self.addEventListener('install', (event) => {
 
 // ── Activate: purge old caches ────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating…');
+  // Service worker activating
   event.waitUntil(
     caches
       .keys()
@@ -97,7 +97,7 @@ self.addEventListener('fetch', (event) => {
 // ── BackgroundSync: flush queued POST requests ────────────────────────────────
 self.addEventListener('sync', (event) => {
   if (event.tag === SYNC_TAG) {
-    console.log('[SW] BackgroundSync triggered');
+    // BackgroundSync triggered
     event.waitUntil(flushQueue());
   }
 });
@@ -275,7 +275,7 @@ async function flushQueue() {
     ...offlineQueue.splice(0),
   ];
 
-  console.log(`[SW] Flushing ${allEntries.length} queued request(s)`);
+  // Flushing queued requests
 
   for (const entry of allEntries) {
     try {
@@ -286,10 +286,10 @@ async function flushQueue() {
       });
       if (response.ok && entry._idbKey != null) {
         await deleteFromIDB(entry._idbKey);
-        console.log('[SW] Synced:', entry.url);
+        // Synced successfully
       }
     } catch (err) {
-      console.warn('[SW] Sync failed for', entry.url, err.message);
+      // Sync failed, will retry on next sync event
       // Leave in queue for next sync attempt
     }
   }
