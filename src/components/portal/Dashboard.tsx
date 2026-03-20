@@ -122,45 +122,31 @@ function getCategoryIcon(name: string) {
   return CATEGORY_ICONS[name] ?? Folder
 }
 
+/** Race a promise against a timeout; resolves with fallback on timeout */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ])
+}
+
 const Dashboard: FC = () => {
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
   const [categories, setCategories] = useState<PortalCategory[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([
-      migrateFromLocalStorage(),
-      listDatasets(),
-      seedDefaultCategories(),
-    ]).then(([, ds, cats]) => {
-      if (!cancelled) {
-        setDatasets(ds)
-        setCategories(cats)
-      }
-    }).catch((err) => {
-      console.warn('Failed to load dashboard data:', err)
-      // Still try to load what we can
-      if (!cancelled) {
-        listDatasets().then(setDatasets).catch(() => {})
-        seedDefaultCategories().then(setCategories).catch(() => {})
-      }
-    }).finally(() => {
-      if (!cancelled) setLoading(false)
-    })
+    // Load Firestore data in background — don't block ProDoc visualisations
+    const TIMEOUT_MS = 8_000
+    migrateFromLocalStorage().catch(() => {})
+    withTimeout(listDatasets(), TIMEOUT_MS, [] as DatasetSummary[])
+      .then((ds) => { if (!cancelled) setDatasets(ds) })
+      .catch(() => {})
+    withTimeout(seedDefaultCategories(), TIMEOUT_MS, [] as PortalCategory[])
+      .then((cats) => { if (!cancelled) setCategories(cats) })
+      .catch(() => {})
     return () => { cancelled = true }
   }, [])
-
-  if (loading) {
-    return (
-      <div className="dash">
-        <div className="dash-loading">
-          <div className="dash-loading-spinner" />
-          Loading dashboard...
-        </div>
-      </div>
-    )
-  }
 
   const totalFiles = datasets.length
   const totalSize = datasets.reduce((s, d) => s + d.sizeBytes, 0)
