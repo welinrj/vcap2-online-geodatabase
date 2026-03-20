@@ -13,7 +13,7 @@ import './index.css';
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/serviceWorker.js')
+      .register('./serviceWorker.js')
       .then((reg) => {
         console.log('[SW] Registered, scope:', reg.scope);
       })

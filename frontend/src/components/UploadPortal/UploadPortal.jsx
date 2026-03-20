@@ -10,7 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 // ── Target field definitions ──────────────────────────────────────────────────
 const TARGET_FIELDS = [
@@ -73,7 +73,7 @@ export default function UploadPortal() {
   // Upload history
   const { data: historyData, isLoading: loadingHistory } = useQuery({
     queryKey: ['upload-history'],
-    queryFn: () => axios.get('/api/uploads/history?limit=10').then((r) => r.data),
+    queryFn: () => api.get('/uploads/history?limit=10').then((r) => r.data),
     refetchInterval: 15_000, // poll for processing status
   });
 
@@ -151,7 +151,7 @@ export default function UploadPortal() {
       const form = new FormData();
       form.append('file', file);
       form.append('column_mapping', JSON.stringify(mapping));
-      return axios.post('/api/uploads/csv', form, {
+      return api.post('/uploads/csv', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     },

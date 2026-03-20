@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { AlertTriangle, Plus, Map } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
-import axios from 'axios';
+import api from '../api';
 import EventForm from '../components/DataEntryForm/EventForm';
 
 // ── Type config ───────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ export default function Events() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['events'],
-    queryFn: () => axios.get('/api/events?sort=start_date:desc').then((r) => r.data),
+    queryFn: () => api.get('/events?sort=start_date:desc').then((r) => r.data),
   });
 
   const events = useMemo(() => {

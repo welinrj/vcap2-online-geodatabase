@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 const STATUSES = [
   { value: 'not_started',  label: 'Not Started' },
@@ -41,7 +41,7 @@ export default function ActivityForm({ activity = null, onSuccess, onClose }) {
   // Load activities list (only if no activity pre-provided)
   const { data: activitiesData, isLoading: loadingActivities } = useQuery({
     queryKey: ['activities'],
-    queryFn: () => axios.get('/api/activities').then((r) => r.data),
+    queryFn: () => api.get('/activities').then((r) => r.data),
     enabled: !activity,
   });
 
@@ -50,7 +50,7 @@ export default function ActivityForm({ activity = null, onSuccess, onClose }) {
   const mutation = useMutation({
     mutationFn: (formData) => {
       const id = activity?.id ?? formData.activity_id;
-      return axios.put(`/api/activities/${id}/status`, {
+      return api.put(`/activities/${id}/status`, {
         status:       formData.status,
         notes:        formData.notes,
         updated_date: formData.updated_date,

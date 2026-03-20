@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 const TRANSACTION_TYPES = [
   { value: 'disbursement', label: 'Disbursement' },
@@ -48,14 +48,14 @@ export default function FinancialForm({ onSuccess, onClose }) {
   // Load activities for dropdown
   const { data: activitiesData, isLoading: loadingActivities } = useQuery({
     queryKey: ['activities'],
-    queryFn: () => axios.get('/api/activities').then((r) => r.data),
+    queryFn: () => api.get('/activities').then((r) => r.data),
   });
 
   const activities = activitiesData?.items ?? activitiesData ?? [];
 
   const mutation = useMutation({
     mutationFn: (formData) =>
-      axios.post('/api/financials/transactions', {
+      api.post('/financials/transactions', {
         ...formData,
         amount_vuv: formData.amount_vuv ? Number(formData.amount_vuv) : null,
         amount_nzd: formData.amount_nzd ? Number(formData.amount_nzd) : null,

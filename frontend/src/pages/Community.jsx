@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
-import axios from 'axios';
+import api from '../api';
 import EngagementForm from '../components/DataEntryForm/EngagementForm';
 
 const fmt = (n) => new Intl.NumberFormat().format(n ?? 0);
@@ -42,7 +42,7 @@ export default function Community() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['engagements'],
-    queryFn: () => axios.get('/api/community/engagements?sort=engagement_date:desc').then((r) => r.data),
+    queryFn: () => api.get('/community/engagements?sort=engagement_date:desc').then((r) => r.data),
   });
 
   const engagements = useMemo(() => {

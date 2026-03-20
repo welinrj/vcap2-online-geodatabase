@@ -7,7 +7,7 @@ import {
 import { BarChart2, Plus, X, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
-import axios from 'axios';
+import api from '../api';
 import IndicatorValueForm from '../components/DataEntryForm/IndicatorValueForm';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ function ProgressBar({ value, target, colour = 'bg-blue-600' }) {
 function TrendModal({ indicator, onClose }) {
   const { data, isLoading } = useQuery({
     queryKey: ['indicator-values', indicator.id],
-    queryFn: () => axios.get(`/api/indicators/${indicator.id}/values`).then((r) => r.data),
+    queryFn: () => api.get(`/indicators/${indicator.id}/values`).then((r) => r.data),
   });
 
   const chartData = useMemo(() => {
@@ -115,7 +115,7 @@ export default function Indicators() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['indicators'],
-    queryFn: () => axios.get('/api/indicators').then((r) => r.data),
+    queryFn: () => api.get('/indicators').then((r) => r.data),
   });
 
   const indicators = useMemo(() => {

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DollarSign, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
-import axios from 'axios';
+import api from '../api';
 import FinancialForm from '../components/DataEntryForm/FinancialForm';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ export default function Financials() {
   // Summary
   const { data: summary, isLoading: loadingSummary } = useQuery({
     queryKey: ['financial-summary'],
-    queryFn: () => axios.get('/api/financials/summary').then((r) => r.data),
+    queryFn: () => api.get('/financials/summary').then((r) => r.data),
   });
 
   // Transactions
