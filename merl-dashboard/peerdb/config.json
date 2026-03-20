@@ -1,0 +1,361 @@
+{
+  "_comment": "PeerDB v0.18+ CDC replication configuration for MERL Dashboard",
+  "_project": "Vanuatu Loss and Damage Fund Development Project",
+  "_doc": "https://docs.peerdb.io/",
+
+  "peers": {
+    "source_postgres": {
+      "name": "merl_postgres_source",
+      "type": "POSTGRES",
+      "config": {
+        "host": "${POSTGRES_HOST}",
+        "port": "${POSTGRES_PORT}",
+        "database": "${POSTGRES_DB}",
+        "user": "${POSTGRES_USER}",
+        "password": "${POSTGRES_PASSWORD}",
+        "transaction_snapshot": "",
+        "_comment_ssl": "Set ssl_mode to 'require' in production",
+        "ssl_mode": "prefer",
+        "replication_slot_name": "peerdb_merl_slot",
+        "publication_name": "peerdb_merl_publication"
+      }
+    },
+    "destination_clickhouse": {
+      "name": "merl_clickhouse_dest",
+      "type": "CLICKHOUSE",
+      "config": {
+        "host": "${CLICKHOUSE_HOST}",
+        "port": "${CLICKHOUSE_PORT}",
+        "database": "${CLICKHOUSE_DB}",
+        "user": "${CLICKHOUSE_USER}",
+        "password": "${CLICKHOUSE_PASSWORD}",
+        "s3_path": "",
+        "s3_region": "",
+        "s3_access_key_id": "",
+        "s3_secret_access_key": "",
+        "_comment_s3": "S3 staging is optional for large initial copies; leave empty for direct TCP"
+      }
+    }
+  },
+
+  "mirrors": [
+    {
+      "mirror_name": "merl_indicators_cdc",
+      "_description": "Replicates merl.indicators → ch_merl.indicators",
+      "flow_job_name": "merl_indicators_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.indicators",
+          "destination_table_identifier": "ch_merl.indicators",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 100000,
+        "snapshot_max_parallel_workers": 4,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 1000,
+        "idle_timeout_seconds": 60,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_indicator_values_cdc",
+      "_description": "Replicates merl.indicator_values → ch_merl.indicator_values",
+      "flow_job_name": "merl_indicator_values_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.indicator_values",
+          "destination_table_identifier": "ch_merl.indicator_values",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 100000,
+        "snapshot_max_parallel_workers": 4,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 5000,
+        "idle_timeout_seconds": 30,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_activities_cdc",
+      "_description": "Replicates merl.activities → ch_merl.activities",
+      "flow_job_name": "merl_activities_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.activities",
+          "destination_table_identifier": "ch_merl.activities",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 50000,
+        "snapshot_max_parallel_workers": 2,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 1000,
+        "idle_timeout_seconds": 60,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_activity_milestones_cdc",
+      "_description": "Replicates merl.activity_milestones → ch_merl.activity_milestones",
+      "flow_job_name": "merl_activity_milestones_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.activity_milestones",
+          "destination_table_identifier": "ch_merl.activity_milestones",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 50000,
+        "snapshot_max_parallel_workers": 2,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 1000,
+        "idle_timeout_seconds": 60,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_financial_transactions_cdc",
+      "_description": "Replicates merl.financial_transactions → ch_merl.financial_transactions",
+      "flow_job_name": "merl_financial_transactions_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.financial_transactions",
+          "destination_table_identifier": "ch_merl.financial_transactions",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 100000,
+        "snapshot_max_parallel_workers": 4,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 5000,
+        "idle_timeout_seconds": 30,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_ld_events_cdc",
+      "_description": "Replicates merl.ld_events (Loss and Damage events) → ch_merl.ld_events",
+      "flow_job_name": "merl_ld_events_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.ld_events",
+          "destination_table_identifier": "ch_merl.ld_events",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 50000,
+        "snapshot_max_parallel_workers": 2,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 2000,
+        "idle_timeout_seconds": 60,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_community_engagements_cdc",
+      "_description": "Replicates merl.community_engagements → ch_merl.community_engagements",
+      "flow_job_name": "merl_community_engagements_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.community_engagements",
+          "destination_table_identifier": "ch_merl.community_engagements",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 100000,
+        "snapshot_max_parallel_workers": 4,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 5000,
+        "idle_timeout_seconds": 30,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_learning_entries_cdc",
+      "_description": "Replicates merl.learning_entries → ch_merl.learning_entries",
+      "flow_job_name": "merl_learning_entries_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.learning_entries",
+          "destination_table_identifier": "ch_merl.learning_entries",
+          "partition_column": "",
+          "columns": []
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 50000,
+        "snapshot_max_parallel_workers": 2,
+        "snapshot_num_tables_in_parallel": 2,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 1000,
+        "idle_timeout_seconds": 60,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    },
+
+    {
+      "mirror_name": "merl_users_cdc",
+      "_description": "Replicates merl.users → ch_merl.users (for JOIN context in analytics queries)",
+      "flow_job_name": "merl_users_cdc",
+      "source_peer": "merl_postgres_source",
+      "destination_peer": "merl_clickhouse_dest",
+      "table_mappings": [
+        {
+          "source_table_identifier": "merl.users",
+          "destination_table_identifier": "ch_merl.users",
+          "partition_column": "",
+          "columns": [
+            "_comment",
+            "Exclude sensitive columns (password_hash, mfa_secret) from replication.",
+            "List only the columns needed for analytics JOINs.",
+            "id, full_name, email, role, province, organisation, is_active, created_at, updated_at"
+          ]
+        }
+      ],
+      "cdc_flow_options": {
+        "sync_mode": "CDC",
+        "do_initial_copy": true,
+        "snapshot_num_rows_per_partition": 10000,
+        "snapshot_max_parallel_workers": 1,
+        "snapshot_num_tables_in_parallel": 1,
+        "cdc_staging_path": "",
+        "soft_delete": true,
+        "soft_delete_col_name": "_peerdb_is_deleted",
+        "synced_at_col_name": "_peerdb_synced_at",
+        "max_batch_size": 500,
+        "idle_timeout_seconds": 120,
+        "publication_name": "peerdb_merl_publication",
+        "replication_slot_name": "peerdb_merl_slot"
+      }
+    }
+  ],
+
+  "postgresql_setup": {
+    "_instructions": [
+      "Run these commands on the PostgreSQL source database before starting PeerDB.",
+      "1. Enable logical replication in postgresql.conf: wal_level = logical",
+      "2. Run the SQL below as a superuser."
+    ],
+    "setup_sql": [
+      "-- Create the publication covering all merl schema tables",
+      "CREATE PUBLICATION peerdb_merl_publication FOR TABLES IN SCHEMA merl;",
+      "",
+      "-- Create a dedicated replication slot (PeerDB can also create this automatically)",
+      "SELECT pg_create_logical_replication_slot('peerdb_merl_slot', 'pgoutput');",
+      "",
+      "-- Grant replication privileges to the merl user",
+      "ALTER ROLE merl_user REPLICATION LOGIN;",
+      "GRANT USAGE ON SCHEMA merl TO merl_user;",
+      "GRANT SELECT ON ALL TABLES IN SCHEMA merl TO merl_user;"
+    ]
+  },
+
+  "clickhouse_setup": {
+    "_instructions": [
+      "Run these DDL statements in ClickHouse before starting PeerDB mirrors.",
+      "Each table uses ReplacingMergeTree so that CDC UPDATEs are idempotent.",
+      "The _peerdb_synced_at column is used as the ReplacingMergeTree version.",
+      "The _peerdb_is_deleted column allows PeerDB soft-deletes to propagate."
+    ],
+    "create_database_sql": "CREATE DATABASE IF NOT EXISTS ch_merl;",
+    "notes": [
+      "Full DDL for each ch_merl.* table should be placed in database/clickhouse/schema.sql.",
+      "Minimum requirement: each table must have an ORDER BY key matching the source PK,",
+      "plus _peerdb_synced_at DateTime DEFAULT now() and _peerdb_is_deleted UInt8 DEFAULT 0."
+    ]
+  }
+}

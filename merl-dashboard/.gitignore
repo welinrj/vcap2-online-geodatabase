@@ -1,0 +1,215 @@
+# =============================================================================
+# MERL Dashboard — .gitignore
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.whl
+pip-wheel-metadata/
+share/python-wheels/
+MANIFEST
+.Python
+develop-eggs/
+.installed.cfg
+venv/
+.venv/
+env/
+.env/
+ENV/
+virtualenv/
+.virtualenv/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+test-results/
+test-reports/
+
+# -----------------------------------------------------------------------------
+# Environment & Secrets — .env.example is intentionally NOT ignored
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------------------------------------------------
+# Node / JavaScript / TypeScript
+# -----------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm/
+.yarn/
+.pnp.*
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.output/
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+storybook-static/
+coverage/
+
+# -----------------------------------------------------------------------------
+# Docker (volumes are managed by Docker, not git)
+# -----------------------------------------------------------------------------
+# Nothing specific — Docker data dirs are created at runtime and not tracked.
+
+# -----------------------------------------------------------------------------
+# Uploaded files — keep directory via .gitkeep
+# -----------------------------------------------------------------------------
+uploads/*
+!uploads/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Backup files — keep directory via .gitkeep
+# -----------------------------------------------------------------------------
+backups/*
+!backups/.gitkeep
+
+# -----------------------------------------------------------------------------
+# SSL Certificates — keep directory via .gitkeep
+# NEVER commit private keys or certificates.
+# -----------------------------------------------------------------------------
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+nginx/ssl/*.csr
+nginx/ssl/*.p12
+nginx/ssl/*.pfx
+!nginx/ssl/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Nginx logs (generated at runtime)
+# -----------------------------------------------------------------------------
+nginx/logs/*.log
+nginx/logs/*.log.*
+!nginx/logs/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Airflow logs and DAG run artefacts
+# -----------------------------------------------------------------------------
+airflow/logs/*
+!airflow/logs/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Superset dashboard exports — keep directory via .gitkeep
+# -----------------------------------------------------------------------------
+superset/exports/*
+!superset/exports/.gitkeep
+
+# -----------------------------------------------------------------------------
+# IDE and editor files
+# -----------------------------------------------------------------------------
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.editorconfig.local
+
+# -----------------------------------------------------------------------------
+# Operating system artefacts
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# -----------------------------------------------------------------------------
+# Logs (general)
+# -----------------------------------------------------------------------------
+*.log
+*.log.*
+logs/
+!logs/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Temporary files
+# -----------------------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+.lock
+
+# -----------------------------------------------------------------------------
+# Database dumps (generated at runtime — store in backups/ or S3)
+# -----------------------------------------------------------------------------
+*.sql.gz
+*.dump
+*.dmp
+
+# -----------------------------------------------------------------------------
+# Jupyter Notebooks checkpoints
+# -----------------------------------------------------------------------------
+.ipynb_checkpoints/
+
+# -----------------------------------------------------------------------------
+# Terraform / Infrastructure (if used alongside this project)
+# -----------------------------------------------------------------------------
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example

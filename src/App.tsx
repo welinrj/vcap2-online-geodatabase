@@ -23,6 +23,8 @@ const ActivityCalendar = lazy(() => import('./components/portal/ActivityCalendar
 const Messaging = lazy(() => import('./components/portal/Messaging'))
 const VideoCall = lazy(() => import('./components/portal/VideoCall'))
 const Account = lazy(() => import('./components/portal/Account'))
+const MerlDashboard = lazy(() => import('./components/portal/MerlDashboard'))
+
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   'gis-database': 'GIS Database',
@@ -34,10 +36,11 @@ const sectionTitles: Record<string, string> = {
   'activity-calendar': 'Activity Calendar',
   messaging: 'Messages',
   account: 'Account Settings',
+  'merl-dashboard': 'MERL Dashboard',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
-const PUBLIC_SECTIONS = new Set(['dashboard', 'prodoc-tracker'])
+const PUBLIC_SECTIONS = new Set(['dashboard', 'prodoc-tracker', 'merl-dashboard'])
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard')
@@ -164,7 +167,7 @@ function App() {
           {activeSection === 'gis-database' && isAuthenticated && <GISDatabase />}
           {activeSection === 'protected-areas' && isAuthenticated && <ProtectedAreas />}
           {activeSection === 'prodoc-tracker' && <ProDocTracker readOnly={!isAuthenticated} />}
-
+          {activeSection === 'merl-dashboard' && <MerlDashboard onBack={() => setActiveSection('dashboard')} />}
           {activeSection === 'activity-planner' && isAuthenticated && <ActivityPlanner currentUser={currentUser} />}
           {activeSection === 'user-management' && isAuthenticated && <UserManagement currentUser={currentUser} />}
           {activeSection === 'file-manager' && isAuthenticated && <FileManager currentUser={currentUser} />}
