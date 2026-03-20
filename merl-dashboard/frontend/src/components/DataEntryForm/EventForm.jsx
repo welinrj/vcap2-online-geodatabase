@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { X, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 // Leaflet is large — lazy-load the map picker
 const MapPicker = lazy(() => import('./MapPicker'));
@@ -88,7 +88,7 @@ export default function EventForm({ onSuccess, onClose }) {
 
   const mutation = useMutation({
     mutationFn: (formData) =>
-      axios.post('/api/events', {
+      api.post('/events', {
         ...formData,
         islands_affected:   islandsSelected,
         provinces_affected: provincesSelected,

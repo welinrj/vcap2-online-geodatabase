@@ -4,10 +4,10 @@ import { openDB } from 'idb';
 import { useTranslation } from 'react-i18next';
 import {
   Wifi, WifiOff, RefreshCw, CheckCircle2, CloudOff,
-  CloudUpload, Users, Globe,
+  Upload as CloudUpload, Users, Globe,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 // ── IndexedDB helpers ─────────────────────────────────────────────────────────
 const DB_NAME    = 'merl-offline';
@@ -221,7 +221,7 @@ export default function CommunityReporter() {
     for (const record of pending) {
       try {
         const { id, savedAt, ...payload } = record;
-        await axios.post('/api/uploads/field-data', payload);
+        await api.post('/uploads/field-data', payload);
         await deletePending(id);
         synced++;
       } catch {
@@ -258,7 +258,7 @@ export default function CommunityReporter() {
 
     if (online) {
       try {
-        await axios.post('/api/uploads/field-data', payload);
+        await api.post('/uploads/field-data', payload);
         toast.success(t('common.success'));
         reset();
         setSubmitted(true);

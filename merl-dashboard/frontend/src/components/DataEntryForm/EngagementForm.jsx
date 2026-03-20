@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { X, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 const PROVINCES = ['Malampa', 'Penama', 'Sanma', 'Shefa', 'Tafea', 'Torba'];
 
@@ -85,7 +85,7 @@ export default function EngagementForm({ onSuccess, onClose }) {
 
   const mutation = useMutation({
     mutationFn: (formData) =>
-      axios.post('/api/community/engagements', {
+      api.post('/community/engagements', {
         ...formData,
         total_participants:      Number(formData.total_participants) || 0,
         male_participants:       Number(formData.male_participants) || 0,

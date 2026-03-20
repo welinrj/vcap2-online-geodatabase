@@ -6,7 +6,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import axios from 'axios';
+import api from '../../api';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -127,13 +127,13 @@ export default function VanuatuMap() {
   // Fetch events for map
   const { data: eventsData } = useQuery({
     queryKey: ['events-map'],
-    queryFn: () => axios.get('/api/events/map').then((r) => r.data),
+    queryFn: () => api.get('/events/map').then((r) => r.data),
   });
 
   // Fetch engagements with location
   const { data: engagementsData } = useQuery({
     queryKey: ['engagements-map'],
-    queryFn: () => axios.get('/api/community/engagements?has_location=true').then((r) => r.data),
+    queryFn: () => api.get('/community/engagements?has_location=true').then((r) => r.data),
   });
 
   const events      = eventsData?.events      ?? eventsData ?? [];

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
-import axios from 'axios';
+import api from '../api';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmt = (n) => new Intl.NumberFormat().format(n ?? 0);
@@ -113,19 +113,19 @@ function Skeleton({ className = '' }) {
 export default function Dashboard() {
   const { t } = useTranslation();
 
-  const { data: summary, isLoading: loadingSummary, error: errorSummary } = useQuery({
+  const { data: summary, isLoading: loadingSummary } = useQuery({
     queryKey: ['dashboard-summary'],
-    queryFn: () => axios.get('/api/indicators/dashboard').then((r) => r.data),
+    queryFn: () => api.get('/indicators/dashboard').then((r) => r.data),
   });
 
   const { data: eventsData, isLoading: loadingEvents } = useQuery({
     queryKey: ['recent-events'],
-    queryFn: () => axios.get('/api/events?limit=5&sort=start_date:desc').then((r) => r.data),
+    queryFn: () => api.get('/events?limit=5&sort=start_date:desc').then((r) => r.data),
   });
 
   const { data: activitiesData, isLoading: loadingActivities } = useQuery({
     queryKey: ['activity-summary'],
-    queryFn: () => axios.get('/api/activities?limit=100').then((r) => r.data),
+    queryFn: () => api.get('/activities?limit=100').then((r) => r.data),
   });
 
   // Derive activity status breakdown for progress bars
@@ -162,12 +162,6 @@ export default function Dashboard() {
         <p className="text-sm text-gray-500 mt-0.5">{t('dashboard.subtitle')}</p>
       </div>
 
-      {/* Error banner */}
-      {errorSummary && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          {t('common.error')}: {errorSummary.message}
-        </div>
-      )}
 
       {/* ── KPI Cards ── */}
       <section>

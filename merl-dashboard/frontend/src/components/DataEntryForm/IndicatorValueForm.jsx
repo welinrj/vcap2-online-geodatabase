@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { X, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../../api';
 
 const PROVINCES = ['Malampa', 'Penama', 'Sanma', 'Shefa', 'Tafea', 'Torba'];
 
@@ -32,7 +32,7 @@ export default function IndicatorValueForm({ preselectedId = null, onSuccess, on
   // Load indicators list
   const { data: indicatorsData, isLoading: loadingIndicators } = useQuery({
     queryKey: ['indicators'],
-    queryFn: () => axios.get('/api/indicators').then((r) => r.data),
+    queryFn: () => api.get('/indicators').then((r) => r.data),
   });
 
   const indicators = indicatorsData?.items ?? indicatorsData ?? [];
@@ -53,7 +53,7 @@ export default function IndicatorValueForm({ preselectedId = null, onSuccess, on
       if (formData.notes) body.append('notes', formData.notes);
       if (formData.evidence_file?.[0]) body.append('evidence_file', formData.evidence_file[0]);
 
-      return axios.post(`/api/indicators/${id}/values`, body, {
+      return api.post(`/indicators/${id}/values`, body, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     },

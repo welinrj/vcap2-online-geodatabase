@@ -7,7 +7,7 @@ import {
 import { CheckSquare, Plus, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO, differenceInDays } from 'date-fns';
-import axios from 'axios';
+import api from '../api';
 import ActivityForm from '../components/DataEntryForm/ActivityForm';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ function GanttView({ activities }) {
 function MilestoneList({ activityId }) {
   const { data, isLoading } = useQuery({
     queryKey: ['milestones', activityId],
-    queryFn: () => axios.get(`/api/activities/${activityId}/milestones`).then((r) => r.data),
+    queryFn: () => api.get(`/activities/${activityId}/milestones`).then((r) => r.data),
   });
 
   const milestones = data?.milestones ?? data ?? [];
@@ -138,7 +138,7 @@ export default function Activities() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['activities'],
-    queryFn: () => axios.get('/api/activities').then((r) => r.data),
+    queryFn: () => api.get('/activities').then((r) => r.data),
   });
 
   const activities = useMemo(() => {
