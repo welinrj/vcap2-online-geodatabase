@@ -66,7 +66,16 @@ export default function IndicatorValueForm({ preselectedId = null, onSuccess, on
     },
   });
 
-  const onSubmit = (data) => mutation.mutate(data);
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  const onSubmit = (data) => {
+    const file = data.evidence_file?.[0];
+    if (file && file.size > MAX_FILE_SIZE) {
+      toast.error('File must be less than 10 MB');
+      return;
+    }
+    mutation.mutate(data);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-fade-in">

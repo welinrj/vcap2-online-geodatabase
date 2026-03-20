@@ -44,6 +44,13 @@ const PROVINCE_COLOURS = [
   '#dbeafe', '#dcfce7', '#fef9c3', '#fce7f3', '#f3e8ff', '#ffedd5',
 ];
 
+// ── HTML-escape helper (prevent XSS in Leaflet popups) ──────────────────────
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = String(text ?? '');
+  return div.innerHTML;
+}
+
 // ── Province styling ──────────────────────────────────────────────────────────
 function getProvinceStyle(feature, index, engagementsByProvince) {
   const provinceName = feature.properties?.NAME_1 ?? feature.properties?.name ?? '';
@@ -154,7 +161,7 @@ export default function VanuatuMap() {
     const count = engagementsByProvince[name] ?? 0;
     layer.bindPopup(`
       <div class="text-sm">
-        <strong class="font-semibold">${name}</strong>
+        <strong class="font-semibold">${escapeHtml(name)}</strong>
         <br/>
         <span class="text-gray-500">${count} community engagement${count !== 1 ? 's' : ''}</span>
       </div>

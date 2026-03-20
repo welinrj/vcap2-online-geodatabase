@@ -9,10 +9,26 @@ import axios from 'axios';
  * On GitHub Pages (no backend) requests will 404 — the interceptor below
  * converts these into empty responses so pages render gracefully.
  */
+/** Read CSRF token from cookie (Django / FastAPI convention). */
+function getCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 15_000,
   headers: { Accept: 'application/json' },
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
+});
+
+// Attach CSRF token to every mutating request
+api.interceptors.request.use((config) => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    config.headers['X-CSRFToken'] = getCsrfToken();
+  }
+  return config;
 });
 
 // When there is no backend (e.g. static GitHub Pages deployment), GET
