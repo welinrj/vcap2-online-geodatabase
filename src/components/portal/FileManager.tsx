@@ -19,6 +19,7 @@ import {
   type FileEntry,
   type FileShare,
 } from '../../services/fileManagerStore'
+import { setupDefaultFolders } from '../../services/fileManagerSetup'
 import { listUsers } from '../../services/userStore'
 import {
   FolderPlus,
@@ -93,8 +94,33 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   // Alert
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
 
+  // Default folder setup
+  const [settingUp, setSettingUp] = useState(false)
+  const setupRan = useRef(false)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const currentFolderId = breadcrumb[breadcrumb.length - 1].id
+
+  // Auto-create VCAP2 default folder structure on first visit
+  useEffect(() => {
+    if (!currentUser || setupRan.current) return
+    setupRan.current = true
+    let cancelled = false
+    ;(async () => {
+      try {
+        setSettingUp(true)
+        const created = await setupDefaultFolders(currentUser.id, currentUser.name)
+        if (!cancelled && created > 0) {
+          showAlert('success', `VCAP2 folder structure created (${created} folders)`)
+        }
+      } catch {
+        // non-fatal – user can still create folders manually
+      } finally {
+        if (!cancelled) setSettingUp(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [currentUser])
 
   const loadContents = useCallback(async () => {
     if (!currentUser) return
@@ -113,11 +139,11 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     }
   }, [currentUser, currentFolderId])
 
-  // Load folder contents
+  // Load folder contents (also reload after setup completes)
   useEffect(() => {
-    if (!currentUser || tab !== 'my-files') return
+    if (!currentUser || tab !== 'my-files' || settingUp) return
     loadContents()
-  }, [currentUser, currentFolderId, tab, loadContents])
+  }, [currentUser, currentFolderId, tab, loadContents, settingUp])
 
   // Load shares
   useEffect(() => {
@@ -377,7 +403,9 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
           )}
 
           {/* Content area */}
-          {loading ? (
+          {settingUp ? (
+            <div className="fm-loading">Setting up VCAP2 folder structure...</div>
+          ) : loading ? (
             <div className="fm-loading">Loading...</div>
           ) : (
             <div className="fm-grid">
