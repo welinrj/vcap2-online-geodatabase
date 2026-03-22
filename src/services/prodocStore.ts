@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  onSnapshot,
 } from 'firebase/firestore'
 
 /** Firestore document structure for ProDoc Tracker */
@@ -48,6 +49,20 @@ export async function saveProDocData(
     updatedAt: new Date().toISOString(),
   }
   await setDoc(ref, data)
+}
+
+/** Subscribe to real-time ProDoc data changes. Returns an unsubscribe function. */
+export function onProDocDataChanged(
+  callback: (data: ProDocDocument | null) => void,
+): () => void {
+  const ref = doc(db, DOC_PATH, DOC_ID)
+  return onSnapshot(ref, (snapshot) => {
+    if (!snapshot.exists()) {
+      callback(null)
+      return
+    }
+    callback(snapshot.data() as ProDocDocument)
+  })
 }
 
 /** Get default data (used when Firestore has no saved data) */
