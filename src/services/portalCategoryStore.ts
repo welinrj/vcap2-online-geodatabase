@@ -22,7 +22,7 @@ const DEFAULT_CATEGORIES: Omit<PortalCategory, 'datasetCount'>[] = [
     name: 'Biodiversity & Species',
     description: 'Species surveys, habitat mapping, and ecological assessments',
     icon: 'TreePine',
-    color: '#22c55e',
+    color: '#2D5E5A',
     sortOrder: 1,
   },
   {
@@ -30,7 +30,7 @@ const DEFAULT_CATEGORIES: Omit<PortalCategory, 'datasetCount'>[] = [
     name: 'Marine & Coastal',
     description: 'Coral reefs, mangroves, seagrass, and coastal zone mapping',
     icon: 'Waves',
-    color: '#3b82f6',
+    color: '#E39341',
     sortOrder: 2,
   },
   {
@@ -38,7 +38,7 @@ const DEFAULT_CATEGORIES: Omit<PortalCategory, 'datasetCount'>[] = [
     name: 'Climate & Resilience',
     description: 'Climate vulnerability, adaptation plans, and resilience assessments',
     icon: 'Thermometer',
-    color: '#f59e0b',
+    color: '#B34839',
     sortOrder: 3,
   },
   {
@@ -46,7 +46,7 @@ const DEFAULT_CATEGORIES: Omit<PortalCategory, 'datasetCount'>[] = [
     name: 'Community & Livelihoods',
     description: 'Community boundaries, resource use areas, and livelihood zones',
     icon: 'Users',
-    color: '#a855f7',
+    color: '#477A6E',
     sortOrder: 4,
   },
   {

@@ -10,16 +10,16 @@ const VANUATU_CENTER: [number, number] = [-16.5, 168.0]
 const DEFAULT_ZOOM = 7
 
 const CCA_STYLE: L.PathOptions = {
-  color: '#16a34a',
+  color: '#2D5E5A',
   weight: 2,
-  fillColor: '#22c55e',
+  fillColor: '#3E7A75',
   fillOpacity: 0.25,
 }
 
 const MPA_STYLE: L.PathOptions = {
-  color: '#2563eb',
+  color: '#E39341',
   weight: 2,
-  fillColor: '#3b82f6',
+  fillColor: '#F0AD5E',
   fillOpacity: 0.2,
 }
 
@@ -102,9 +102,9 @@ const DashboardMap: FC = () => {
             }),
           onEachFeature: (_feature, layer) => {
             const statusColors: Record<string, string> = {
-              active: '#22c55e',
-              designated: '#a855f7',
-              proposed: '#f59e0b',
+              active: '#2D5E5A',
+              designated: '#477A6E',
+              proposed: '#E39341',
               inactive: '#6b7280',
             }
             const statusColor = statusColors[area.status] ?? '#6b7280'
@@ -112,7 +112,7 @@ const DashboardMap: FC = () => {
               `<div style="font-family:system-ui;font-size:13px;min-width:160px">
                 <div style="font-weight:700;margin-bottom:4px">${area.name}</div>
                 <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
-                  <span style="background:${area.type === 'cca' ? '#dcfce7' : '#dbeafe'};color:${area.type === 'cca' ? '#16a34a' : '#2563eb'};font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;text-transform:uppercase">${area.type}</span>
+                  <span style="background:${area.type === 'cca' ? 'rgba(45,94,90,0.12)' : 'rgba(227,147,65,0.12)'};color:${area.type === 'cca' ? '#2D5E5A' : '#E39341'};font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;text-transform:uppercase">${area.type}</span>
                   <span style="background:${statusColor}22;color:${statusColor};font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px">${area.status}</span>
                 </div>
                 ${area.province ? `<div style="font-size:12px;color:#666">${area.island ? area.island + ', ' : ''}${area.province}</div>` : ''}
