@@ -1,4 +1,4 @@
-import { db } from '../config/firebase'
+import { db, storage } from '../config/firebase'
 import {
   collection,
   doc,
@@ -12,6 +12,12 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore'
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage'
 import { logAudit } from './auditLog'
 
 // ─── Types ─────────────────────────────────────────
@@ -34,8 +40,10 @@ export interface FileEntry {
   ownerName: string
   mimeType: string
   sizeBytes: number
-  /** Base64-encoded file content (for files under ~1 MB) */
-  data: string
+  /** Download URL from Firebase Cloud Storage */
+  storageUrl: string
+  /** Storage path for deletion */
+  storagePath: string
   createdAt: string
   updatedAt: string
 }
@@ -143,10 +151,18 @@ export async function uploadFile(
   ownerId: string,
   ownerName: string,
 ): Promise<FileEntry> {
-  if (!db) throw new Error('Firestore not configured')
+  if (!db || !storage) throw new Error('Firebase not configured')
   const id = generateId('file')
   const now = new Date().toISOString()
-  const data = await fileToBase64(file)
+
+  // Upload file to Firebase Cloud Storage
+  const storagePath = `fm-files/${ownerId}/${id}/${file.name}`
+  const storageRef = ref(storage, storagePath)
+  await uploadBytes(storageRef, file, {
+    contentType: file.type || 'application/octet-stream',
+  })
+  const storageUrl = await getDownloadURL(storageRef)
+
   const entry: FileEntry = {
     id,
     name: file.name,
@@ -155,10 +171,12 @@ export async function uploadFile(
     ownerName,
     mimeType: file.type || 'application/octet-stream',
     sizeBytes: file.size,
-    data,
+    storageUrl,
+    storagePath,
     createdAt: now,
     updatedAt: now,
   }
+  // Store metadata only in Firestore (no file content)
   await setDoc(doc(db, FILES_COL, id), { ...entry, _ts: serverTimestamp() })
   return entry
 }
@@ -180,7 +198,7 @@ export async function listFiles(folderId: string, ownerId: string): Promise<File
 }
 
 /**
- * Soft-delete a file. Data is preserved and can be restored.
+ * Soft-delete a file. Metadata is preserved; storage file is kept until hard-delete.
  */
 export async function deleteFile(fileId: string): Promise<void> {
   if (!db) return
@@ -193,6 +211,26 @@ export async function deleteFile(fileId: string): Promise<void> {
   })
 
   await logAudit('soft_delete', 'file', fileId, fileName)
+}
+
+/**
+ * Permanently delete a file from both Firestore and Cloud Storage.
+ */
+export async function hardDeleteFile(fileId: string): Promise<void> {
+  if (!db) return
+  const fileSnap = await getDoc(doc(db, FILES_COL, fileId))
+  if (fileSnap.exists()) {
+    const data = fileSnap.data()
+    // Delete from Cloud Storage if path exists
+    if (data.storagePath && storage) {
+      try {
+        await deleteObject(ref(storage, data.storagePath))
+      } catch {
+        // Storage file may already be deleted
+      }
+    }
+  }
+  await deleteDoc(doc(db, FILES_COL, fileId))
 }
 
 /** Restore a soft-deleted file */
@@ -295,15 +333,6 @@ export async function deleteShare(shareId: string): Promise<void> {
 
 // ─── Helpers ───────────────────────────────────────
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B'
   const k = 1024
@@ -312,11 +341,28 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0)} ${sizes[i]}`
 }
 
-export function downloadFile(entry: FileEntry): void {
-  const link = document.createElement('a')
-  link.href = entry.data
-  link.download = entry.name
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+/**
+ * Download a file from Cloud Storage via its URL.
+ * Falls back to opening in a new tab if fetch fails (CORS).
+ */
+export async function downloadFile(entry: FileEntry): Promise<void> {
+  // Support legacy base64 entries (data field) and new storage URL entries
+  const url = entry.storageUrl || (entry as Record<string, unknown>).data as string | undefined
+  if (!url) return
+
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const blobUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = entry.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(blobUrl)
+  } catch {
+    // Fallback: open in new tab
+    window.open(url, '_blank')
+  }
 }
