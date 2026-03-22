@@ -230,128 +230,6 @@ const Dashboard: FC = () => {
         </div>
       </div>
 
-      {/* Portal Data Categories */}
-      {categories.length > 0 && (
-        <div className="dash-categories">
-          <div className="dash-section-header">
-            <div>
-              <h3 className="dash-section-title">
-                <Icons8Icon name="four-squares" size={18} className="dash-section-icon" />
-                Data Categories
-              </h3>
-              <p className="dash-section-desc">Browse datasets by thematic category</p>
-            </div>
-          </div>
-          <div className="dash-category-grid">
-            {categories.map((cat) => {
-              const iconName = getCategoryIconName(cat.icon)
-              const count = datasets.filter((d) => d.metadata.portalCategory === cat.id).length
-              return (
-                <div className="dash-category-card" key={cat.id} style={{ borderTopColor: cat.color }}>
-                  <div className="dash-category-icon">
-                    <Icons8Icon name={iconName} size={24} color={cat.color} />
-                  </div>
-                  <div className="dash-category-info">
-                    <span className="dash-category-name">{cat.name}</span>
-                    <span className="dash-category-desc">{cat.description}</span>
-                  </div>
-                  <span className="dash-category-count" style={{ background: cat.color }}>
-                    {count}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* KPI Overview Cards */}
-      <div className="dash-kpi-row">
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">New CCAs</span>
-            <span className="dash-kpi-badge dash-kpi-badge-green">
-              <Icons8Icon name="sprout" size={14} />
-              Terrestrial
-            </span>
-          </div>
-          <span className="dash-kpi-value">{newCcaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (newCcaCount / ccaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">New MPAs</span>
-            <span className="dash-kpi-badge dash-kpi-badge-blue">
-              <Icons8Icon name="fish" size={14} />
-              Marine
-            </span>
-          </div>
-          <span className="dash-kpi-value">{newMpaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (newMpaCount / mpaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">CCAs Improved</span>
-            <span className="dash-kpi-badge dash-kpi-badge-green">
-              <Icons8Icon name="deciduous-tree" size={14} />
-              Strengthened
-            </span>
-          </div>
-          <span className="dash-kpi-value">{improvedCcaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (improvedCcaCount / ccaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">MPAs Improved</span>
-            <span className="dash-kpi-badge dash-kpi-badge-blue">
-              <Icons8Icon name="anchor" size={14} />
-              Strengthened
-            </span>
-          </div>
-          <span className="dash-kpi-value">{improvedMpaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (improvedMpaCount / mpaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">CCA Mapped</span>
-            <span className="dash-kpi-badge dash-kpi-badge-purple">
-              <Icons8Icon name="geography" size={14} />
-              {ccaMappedLeft} left
-            </span>
-          </div>
-          <span className="dash-kpi-value">{ccaMappedComplete}<span className="dash-kpi-of">/{ccaAreas.length}</span></span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-purple" style={{ width: `${ccaAreas.length ? (ccaMappedComplete / ccaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">MPA Mapped</span>
-            <span className="dash-kpi-badge dash-kpi-badge-amber">
-              <Icons8Icon name="compass" size={14} />
-              {mpaMappedLeft} left
-            </span>
-          </div>
-          <span className="dash-kpi-value">{mpaMappedComplete}<span className="dash-kpi-of">/{mpaAreas.length}</span></span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-amber" style={{ width: `${mpaAreas.length ? (mpaMappedComplete / mpaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Data overview map */}
-      <Suspense fallback={<div className="dash-loading">Loading map...</div>}>
-        <DashboardMap />
-      </Suspense>
-
       {/* ProDoc Indicator Progress */}
       <div className="dash-targets">
         <div className="dash-section-header">
@@ -587,6 +465,185 @@ const Dashboard: FC = () => {
         </div>
       </div>
 
+      {/* Coverage by Province */}
+      {provinceBarData.length > 0 && (
+        <div className="dash-targets">
+          <div className="dash-panel-header">
+            <h3 className="dash-section-title">
+              <Icons8Icon name="map-pin" size={18} className="dash-section-icon" />
+              Coverage by Province
+            </h3>
+            <div className="dash-province-legend">
+              <span className="dash-province-legend-item">
+                <span className="dash-legend-dot" style={{ background: CHART_COLORS.green }} />
+                Terrestrial
+              </span>
+              <span className="dash-province-legend-item">
+                <span className="dash-legend-dot" style={{ background: CHART_COLORS.blue }} />
+                Marine
+              </span>
+            </div>
+          </div>
+          <div className="dash-province-chart">
+            <ResponsiveContainer width="100%" height={Math.max(220, provinceBarData.length * 52)}>
+              <BarChart
+                data={provinceBarData}
+                layout="vertical"
+                margin={{ top: 4, right: 20, bottom: 4, left: 4 }}
+                barCategoryGap="24%"
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" horizontal={false} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
+                  tick={{ fontSize: 11, fill: 'var(--color-text-tertiary)' }}
+                  axisLine={{ stroke: 'rgba(148,163,184,0.2)' }}
+                  tickLine={false}
+                  unit=" ha"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={85}
+                  tick={{ fontSize: 12, fill: 'var(--color-text-secondary)', fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  formatter={(value, name) => [formatArea(Number(value)), String(name)]}
+                  contentStyle={TOOLTIP_STYLE}
+                  cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                />
+                <Bar dataKey="Terrestrial" fill={CHART_COLORS.green} radius={[0, 8, 8, 0]} />
+                <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 8, 8, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Portal Data Categories */}
+      {categories.length > 0 && (
+        <div className="dash-categories">
+          <div className="dash-section-header">
+            <div>
+              <h3 className="dash-section-title">
+                <Icons8Icon name="four-squares" size={18} className="dash-section-icon" />
+                Data Categories
+              </h3>
+              <p className="dash-section-desc">Browse datasets by thematic category</p>
+            </div>
+          </div>
+          <div className="dash-category-grid">
+            {categories.map((cat) => {
+              const iconName = getCategoryIconName(cat.icon)
+              const count = datasets.filter((d) => d.metadata.portalCategory === cat.id).length
+              return (
+                <div className="dash-category-card" key={cat.id} style={{ borderTopColor: cat.color }}>
+                  <div className="dash-category-icon">
+                    <Icons8Icon name={iconName} size={24} color={cat.color} />
+                  </div>
+                  <div className="dash-category-info">
+                    <span className="dash-category-name">{cat.name}</span>
+                    <span className="dash-category-desc">{cat.description}</span>
+                  </div>
+                  <span className="dash-category-count" style={{ background: cat.color }}>
+                    {count}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* KPI Overview Cards */}
+      <div className="dash-kpi-row">
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">New CCAs</span>
+            <span className="dash-kpi-badge dash-kpi-badge-green">
+              <Icons8Icon name="sprout" size={14} />
+              Terrestrial
+            </span>
+          </div>
+          <span className="dash-kpi-value">{newCcaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (newCcaCount / ccaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">New MPAs</span>
+            <span className="dash-kpi-badge dash-kpi-badge-blue">
+              <Icons8Icon name="fish" size={14} />
+              Marine
+            </span>
+          </div>
+          <span className="dash-kpi-value">{newMpaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (newMpaCount / mpaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">CCAs Improved</span>
+            <span className="dash-kpi-badge dash-kpi-badge-green">
+              <Icons8Icon name="deciduous-tree" size={14} />
+              Strengthened
+            </span>
+          </div>
+          <span className="dash-kpi-value">{improvedCcaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (improvedCcaCount / ccaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">MPAs Improved</span>
+            <span className="dash-kpi-badge dash-kpi-badge-blue">
+              <Icons8Icon name="anchor" size={14} />
+              Strengthened
+            </span>
+          </div>
+          <span className="dash-kpi-value">{improvedMpaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (improvedMpaCount / mpaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">CCA Mapped</span>
+            <span className="dash-kpi-badge dash-kpi-badge-purple">
+              <Icons8Icon name="geography" size={14} />
+              {ccaMappedLeft} left
+            </span>
+          </div>
+          <span className="dash-kpi-value">{ccaMappedComplete}<span className="dash-kpi-of">/{ccaAreas.length}</span></span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-purple" style={{ width: `${ccaAreas.length ? (ccaMappedComplete / ccaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">MPA Mapped</span>
+            <span className="dash-kpi-badge dash-kpi-badge-amber">
+              <Icons8Icon name="compass" size={14} />
+              {mpaMappedLeft} left
+            </span>
+          </div>
+          <span className="dash-kpi-value">{mpaMappedComplete}<span className="dash-kpi-of">/{mpaAreas.length}</span></span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-amber" style={{ width: `${mpaAreas.length ? (mpaMappedComplete / mpaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Data overview map */}
+      <Suspense fallback={<div className="dash-loading">Loading map...</div>}>
+        <DashboardMap />
+      </Suspense>
+
       {/* Overview panels */}
       <div className="dash-panels">
         {/* Mapping status from ProDoc Tracker */}
@@ -690,63 +747,6 @@ const Dashboard: FC = () => {
             ))}
           </div>
         </div>
-
-        {/* Province coverage from ProDoc Tracker */}
-        {provinceBarData.length > 0 && (
-          <div className="dash-panel dash-panel-wide">
-            <div className="dash-panel-header">
-              <h3 className="dash-section-title">
-                <Icons8Icon name="map-pin" size={18} className="dash-section-icon" />
-                Coverage by Province
-              </h3>
-              <div className="dash-province-legend">
-                <span className="dash-province-legend-item">
-                  <span className="dash-legend-dot" style={{ background: CHART_COLORS.green }} />
-                  Terrestrial
-                </span>
-                <span className="dash-province-legend-item">
-                  <span className="dash-legend-dot" style={{ background: CHART_COLORS.blue }} />
-                  Marine
-                </span>
-              </div>
-            </div>
-            <div className="dash-province-chart">
-              <ResponsiveContainer width="100%" height={Math.max(220, provinceBarData.length * 52)}>
-                <BarChart
-                  data={provinceBarData}
-                  layout="vertical"
-                  margin={{ top: 4, right: 20, bottom: 4, left: 4 }}
-                  barCategoryGap="24%"
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
-                    tick={{ fontSize: 11, fill: 'var(--color-text-tertiary)' }}
-                    axisLine={{ stroke: 'rgba(148,163,184,0.2)' }}
-                    tickLine={false}
-                    unit=" ha"
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={85}
-                    tick={{ fontSize: 12, fill: 'var(--color-text-secondary)', fontWeight: 600 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    formatter={(value, name) => [formatArea(Number(value)), String(name)]}
-                    contentStyle={TOOLTIP_STYLE}
-                    cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                  />
-                  <Bar dataKey="Terrestrial" fill={CHART_COLORS.green} radius={[0, 8, 8, 0]} />
-                  <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 8, 8, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
