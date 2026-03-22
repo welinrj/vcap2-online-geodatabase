@@ -457,25 +457,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                   <span>{ind.registered}/{ind.totalAreas} registered</span>
                 </div>
 
-                {ind.issues.length > 0 && (
-                  <div className="pdt-ind-track-issues">
-                    {ind.issues.map((issue, idx) => (
-                      <div key={idx} className="pdt-ind-track-issue">
-                        <span className={`pdt-offtrack-reason ${issue.severity === 'high' ? 'pdt-reason-high' : 'pdt-reason-medium'}`}>
-                          <Icons8Icon name={issue.severity === 'high' ? 'error' : 'info'} size={12} />
-                          {issue.issue}
-                        </span>
-                        {issue.areas && issue.areas.length > 0 && (
-                          <div className="pdt-ind-track-areas">
-                            {issue.areas.map((name, ai) => (
-                              <span key={ai} className="pdt-ind-track-area-tag">{name}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             )
           })}

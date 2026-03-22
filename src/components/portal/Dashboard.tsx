@@ -365,26 +365,6 @@ const Dashboard: FC = () => {
                   </div>
                 </div>
 
-                {/* Issues */}
-                {ind.issues.length > 0 && (
-                  <div className="dash-ind-track-issues">
-                    {ind.issues.map((issue, idx) => (
-                      <div key={idx} className="dash-ind-track-issue">
-                        <span className={`dash-activity-reason ${issue.severity === 'high' ? 'dash-activity-reason-high' : 'dash-activity-reason-medium'}`}>
-                          <Icons8Icon name={issue.severity === 'high' ? 'error' : 'info'} size={12} />
-                          {issue.issue}
-                        </span>
-                        {issue.areas && issue.areas.length > 0 && (
-                          <div className="dash-ind-track-issue-areas">
-                            {issue.areas.map((name, ai) => (
-                              <span key={ai} className="dash-ind-track-area-tag">{name}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             )
           })}
