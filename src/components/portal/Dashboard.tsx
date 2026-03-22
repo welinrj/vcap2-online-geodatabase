@@ -55,6 +55,20 @@ const TOOLTIP_STYLE = {
   backdropFilter: 'blur(8px)',
 }
 
+/** HTML center label overlay for donut charts */
+const DonutCenter: FC<{
+  value: string
+  sub?: string
+  color?: string
+}> = ({ value, sub, color }) => (
+  <div className="dash-donut-center">
+    <span className="dash-donut-center-val" style={{ color: color || 'var(--color-text)' }}>
+      {value}
+    </span>
+    {sub && <span className="dash-donut-center-sub">{sub}</span>}
+  </div>
+)
+
 /** Map icon names from Firestore to Icons8 Glyph Neue names */
 const CATEGORY_ICON_MAP: Record<string, string> = {
   TreePine: 'leaf',
@@ -251,62 +265,84 @@ const Dashboard: FC = () => {
         </div>
       )}
 
-      {/* Quick stats — CCA & MPA summary */}
-      <div className="dash-stats dash-stats-6">
-        <div className="dash-stat-card dash-stat-green">
-          <div className="dash-stat-icon">
-            <Icons8Icon name="sprout" size={20} />
+      {/* KPI Overview Cards */}
+      <div className="dash-kpi-row">
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">New CCAs</span>
+            <span className="dash-kpi-badge dash-kpi-badge-green">
+              <Icons8Icon name="sprout" size={14} />
+              Terrestrial
+            </span>
           </div>
-          <div className="dash-stat-info">
-            <span className="dash-stat-value">{newCcaCount}</span>
-            <span className="dash-stat-label">New CCAs</span>
-          </div>
-        </div>
-        <div className="dash-stat-card dash-stat-blue">
-          <div className="dash-stat-icon">
-            <Icons8Icon name="fish" size={20} />
-          </div>
-          <div className="dash-stat-info">
-            <span className="dash-stat-value">{newMpaCount}</span>
-            <span className="dash-stat-label">New MPAs</span>
+          <span className="dash-kpi-value">{newCcaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (newCcaCount / ccaAreas.length) * 100 : 0}%` }} />
           </div>
         </div>
-        <div className="dash-stat-card dash-stat-green">
-          <div className="dash-stat-icon">
-            <Icons8Icon name="deciduous-tree" size={20} />
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">New MPAs</span>
+            <span className="dash-kpi-badge dash-kpi-badge-blue">
+              <Icons8Icon name="fish" size={14} />
+              Marine
+            </span>
           </div>
-          <div className="dash-stat-info">
-            <span className="dash-stat-value">{improvedCcaCount}</span>
-            <span className="dash-stat-label">CCAs Improved</span>
-          </div>
-        </div>
-        <div className="dash-stat-card dash-stat-blue">
-          <div className="dash-stat-icon">
-            <Icons8Icon name="anchor" size={20} />
-          </div>
-          <div className="dash-stat-info">
-            <span className="dash-stat-value">{improvedMpaCount}</span>
-            <span className="dash-stat-label">MPAs Improved</span>
+          <span className="dash-kpi-value">{newMpaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (newMpaCount / mpaAreas.length) * 100 : 0}%` }} />
           </div>
         </div>
-        <div className="dash-stat-card dash-stat-purple">
-          <div className="dash-stat-icon">
-            <Icons8Icon name="geography" size={20} />
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">CCAs Improved</span>
+            <span className="dash-kpi-badge dash-kpi-badge-green">
+              <Icons8Icon name="deciduous-tree" size={14} />
+              Strengthened
+            </span>
           </div>
-          <div className="dash-stat-info">
-            <span className="dash-stat-value">{ccaMappedComplete} / {ccaAreas.length}</span>
-            <span className="dash-stat-label">CCA Mapped</span>
-            <span className="dash-stat-sub">{ccaMappedLeft} remaining</span>
+          <span className="dash-kpi-value">{improvedCcaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (improvedCcaCount / ccaAreas.length) * 100 : 0}%` }} />
           </div>
         </div>
-        <div className="dash-stat-card dash-stat-amber">
-          <div className="dash-stat-icon">
-            <Icons8Icon name="compass" size={20} />
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">MPAs Improved</span>
+            <span className="dash-kpi-badge dash-kpi-badge-blue">
+              <Icons8Icon name="anchor" size={14} />
+              Strengthened
+            </span>
           </div>
-          <div className="dash-stat-info">
-            <span className="dash-stat-value">{mpaMappedComplete} / {mpaAreas.length}</span>
-            <span className="dash-stat-label">MPA Mapped</span>
-            <span className="dash-stat-sub">{mpaMappedLeft} remaining</span>
+          <span className="dash-kpi-value">{improvedMpaCount}</span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (improvedMpaCount / mpaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">CCA Mapped</span>
+            <span className="dash-kpi-badge dash-kpi-badge-purple">
+              <Icons8Icon name="geography" size={14} />
+              {ccaMappedLeft} left
+            </span>
+          </div>
+          <span className="dash-kpi-value">{ccaMappedComplete}<span className="dash-kpi-of">/{ccaAreas.length}</span></span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-purple" style={{ width: `${ccaAreas.length ? (ccaMappedComplete / ccaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+        <div className="dash-kpi-card">
+          <div className="dash-kpi-top">
+            <span className="dash-kpi-label">MPA Mapped</span>
+            <span className="dash-kpi-badge dash-kpi-badge-amber">
+              <Icons8Icon name="compass" size={14} />
+              {mpaMappedLeft} left
+            </span>
+          </div>
+          <span className="dash-kpi-value">{mpaMappedComplete}<span className="dash-kpi-of">/{mpaAreas.length}</span></span>
+          <div className="dash-kpi-bar">
+            <div className="dash-kpi-bar-fill dash-kpi-fill-amber" style={{ width: `${mpaAreas.length ? (mpaMappedComplete / mpaAreas.length) * 100 : 0}%` }} />
           </div>
         </div>
       </div>
@@ -336,27 +372,28 @@ const Dashboard: FC = () => {
               { name: 'Remaining', value: remaining, color: CHART_COLORS.gray },
             ]
             const exceeded = ind.mapped > ind.target
+            const pctDisplay = exceeded ? '>100%' : `${ind.progress.toFixed(1)}%`
+            const progressClamped = Math.min(ind.progress, 100)
             return (
-              <div className="dash-target-card" key={ind.key}>
-                <div className="dash-target-header">
-                  <span className={`dash-target-type ${ind.type === 'Terrestrial' ? 'dash-target-cca' : 'dash-target-mpa'}`}>
-                    {ind.key} — {ind.label}
-                  </span>
-                  <span className="dash-target-pct">{exceeded ? '>100' : ind.progress.toFixed(1)}%</span>
-                </div>
-                <div className="dash-target-chart">
-                  <ResponsiveContainer width="100%" height={140}>
+              <div className="dash-indicator-card" key={ind.key}>
+                <span className={`dash-indicator-badge ${ind.type === 'Terrestrial' ? 'dash-indicator-cca' : 'dash-indicator-mpa'}`}>
+                  {ind.key} — {ind.label}
+                </span>
+                <div className="dash-indicator-donut dash-donut-wrapper">
+                  <ResponsiveContainer width="100%" height={150}>
                     <PieChart>
                       <Pie
                         data={donutData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={42}
-                        outerRadius={60}
+                        innerRadius={48}
+                        outerRadius={65}
                         paddingAngle={3}
                         dataKey="value"
                         strokeWidth={0}
-                        cornerRadius={4}
+                        cornerRadius={5}
+                        startAngle={90}
+                        endAngle={-270}
                       >
                         {donutData.map((entry, index) => (
                           <Cell key={index} fill={entry.color} />
@@ -368,18 +405,27 @@ const Dashboard: FC = () => {
                       />
                     </PieChart>
                   </ResponsiveContainer>
+                  <DonutCenter value={pctDisplay} sub="of target" color={ind.color} />
                 </div>
-                <div className="dash-target-stats">
-                  <div className="dash-target-stat">
-                    <span className="dash-target-stat-val">{formatArea(ind.mapped)}</span>
-                    <span className="dash-target-stat-lbl">Mapped</span>
-                  </div>
-                  <div className="dash-target-stat">
-                    <span className="dash-target-stat-val">{formatArea(ind.target)}</span>
-                    <span className="dash-target-stat-lbl">Target</span>
+                <div className="dash-indicator-progress">
+                  <div className="dash-indicator-progress-track">
+                    <div
+                      className="dash-indicator-progress-fill"
+                      style={{ width: `${progressClamped}%`, background: ind.color }}
+                    />
                   </div>
                 </div>
-                <div className="dash-target-coverage">
+                <div className="dash-indicator-stats">
+                  <div className="dash-indicator-stat">
+                    <span className="dash-indicator-stat-val">{formatArea(ind.mapped)}</span>
+                    <span className="dash-indicator-stat-lbl">Mapped</span>
+                  </div>
+                  <div className="dash-indicator-stat">
+                    <span className="dash-indicator-stat-val">{formatArea(ind.target)}</span>
+                    <span className="dash-indicator-stat-lbl">Target</span>
+                  </div>
+                </div>
+                <div className="dash-indicator-desc">
                   {ind.description}
                 </div>
               </div>
@@ -402,102 +448,140 @@ const Dashboard: FC = () => {
 
         <div className="dash-target-grid">
           {/* CCA Target */}
-          <div className="dash-target-card">
-            <div className="dash-target-header">
-              <span className="dash-target-type dash-target-cca">CCA — Terrestrial</span>
-              <span className="dash-target-pct">{formatPercent(ccaProgress)}%</span>
+          <div className="dash-30x30-card">
+            <div className="dash-30x30-header">
+              <span className="dash-30x30-badge dash-30x30-cca">
+                <Icons8Icon name="deciduous-tree" size={14} />
+                CCA — Terrestrial
+              </span>
+              <span className="dash-30x30-coverage">
+                {formatPercent(ccaLandPercent)}% of land area
+              </span>
             </div>
-            <div className="dash-target-chart">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie
-                    data={ccaDonutData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={52}
-                    outerRadius={72}
-                    paddingAngle={3}
-                    dataKey="value"
-                    strokeWidth={0}
-                    cornerRadius={5}
-                  >
-                    {ccaDonutData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => formatArea(Number(value))}
-                    contentStyle={TOOLTIP_STYLE}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="dash-30x30-body">
+              <div className="dash-30x30-donut dash-donut-wrapper">
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={ccaDonutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={58}
+                      outerRadius={78}
+                      paddingAngle={3}
+                      dataKey="value"
+                      strokeWidth={0}
+                      cornerRadius={6}
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {ccaDonutData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => formatArea(Number(value))}
+                      contentStyle={TOOLTIP_STYLE}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <DonutCenter value={`${formatPercent(ccaProgress)}%`} sub="of 30% target" color={CHART_COLORS.green} />
+              </div>
+              <div className="dash-30x30-metrics">
+                <div className="dash-30x30-metric">
+                  <span className="dash-30x30-metric-val" style={{ color: CHART_COLORS.green }}>{formatArea(allTerrestrialHa)}</span>
+                  <span className="dash-30x30-metric-lbl">Mapped</span>
+                </div>
+                <div className="dash-30x30-metric">
+                  <span className="dash-30x30-metric-val">{formatArea(CCA_TARGET_HA)}</span>
+                  <span className="dash-30x30-metric-lbl">Target (30%)</span>
+                </div>
+                <div className="dash-30x30-metric">
+                  <span className="dash-30x30-metric-val">{formatArea(ccaRemainingHa)}</span>
+                  <span className="dash-30x30-metric-lbl">Remaining</span>
+                </div>
+              </div>
             </div>
-            <div className="dash-target-stats">
-              <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(allTerrestrialHa)}</span>
-                <span className="dash-target-stat-lbl">Mapped</span>
+            <div className="dash-30x30-progress">
+              <div className="dash-30x30-progress-track">
+                <div
+                  className="dash-30x30-progress-fill"
+                  style={{ width: `${Math.min(ccaProgress, 100)}%`, background: `linear-gradient(90deg, ${CHART_COLORS.green}, ${CHART_COLORS.greenLight})` }}
+                />
               </div>
-              <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(CCA_TARGET_HA)}</span>
-                <span className="dash-target-stat-lbl">Target (30%)</span>
+              <div className="dash-30x30-progress-labels">
+                <span>0%</span>
+                <span>30% target</span>
               </div>
-              <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(ccaRemainingHa)}</span>
-                <span className="dash-target-stat-lbl">Remaining</span>
-              </div>
-            </div>
-            <div className="dash-target-coverage">
-              {formatPercent(ccaLandPercent)}% of Vanuatu land area covered
             </div>
           </div>
 
           {/* MPA Target */}
-          <div className="dash-target-card">
-            <div className="dash-target-header">
-              <span className="dash-target-type dash-target-mpa">MPA — Marine</span>
-              <span className="dash-target-pct">{formatPercent(mpaProgress)}%</span>
+          <div className="dash-30x30-card">
+            <div className="dash-30x30-header">
+              <span className="dash-30x30-badge dash-30x30-mpa">
+                <Icons8Icon name="fish" size={14} />
+                MPA — Marine
+              </span>
+              <span className="dash-30x30-coverage">
+                {formatPercent(mpaEezPercent)}% of EEZ
+              </span>
             </div>
-            <div className="dash-target-chart">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie
-                    data={mpaDonutData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={52}
-                    outerRadius={72}
-                    paddingAngle={3}
-                    dataKey="value"
-                    strokeWidth={0}
-                    cornerRadius={5}
-                  >
-                    {mpaDonutData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => formatArea(Number(value))}
-                    contentStyle={TOOLTIP_STYLE}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="dash-30x30-body">
+              <div className="dash-30x30-donut">
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={mpaDonutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={58}
+                      outerRadius={78}
+                      paddingAngle={3}
+                      dataKey="value"
+                      strokeWidth={0}
+                      cornerRadius={6}
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {mpaDonutData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => formatArea(Number(value))}
+                      contentStyle={TOOLTIP_STYLE}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <DonutCenter value={`${formatPercent(mpaProgress)}%`} sub="of 30% target" color={CHART_COLORS.blue} />
+              </div>
+              <div className="dash-30x30-metrics">
+                <div className="dash-30x30-metric">
+                  <span className="dash-30x30-metric-val" style={{ color: CHART_COLORS.blue }}>{formatArea(allMarineHa)}</span>
+                  <span className="dash-30x30-metric-lbl">Mapped</span>
+                </div>
+                <div className="dash-30x30-metric">
+                  <span className="dash-30x30-metric-val">{formatArea(MPA_TARGET_HA)}</span>
+                  <span className="dash-30x30-metric-lbl">Target (30%)</span>
+                </div>
+                <div className="dash-30x30-metric">
+                  <span className="dash-30x30-metric-val">{formatArea(mpaRemainingHa)}</span>
+                  <span className="dash-30x30-metric-lbl">Remaining</span>
+                </div>
+              </div>
             </div>
-            <div className="dash-target-stats">
-              <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(allMarineHa)}</span>
-                <span className="dash-target-stat-lbl">Mapped</span>
+            <div className="dash-30x30-progress">
+              <div className="dash-30x30-progress-track">
+                <div
+                  className="dash-30x30-progress-fill"
+                  style={{ width: `${Math.min(mpaProgress, 100)}%`, background: `linear-gradient(90deg, ${CHART_COLORS.blue}, ${CHART_COLORS.blueLight})` }}
+                />
               </div>
-              <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(MPA_TARGET_HA)}</span>
-                <span className="dash-target-stat-lbl">Target (30%)</span>
+              <div className="dash-30x30-progress-labels">
+                <span>0%</span>
+                <span>30% target</span>
               </div>
-              <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(mpaRemainingHa)}</span>
-                <span className="dash-target-stat-lbl">Remaining</span>
-              </div>
-            </div>
-            <div className="dash-target-coverage">
-              {formatPercent(mpaEezPercent)}% of Vanuatu EEZ covered
             </div>
           </div>
         </div>
@@ -507,59 +591,65 @@ const Dashboard: FC = () => {
       <div className="dash-panels">
         {/* Mapping status from ProDoc Tracker */}
         <div className="dash-panel">
-          <h3 className="dash-section-title">
-            <Icons8Icon name="activity" size={18} className="dash-section-icon" />
-            Mapping Status
-          </h3>
+          <div className="dash-panel-header">
+            <h3 className="dash-section-title">
+              <Icons8Icon name="activity" size={18} className="dash-section-icon" />
+              Mapping Status
+            </h3>
+            <span className="dash-panel-count">{totalSites} sites</span>
+          </div>
           {mappingPieData.length > 0 ? (
-            <div className="dash-chart-row">
-              <div className="dash-chart-mini">
-                <ResponsiveContainer width="100%" height={140}>
+            <>
+              <div className="dash-mapping-donut dash-donut-wrapper">
+                <ResponsiveContainer width="100%" height={160}>
                   <PieChart>
                     <Pie
                       data={mappingPieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={36}
-                      outerRadius={56}
+                      innerRadius={46}
+                      outerRadius={66}
                       paddingAngle={3}
                       dataKey="value"
                       strokeWidth={0}
-                      cornerRadius={4}
+                      cornerRadius={5}
+                      startAngle={90}
+                      endAngle={-270}
                     >
                       {mappingPieData.map((entry, index) => (
                         <Cell key={index} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip
-                      contentStyle={TOOLTIP_STYLE}
-                    />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
                   </PieChart>
                 </ResponsiveContainer>
+                <DonutCenter value={String(mappingCompleted)} sub="completed" color={CHART_COLORS.green} />
               </div>
-              <div className="dash-status-legend">
-                <div className="dash-status-item">
-                  <Icons8Icon name="approval" size={16} color={CHART_COLORS.green} />
-                  <span className="dash-status-count">{mappingCompleted}</span>
-                  <span className="dash-status-label">Completed</span>
-                </div>
-                <div className="dash-status-item">
-                  <Icons8Icon name="clock" size={16} color={CHART_COLORS.amber} />
-                  <span className="dash-status-count">{mappingInProgress}</span>
-                  <span className="dash-status-label">In Progress</span>
-                </div>
-                <div className="dash-status-item">
-                  <Icons8Icon name="checked" size={16} color={CHART_COLORS.gray} />
-                  <span className="dash-status-count">{mappingNotStarted}</span>
-                  <span className="dash-status-label">Not Started</span>
-                </div>
-                <div className="dash-status-item">
-                  <Icons8Icon name="layers" size={16} color={CHART_COLORS.cyan} />
-                  <span className="dash-status-count">{totalSites}</span>
-                  <span className="dash-status-label">Total Sites</span>
-                </div>
+              <div className="dash-mapping-bars">
+                {[
+                  { label: 'Completed', count: mappingCompleted, color: CHART_COLORS.green, icon: 'approval' },
+                  { label: 'In Progress', count: mappingInProgress, color: CHART_COLORS.amber, icon: 'clock' },
+                  { label: 'Not Started', count: mappingNotStarted, color: '#94a3b8', icon: 'checked' },
+                ].map((item) => (
+                  <div className="dash-mapping-bar-row" key={item.label}>
+                    <div className="dash-mapping-bar-label">
+                      <Icons8Icon name={item.icon} size={14} color={item.color} />
+                      <span>{item.label}</span>
+                      <span className="dash-mapping-bar-count">{item.count}</span>
+                    </div>
+                    <div className="dash-mapping-bar-track">
+                      <div
+                        className="dash-mapping-bar-fill"
+                        style={{
+                          width: `${totalSites ? (item.count / totalSites) * 100 : 0}%`,
+                          background: item.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            </>
           ) : (
             <div className="dash-empty-chart">No areas in ProDoc Tracker yet</div>
           )}
@@ -567,25 +657,27 @@ const Dashboard: FC = () => {
 
         {/* GIS data overview */}
         <div className="dash-panel">
-          <h3 className="dash-section-title">
-            <Icons8Icon name="database" size={18} className="dash-section-icon" />
-            GIS Database
-          </h3>
-          <div className="dash-status-legend">
-            <div className="dash-status-item">
-              <Icons8Icon name="layers" size={16} color={CHART_COLORS.purple} />
-              <span className="dash-status-count">{totalFiles}</span>
-              <span className="dash-status-label">Datasets</span>
+          <div className="dash-panel-header">
+            <h3 className="dash-section-title">
+              <Icons8Icon name="database" size={18} className="dash-section-icon" />
+              GIS Database
+            </h3>
+          </div>
+          <div className="dash-gis-kpis">
+            <div className="dash-gis-kpi">
+              <Icons8Icon name="layers" size={20} color={CHART_COLORS.purple} />
+              <span className="dash-gis-kpi-val">{totalFiles}</span>
+              <span className="dash-gis-kpi-lbl">Datasets</span>
             </div>
-            <div className="dash-status-item">
-              <Icons8Icon name="hdd" size={16} color={CHART_COLORS.amber} />
-              <span className="dash-status-count">{formatBytes(totalSize)}</span>
-              <span className="dash-status-label">Total Size</span>
+            <div className="dash-gis-kpi">
+              <Icons8Icon name="hdd" size={20} color={CHART_COLORS.amber} />
+              <span className="dash-gis-kpi-val">{formatBytes(totalSize)}</span>
+              <span className="dash-gis-kpi-lbl">Total Size</span>
             </div>
-            <div className="dash-status-item">
-              <Icons8Icon name="layers" size={16} color={CHART_COLORS.cyan} />
-              <span className="dash-status-count">{totalFeatures.toLocaleString()}</span>
-              <span className="dash-status-label">GIS Features</span>
+            <div className="dash-gis-kpi">
+              <Icons8Icon name="layers" size={20} color={CHART_COLORS.cyan} />
+              <span className="dash-gis-kpi-val">{totalFeatures.toLocaleString()}</span>
+              <span className="dash-gis-kpi-lbl">GIS Features</span>
             </div>
           </div>
           <h4 className="dash-section-subtitle">Supported File Types</h4>
@@ -602,54 +694,56 @@ const Dashboard: FC = () => {
         {/* Province coverage from ProDoc Tracker */}
         {provinceBarData.length > 0 && (
           <div className="dash-panel dash-panel-wide">
-            <h3 className="dash-section-title">
-              <Icons8Icon name="map-pin" size={18} className="dash-section-icon" />
-              Coverage by Province
-            </h3>
+            <div className="dash-panel-header">
+              <h3 className="dash-section-title">
+                <Icons8Icon name="map-pin" size={18} className="dash-section-icon" />
+                Coverage by Province
+              </h3>
+              <div className="dash-province-legend">
+                <span className="dash-province-legend-item">
+                  <span className="dash-legend-dot" style={{ background: CHART_COLORS.green }} />
+                  Terrestrial
+                </span>
+                <span className="dash-province-legend-item">
+                  <span className="dash-legend-dot" style={{ background: CHART_COLORS.blue }} />
+                  Marine
+                </span>
+              </div>
+            </div>
             <div className="dash-province-chart">
-              <ResponsiveContainer width="100%" height={Math.max(200, provinceBarData.length * 50)}>
+              <ResponsiveContainer width="100%" height={Math.max(220, provinceBarData.length * 52)}>
                 <BarChart
                   data={provinceBarData}
                   layout="vertical"
-                  margin={{ top: 0, right: 16, bottom: 0, left: 0 }}
-                  barCategoryGap="20%"
+                  margin={{ top: 4, right: 20, bottom: 4, left: 4 }}
+                  barCategoryGap="24%"
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" horizontal={false} />
                   <XAxis
                     type="number"
                     tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
-                    tick={{ fontSize: 11, fill: '#94a3b8' }}
-                    axisLine={{ stroke: '#f1f5f9' }}
-                    tickLine={{ stroke: '#f1f5f9' }}
+                    tick={{ fontSize: 11, fill: 'var(--color-text-tertiary)' }}
+                    axisLine={{ stroke: 'rgba(148,163,184,0.2)' }}
+                    tickLine={false}
                     unit=" ha"
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={80}
-                    tick={{ fontSize: 12, fill: '#475569', fontWeight: 600 }}
+                    width={85}
+                    tick={{ fontSize: 12, fill: 'var(--color-text-secondary)', fontWeight: 600 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <Tooltip
                     formatter={(value, name) => [formatArea(Number(value)), String(name)]}
                     contentStyle={TOOLTIP_STYLE}
-                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                    cursor={{ fill: 'rgba(0,0,0,0.03)' }}
                   />
-                  <Bar dataKey="Terrestrial" fill={CHART_COLORS.green} radius={[0, 6, 6, 0]} />
-                  <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="Terrestrial" fill={CHART_COLORS.green} radius={[0, 8, 8, 0]} />
+                  <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-              <div className="dash-province-legend">
-                <span className="dash-province-legend-item">
-                  <span className="dash-legend-dot" style={{ background: CHART_COLORS.green }} />
-                  Terrestrial (ha)
-                </span>
-                <span className="dash-province-legend-item">
-                  <span className="dash-legend-dot" style={{ background: CHART_COLORS.blue }} />
-                  Marine (ha)
-                </span>
-              </div>
             </div>
           </div>
         )}
