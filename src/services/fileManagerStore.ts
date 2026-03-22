@@ -347,7 +347,7 @@ export function formatFileSize(bytes: number): string {
  */
 export async function downloadFile(entry: FileEntry): Promise<void> {
   // Support legacy base64 entries (data field) and new storage URL entries
-  const url = entry.storageUrl || (entry as Record<string, unknown>).data as string | undefined
+  const url = entry.storageUrl || (entry as unknown as Record<string, unknown>).data as string | undefined
   if (!url) return
 
   try {
