@@ -820,14 +820,14 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                   if (col.key === 'hectaresTerrestrial') {
                     return (
                       <td key={col.key} className="pdt-foot-val">
-                        {formatHa(filtered.reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0))}
+                        {formatHa(sumTerrestrial(filtered))}
                       </td>
                     )
                   }
                   if (col.key === 'hectaresMarine') {
                     return (
                       <td key={col.key} className="pdt-foot-val">
-                        {formatHa(filtered.reduce((s, e) => s + (e.hectaresMarine ?? 0), 0))}
+                        {formatHa(sumMarine(filtered))}
                       </td>
                     )
                   }
