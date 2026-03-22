@@ -6,7 +6,7 @@ import { seedDefaultCategories } from '../../services/portalCategoryStore'
 import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
-import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
+import { computeProDocAnalytics, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -116,7 +116,7 @@ const Dashboard: FC = () => {
   const {
     newCcaHa, existCcaHa, newMpaHa, existMpaHa,
     newCcaProgress, existCcaProgress, newMpaProgress, existMpaProgress,
-    totalCcaHa, totalMpaHa,
+    allTerrestrialHa, allMarineHa,
     ccaProgress, mpaProgress, ccaLandPercent, mpaEezPercent,
     ccaRemainingHa, mpaRemainingHa,
     newCcaCount, newMpaCount, improvedCcaCount, improvedMpaCount,
@@ -176,13 +176,13 @@ const Dashboard: FC = () => {
     },
   ]
 
-  // Donut chart data for 30x30
+  // Donut chart data for 30x30 — uses all entries' hectares
   const ccaDonutData = [
-    { name: 'Mapped', value: totalCcaHa, color: CHART_COLORS.green },
+    { name: 'Mapped', value: allTerrestrialHa, color: CHART_COLORS.green },
     { name: 'Remaining', value: ccaRemainingHa, color: CHART_COLORS.gray },
   ]
   const mpaDonutData = [
-    { name: 'Mapped', value: totalMpaHa, color: CHART_COLORS.blue },
+    { name: 'Mapped', value: allMarineHa, color: CHART_COLORS.blue },
     { name: 'Remaining', value: mpaRemainingHa, color: CHART_COLORS.gray },
   ]
 
@@ -425,12 +425,12 @@ const Dashboard: FC = () => {
             </div>
             <div className="dash-target-stats">
               <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(totalCcaHa)}</span>
+                <span className="dash-target-stat-val">{formatArea(allTerrestrialHa)}</span>
                 <span className="dash-target-stat-lbl">Mapped</span>
               </div>
               <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(CCA_TARGET_HA)}</span>
-                <span className="dash-target-stat-lbl">Target (30%)</span>
+                <span className="dash-target-stat-val">{formatArea(VANUATU_LAND_HA)}</span>
+                <span className="dash-target-stat-lbl">Total Land</span>
               </div>
               <div className="dash-target-stat">
                 <span className="dash-target-stat-val">{formatArea(ccaRemainingHa)}</span>
@@ -438,7 +438,7 @@ const Dashboard: FC = () => {
               </div>
             </div>
             <div className="dash-target-coverage">
-              {ccaLandPercent.toFixed(2)}% of Vanuatu land area ({formatArea(VANUATU_LAND_HA)})
+              {ccaLandPercent.toFixed(2)}% of Vanuatu land area covered
             </div>
           </div>
 
@@ -475,12 +475,12 @@ const Dashboard: FC = () => {
             </div>
             <div className="dash-target-stats">
               <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(totalMpaHa)}</span>
+                <span className="dash-target-stat-val">{formatArea(allMarineHa)}</span>
                 <span className="dash-target-stat-lbl">Mapped</span>
               </div>
               <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(MPA_TARGET_HA)}</span>
-                <span className="dash-target-stat-lbl">Target (30%)</span>
+                <span className="dash-target-stat-val">{formatArea(VANUATU_EEZ_HA)}</span>
+                <span className="dash-target-stat-lbl">Total EEZ</span>
               </div>
               <div className="dash-target-stat">
                 <span className="dash-target-stat-val">{formatArea(mpaRemainingHa)}</span>
@@ -488,7 +488,7 @@ const Dashboard: FC = () => {
               </div>
             </div>
             <div className="dash-target-coverage">
-              {mpaEezPercent.toFixed(4)}% of Vanuatu EEZ ({formatArea(VANUATU_EEZ_HA)})
+              {mpaEezPercent.toFixed(4)}% of Vanuatu EEZ covered
             </div>
           </div>
         </div>
