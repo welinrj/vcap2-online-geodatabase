@@ -1,4 +1,4 @@
-import { db, storage } from '../config/firebase'
+import { db, storage, auth } from '../config/firebase'
 import {
   collection,
   doc,
@@ -152,11 +152,19 @@ export async function uploadFile(
   ownerName: string,
 ): Promise<FileEntry> {
   if (!db || !storage) throw new Error('Firebase not configured')
+
+  // Use the current Firebase Auth UID for the storage path
+  // Storage rules require request.auth.uid == userId in the path
+  const authUid = auth.currentUser?.uid
+  if (!authUid) {
+    throw new Error('You must be signed in to upload files. Please log out and log back in.')
+  }
+
   const id = generateId('file')
   const now = new Date().toISOString()
 
-  // Upload file to Firebase Cloud Storage
-  const storagePath = `fm-files/${ownerId}/${id}/${file.name}`
+  // Upload file to Firebase Cloud Storage using auth UID in path
+  const storagePath = `fm-files/${authUid}/${id}/${file.name}`
   const storageRef = ref(storage, storagePath)
   await uploadBytes(storageRef, file, {
     contentType: file.type || 'application/octet-stream',

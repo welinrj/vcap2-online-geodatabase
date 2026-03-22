@@ -203,8 +203,9 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       const uploaded = await Promise.all(uploadPromises)
       showAlert('success', `${uploaded.length} file${uploaded.length > 1 ? 's' : ''} uploaded`)
       await loadContents()
-    } catch {
-      showAlert('error', 'Failed to upload file(s)')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to upload file(s)'
+      showAlert('error', msg)
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
