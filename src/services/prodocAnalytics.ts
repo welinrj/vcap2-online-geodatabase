@@ -43,10 +43,10 @@ export function sumMarine(entries: ProDocEntry[]): number {
 }
 
 // Vanuatu targets — 30x30 Global Biodiversity Framework
-export const CCA_TARGET_HA = 365_700 // 30% of 1,219,000 ha land area
-export const MPA_TARGET_HA = 19_890_000 // 30% of 66,300,000 ha EEZ
-export const VANUATU_LAND_HA = 1_219_000
-export const VANUATU_EEZ_HA = 66_300_000
+export const CCA_TARGET_HA = 368_071.5 // 30% of Vanuatu surface coastal area
+export const MPA_TARGET_HA = 20_520_000 // 30% of Vanuatu EEZ
+export const VANUATU_LAND_HA = 1_226_905 // total surface coastal area
+export const VANUATU_EEZ_HA = 68_400_000 // total EEZ
 
 export interface ProDocAnalytics {
   // ProDoc indicator hectares
