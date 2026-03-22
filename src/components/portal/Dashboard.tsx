@@ -1,10 +1,12 @@
-import { useState, useEffect, lazy, Suspense, type FC } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense, type FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
 import type { PortalCategory } from '../../types/geospatial'
 import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../services/datasetStore'
 import { seedDefaultCategories } from '../../services/portalCategoryStore'
 import { formatArea } from '../../services/protectedAreaStore'
-import { newAreas, existingAreas, PRODOC_TARGETS, type ProDocEntry } from '../../data/prodocTrackerData'
+import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
+import { useProDoc } from '../../contexts/ProDocContext'
+import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
 import {
   ShieldCheck,
   Database,
@@ -45,12 +47,6 @@ import './Dashboard.css'
 
 const DashboardMap = lazy(() => import('./DashboardMap'))
 
-// Vanuatu targets — 30x30 Global Biodiversity Framework
-const CCA_TARGET_HA = 365_700 // 30% of 1,219,000 ha land area
-const MPA_TARGET_HA = 19_890_000 // 30% of 66,300,000 ha EEZ
-const VANUATU_LAND_HA = 1_219_000
-const VANUATU_EEZ_HA = 66_300_000
-
 const CHART_COLORS = {
   green: '#22c55e',
   greenLight: '#86efac',
@@ -70,41 +66,6 @@ const FILE_TYPE_ICONS: Record<string, typeof FileJson> = {
   PDF: FileText,
   PNG: FileImage,
   CSV: FileSpreadsheet,
-}
-
-/** Map area councils to their province */
-const AREA_COUNCIL_TO_PROVINCE: Record<string, string> = {
-  'South Epi': 'Shefa',
-  'South Maewo': 'Penama',
-  'Toga Island (Torres)': 'Torba',
-  'West Ambrym': 'Malampa',
-  'West Coast Santo': 'Sanma',
-  'East Vanualava': 'Torba',
-  'Hiu Island (Torres)': 'Torba',
-  'South East Tanna': 'Tafea',
-  'Torba': 'Torba',
-  'Sanma': 'Sanma',
-  'Malampa': 'Malampa',
-  'Shefa': 'Shefa',
-  'Tafea': 'Tafea',
-}
-
-function getProvince(areaCouncil: string): string {
-  return AREA_COUNCIL_TO_PROVINCE[areaCouncil] ?? areaCouncil
-}
-
-/** Sum terrestrial hectares for entries whose ccaType includes terrestrial */
-function sumTerrestrial(entries: ProDocEntry[]): number {
-  return entries
-    .filter((e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial')
-    .reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0)
-}
-
-/** Sum marine hectares for entries whose ccaType includes marine */
-function sumMarine(entries: ProDocEntry[]): number {
-  return entries
-    .filter((e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial')
-    .reduce((s, e) => s + (e.hectaresMarine ?? 0), 0)
 }
 
 /** Map icon names from Firestore to lucide components */
@@ -131,6 +92,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
 }
 
 const Dashboard: FC = () => {
+  const { newAreas, existingAreas } = useProDoc()
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
   const [categories, setCategories] = useState<PortalCategory[]>([])
 
@@ -152,38 +114,30 @@ const Dashboard: FC = () => {
   const totalSize = datasets.reduce((s, d) => s + d.sizeBytes, 0)
   const totalFeatures = datasets.reduce((s, d) => s + d.featureCount, 0)
 
-  // --- ProDoc indicator calculations from tracker data ---
-  const allProDocAreas = [...newAreas, ...existingAreas]
+  // --- All ProDoc analytics from shared module (single source of truth) ---
+  const analytics = useMemo(
+    () => computeProDocAnalytics(newAreas, existingAreas),
+    [newAreas, existingAreas],
+  )
 
-  // Indicator 1.1: New CCA — terrestrial hectares from new areas
-  const newCcaHa = sumTerrestrial(newAreas)
-  const newCcaTarget = PRODOC_TARGETS['1.1'].targetHa
-  const newCcaProgress = Math.min((newCcaHa / newCcaTarget) * 100, 100)
+  const {
+    newCcaHa, existCcaHa, newMpaHa, existMpaHa,
+    newCcaProgress, existCcaProgress, newMpaProgress, existMpaProgress,
+    totalCcaHa, totalMpaHa,
+    ccaProgress, mpaProgress, ccaLandPercent, mpaEezPercent,
+    ccaRemainingHa, mpaRemainingHa,
+    newCcaCount, newMpaCount, improvedCcaCount, improvedMpaCount,
+    ccaMappedComplete, ccaMappedLeft, mpaMappedComplete, mpaMappedLeft,
+    mappingCompleted, mappingInProgress, mappingNotStarted, totalSites,
+    provinceBarData,
+  } = analytics
 
-  // Indicator 1.2: Existing CCA Strengthened — terrestrial hectares from existing areas
-  const existCcaHa = sumTerrestrial(existingAreas)
-  const existCcaTarget = PRODOC_TARGETS['1.2'].targetHa
-  const existCcaProgress = Math.min((existCcaHa / existCcaTarget) * 100, 100)
-
-  // Indicator 2.1: New MPA — marine hectares from new areas
-  const newMpaHa = sumMarine(newAreas)
-  const newMpaTarget = PRODOC_TARGETS['2.1'].targetHa
-  const newMpaProgress = Math.min((newMpaHa / newMpaTarget) * 100, 100)
-
-  // Indicator 2.2: Existing MPA Strengthened — marine hectares from existing areas
-  const existMpaHa = sumMarine(existingAreas)
-  const existMpaTarget = PRODOC_TARGETS['2.2'].targetHa
-  const existMpaProgress = Math.min((existMpaHa / existMpaTarget) * 100, 100)
-
-  // Combined totals for 30x30 display
-  const totalCcaHa = newCcaHa + existCcaHa
-  const totalMpaHa = newMpaHa + existMpaHa
-  const ccaProgress = CCA_TARGET_HA > 0 ? Math.min((totalCcaHa / CCA_TARGET_HA) * 100, 100) : 0
-  const mpaProgress = MPA_TARGET_HA > 0 ? Math.min((totalMpaHa / MPA_TARGET_HA) * 100, 100) : 0
-  const ccaLandPercent = VANUATU_LAND_HA > 0 ? (totalCcaHa / VANUATU_LAND_HA) * 100 : 0
-  const mpaEezPercent = VANUATU_EEZ_HA > 0 ? (totalMpaHa / VANUATU_EEZ_HA) * 100 : 0
-  const ccaRemainingHa = Math.max(CCA_TARGET_HA - totalCcaHa, 0)
-  const mpaRemainingHa = Math.max(MPA_TARGET_HA - totalMpaHa, 0)
+  const ccaAreas = [...newAreas, ...existingAreas].filter(
+    (e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial',
+  )
+  const mpaAreas = [...newAreas, ...existingAreas].filter(
+    (e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial',
+  )
 
   // ProDoc indicator donut data
   const prodocIndicators = [
@@ -192,7 +146,7 @@ const Dashboard: FC = () => {
       label: PRODOC_TARGETS['1.1'].label,
       description: PRODOC_TARGETS['1.1'].description,
       mapped: newCcaHa,
-      target: newCcaTarget,
+      target: PRODOC_TARGETS['1.1'].targetHa,
       progress: newCcaProgress,
       color: CHART_COLORS.green,
       type: 'Terrestrial',
@@ -202,7 +156,7 @@ const Dashboard: FC = () => {
       label: PRODOC_TARGETS['1.2'].label,
       description: PRODOC_TARGETS['1.2'].description,
       mapped: existCcaHa,
-      target: existCcaTarget,
+      target: PRODOC_TARGETS['1.2'].targetHa,
       progress: existCcaProgress,
       color: CHART_COLORS.greenLight,
       type: 'Terrestrial',
@@ -212,7 +166,7 @@ const Dashboard: FC = () => {
       label: PRODOC_TARGETS['2.1'].label,
       description: PRODOC_TARGETS['2.1'].description,
       mapped: newMpaHa,
-      target: newMpaTarget,
+      target: PRODOC_TARGETS['2.1'].targetHa,
       progress: newMpaProgress,
       color: CHART_COLORS.blue,
       type: 'Marine',
@@ -222,7 +176,7 @@ const Dashboard: FC = () => {
       label: PRODOC_TARGETS['2.2'].label,
       description: PRODOC_TARGETS['2.2'].description,
       mapped: existMpaHa,
-      target: existMpaTarget,
+      target: PRODOC_TARGETS['2.2'].targetHa,
       progress: existMpaProgress,
       color: CHART_COLORS.blueLight,
       type: 'Marine',
@@ -239,47 +193,11 @@ const Dashboard: FC = () => {
     { name: 'Remaining', value: mpaRemainingHa, color: CHART_COLORS.gray },
   ]
 
-  // --- CCA / MPA counts ---
-  // CCA = entries with terrestrial component, MPA = entries with marine component
-  const isCCA = (e: ProDocEntry) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial'
-  const isMPA = (e: ProDocEntry) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial'
-
-  const newCcaCount = newAreas.filter(isCCA).length
-  const newMpaCount = newAreas.filter(isMPA).length
-  const improvedCcaCount = existingAreas.filter(isCCA).length
-  const improvedMpaCount = existingAreas.filter(isMPA).length
-
-  // --- Mapping completion ---
-  const ccaAreas = allProDocAreas.filter(isCCA)
-  const mpaAreas = allProDocAreas.filter(isMPA)
-  const ccaMappedComplete = ccaAreas.filter((a) => a.mappingStatus === 'Completed').length
-  const ccaMappedLeft = ccaAreas.length - ccaMappedComplete
-  const mpaMappedComplete = mpaAreas.filter((a) => a.mappingStatus === 'Completed').length
-  const mpaMappedLeft = mpaAreas.length - mpaMappedComplete
-
-  // Mapping status breakdown from ProDoc data
-  const mappingCompleted = allProDocAreas.filter((a) => a.mappingStatus === 'Completed').length
-  const mappingInProgress = allProDocAreas.filter((a) => a.mappingStatus === 'In Progress').length
-  const mappingNotStarted = allProDocAreas.filter((a) => a.mappingStatus === '').length
-
   const mappingPieData = [
     { name: 'Completed', value: mappingCompleted, color: CHART_COLORS.green },
     { name: 'In Progress', value: mappingInProgress, color: CHART_COLORS.amber },
     { name: 'Not Started', value: mappingNotStarted, color: CHART_COLORS.gray },
   ].filter((d) => d.value > 0)
-
-  // Province breakdown from ProDoc data
-  const provinces = [...new Set(allProDocAreas.map((a) => getProvince(a.areaCouncil)))].sort()
-  const provinceBarData = provinces.map((province) => {
-    const provinceAreas = allProDocAreas.filter((a) => getProvince(a.areaCouncil) === province)
-    return {
-      name: province,
-      fullName: province,
-      Terrestrial: provinceAreas.reduce((s, a) => s + (a.hectaresTerrestrial ?? 0), 0),
-      Marine: provinceAreas.reduce((s, a) => s + (a.hectaresMarine ?? 0), 0),
-      count: provinceAreas.length,
-    }
-  }).filter((d) => d.Terrestrial > 0 || d.Marine > 0)
 
 
   return (
@@ -631,7 +549,7 @@ const Dashboard: FC = () => {
                 </div>
                 <div className="dash-status-item">
                   <Layers size={16} color={CHART_COLORS.cyan} />
-                  <span className="dash-status-count">{allProDocAreas.length}</span>
+                  <span className="dash-status-count">{totalSites}</span>
                   <span className="dash-status-label">Total Sites</span>
                 </div>
               </div>

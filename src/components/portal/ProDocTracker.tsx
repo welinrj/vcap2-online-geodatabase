@@ -1,15 +1,11 @@
-import { useState, useMemo, useCallback, useEffect, useRef, type FC, type ChangeEvent } from 'react'
+import { useState, useMemo, useCallback, type FC, type ChangeEvent } from 'react'
 import {
-  newAreas as initialNewAreas,
-  existingAreas as initialExistingAreas,
   PRODOC_TARGETS,
   type ProDocEntry,
 } from '../../data/prodocTrackerData'
-import {
-  loadProDocData,
-  saveProDocData,
-  type ColumnDef,
-} from '../../services/prodocStore'
+import { type ColumnDef } from '../../services/prodocStore'
+import { useProDoc } from '../../contexts/ProDocContext'
+import { sumTerrestrial, sumMarine, isCCA, isMPA } from '../../services/prodocAnalytics'
 import {
   ShieldCheck,
   Waves,
@@ -58,27 +54,10 @@ const COLORS = {
   gray: '#e2e8f0',
 }
 
-// IDs reclassified from Existing → New (migration applied on Firestore load)
-const RECLASSIFIED_TO_NEW = new Set(['MPA250302', 'MPA250301', 'MTPA2501', 'MPA2402'])
-
 const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', 'Terrestrial']
 const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
 const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
 const REGISTRATION_STATUSES: ProDocEntry['registrationStatus'][] = ['Registered', 'Not Yet Registered', '']
-
-const DEFAULT_COLUMNS: ColumnDef[] = [
-  { key: 'id', label: 'ID', type: 'text', builtin: true },
-  { key: 'name', label: 'Boundary Name', type: 'text', builtin: true },
-  { key: 'areaCouncil', label: 'Area Council', type: 'text', builtin: true },
-  { key: 'beneficiary', label: 'Beneficiary', type: 'text', builtin: true },
-  { key: 'ccaType', label: 'Type', type: 'select', options: CCA_TYPES, builtin: true },
-  { key: 'status', label: 'Status', type: 'select', options: STATUSES, builtin: true },
-  { key: 'hectaresTerrestrial', label: 'Terrestrial (ha)', type: 'number', builtin: true },
-  { key: 'hectaresMarine', label: 'Marine (ha)', type: 'number', builtin: true },
-  { key: 'mappingStatus', label: 'Mapping Status', type: 'select', options: [...MAPPING_STATUSES], builtin: true },
-  { key: 'registrationStatus', label: 'Registration Status', type: 'select', options: [...REGISTRATION_STATUSES], builtin: true },
-  { key: 'remarks', label: 'Remarks', type: 'text', builtin: true },
-]
 
 function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & Record<string, unknown> {
   const entry: ProDocEntry & Record<string, unknown> = {
@@ -106,80 +85,22 @@ function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & R
 }
 
 const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
+  const {
+    newAreas, existingAreas, columns,
+    setNewAreas, setExistingAreas, setColumns,
+    isLoading, isDirty, isSaving, saveStatus,
+    markDirty, handleSave,
+  } = useProDoc()
+
   const [tab, setTab] = useState<Tab>('new')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [newAreas, setNewAreas] = useState<ProDocEntry[]>(() => [...initialNewAreas])
-  const [existingAreas, setExistingAreas] = useState<ProDocEntry[]>(() => [...initialExistingAreas])
-  const [columns, setColumns] = useState<ColumnDef[]>(() => [...DEFAULT_COLUMNS])
   const [showAddCol, setShowAddCol] = useState(false)
   const [newColName, setNewColName] = useState('')
   const [newColType, setNewColType] = useState<'text' | 'number'>('text')
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
-  const [isDirty, setIsDirty] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
   const [dragColIndex, setDragColIndex] = useState<number | null>(null)
   const [dragOverColIndex, setDragOverColIndex] = useState<number | null>(null)
-  const initialLoadDone = useRef(false)
-
-  // Load saved data from Firestore on mount (with timeout to avoid hanging)
-  useEffect(() => {
-    if (initialLoadDone.current) return
-    initialLoadDone.current = true
-    const TIMEOUT_MS = 8_000
-    const loadWithTimeout = Promise.race([
-      loadProDocData(),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), TIMEOUT_MS)),
-    ])
-    loadWithTimeout
-      .then((saved) => {
-        if (saved) {
-          // Migrate any areas reclassified from Existing → New in a single pass
-          const { toMigrate, prunedExisting } = saved.existingAreas.reduce(
-            (acc, e) => {
-              if (RECLASSIFIED_TO_NEW.has(e.id)) acc.toMigrate.push({ ...e, status: 'New' as const })
-              else acc.prunedExisting.push(e)
-              return acc
-            },
-            { toMigrate: [] as ProDocEntry[], prunedExisting: [] as ProDocEntry[] },
-          )
-          const alreadyInNew = new Set(saved.newAreas.map((e) => e.id))
-          const toAppend = toMigrate.filter((e) => !alreadyInNew.has(e.id))
-          setNewAreas([...saved.newAreas, ...toAppend])
-          setExistingAreas(prunedExisting)
-          setColumns(saved.columns)
-        }
-      })
-      .catch(() => {
-        // Failed to load — use defaults
-      })
-      .finally(() => setIsLoading(false))
-  }, [])
-
-  // Mark dirty when data changes (skip initial load)
-  const markDirty = useCallback(() => {
-    if (!isLoading) {
-      setIsDirty(true)
-      setSaveStatus('idle')
-    }
-  }, [isLoading])
-
-  const handleSave = useCallback(async () => {
-    setIsSaving(true)
-    setSaveStatus('idle')
-    try {
-      await saveProDocData(newAreas, existingAreas, columns)
-      setIsDirty(false)
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    } catch {
-      setSaveStatus('error')
-    } finally {
-      setIsSaving(false)
-    }
-  }, [newAreas, existingAreas, columns])
 
   // Column drag-and-drop handlers
   const handleColDragStart = useCallback((index: number) => {
@@ -293,16 +214,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   // Summary stats
   const allEntries = [...newAreas, ...existingAreas]
 
-  // Filter by ccaType before summing (consistent with Dashboard logic)
-  const sumTerrestrial = (entries: ProDocEntry[]) =>
-    entries
-      .filter((e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial')
-      .reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0)
-  const sumMarine = (entries: ProDocEntry[]) =>
-    entries
-      .filter((e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial')
-      .reduce((s, e) => s + (e.hectaresMarine ?? 0), 0)
-
   const totalNewTerrestrial = sumTerrestrial(newAreas)
   const totalNewMarine = sumMarine(newAreas)
   const totalExistingTerrestrial = sumTerrestrial(existingAreas)
@@ -312,8 +223,8 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const withCoords = allEntries.filter((e) => e.xCoord !== null && e.yCoord !== null)
 
   // Registration status counts for CCA and MPA
-  const ccaEntries = allEntries.filter((e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial')
-  const mpaEntries = allEntries.filter((e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial')
+  const ccaEntries = allEntries.filter(isCCA)
+  const mpaEntries = allEntries.filter(isMPA)
   const ccaRegistered = ccaEntries.filter((e) => e.registrationStatus === 'Registered').length
   const ccaNotRegistered = ccaEntries.filter((e) => e.registrationStatus !== 'Registered').length
   const mpaRegistered = mpaEntries.filter((e) => e.registrationStatus === 'Registered').length
@@ -820,14 +731,14 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                   if (col.key === 'hectaresTerrestrial') {
                     return (
                       <td key={col.key} className="pdt-foot-val">
-                        {formatHa(filtered.reduce((s, e) => s + (e.hectaresTerrestrial ?? 0), 0))}
+                        {formatHa(sumTerrestrial(filtered))}
                       </td>
                     )
                   }
                   if (col.key === 'hectaresMarine') {
                     return (
                       <td key={col.key} className="pdt-foot-val">
-                        {formatHa(filtered.reduce((s, e) => s + (e.hectaresMarine ?? 0), 0))}
+                        {formatHa(sumMarine(filtered))}
                       </td>
                     )
                   }

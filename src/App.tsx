@@ -8,6 +8,7 @@ import { PortalLoader } from './components/ui/customizable-loader-spinner-transi
 import ChatPopup from './components/ChatPopup'
 import { getUser } from './services/userStore'
 import { onIncomingCalls } from './services/callService'
+import { ProDocProvider } from './contexts/ProDocContext'
 import type { UserProfile } from './types/user'
 import type { CallSignal } from './types/messaging'
 import './App.css'
@@ -127,6 +128,7 @@ function App() {
   const isAuthenticated = staffAuth && currentUser !== null
 
   return (
+    <ProDocProvider>
     <div className="app-layout">
       <BackgroundGradientAnimation
         gradientBackgroundStart="rgb(241, 245, 249)"
@@ -199,6 +201,7 @@ function App() {
         <ChatPopup currentUser={currentUser} onStartCall={handleStartCall} />
       )}
     </div>
+    </ProDocProvider>
   )
 }
 
