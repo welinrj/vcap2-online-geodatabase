@@ -48,94 +48,144 @@ export const MPA_TARGET_HA = 20_520_000 // 30% of Vanuatu EEZ
 export const VANUATU_LAND_HA = 1_226_905 // total surface coastal area
 export const VANUATU_EEZ_HA = 68_400_000 // total EEZ
 
-/** Tracking status for an individual area/activity */
-export type TrackingStatus = 'achieved' | 'on-track' | 'off-track'
+/** Tracking status for a ProDoc indicator (1.1, 1.2, 2.1, 2.2) */
+export type IndicatorTrackingStatus = 'achieved' | 'on-track' | 'off-track'
 
-export interface OffTrackReason {
-  reason: string
+export interface IndicatorIssue {
+  issue: string
   severity: 'high' | 'medium'
+  /** Names of areas contributing to this issue */
+  areas?: string[]
 }
 
-export interface ActivityStatus {
-  entry: ProDocEntry
-  status: TrackingStatus
-  /** Indicator key this activity contributes to (e.g. '1.1', '2.1') */
-  indicator: string
-  offTrackReasons: OffTrackReason[]
+export interface IndicatorTracking {
+  key: string
+  label: string
+  status: IndicatorTrackingStatus
+  progressPct: number
+  mappedHa: number
+  targetHa: number
+  totalAreas: number
+  mappingCompleted: number
+  mappingInProgress: number
+  mappingNotStarted: number
+  registered: number
+  notRegistered: number
+  issues: IndicatorIssue[]
 }
 
-/** Classify a single area's tracking status and off-track reasons */
-function classifyActivity(entry: ProDocEntry): { status: TrackingStatus; reasons: OffTrackReason[] } {
-  const reasons: OffTrackReason[] = []
-
-  const registered = entry.registrationStatus === 'Registered'
-  const mappingDone = entry.mappingStatus === 'Completed'
-  const mappingStarted = entry.mappingStatus === 'In Progress'
-  const hasHectares = (entry.hectaresTerrestrial !== null && entry.hectaresTerrestrial > 0)
-    || (entry.hectaresMarine !== null && entry.hectaresMarine > 0)
-  const hasCoords = entry.xCoord !== null && entry.yCoord !== null
-  const hasRemarkIssue = /reconfirm|remap|review|issue|problem|incorrect/i.test(entry.remarks)
-
-  // Achieved: registered + mapping completed + has hectares data
-  if (registered && mappingDone && hasHectares) {
-    return { status: 'achieved', reasons: [] }
-  }
-
-  // Determine off-track reasons
-  if (!mappingDone && !mappingStarted) {
-    reasons.push({ reason: 'Mapping not started', severity: 'high' })
-  }
-  if (!registered) {
-    reasons.push({ reason: 'Not yet registered', severity: entry.status === 'Existing' ? 'high' : 'medium' })
-  }
-  if (mappingDone && !hasHectares) {
-    reasons.push({ reason: 'No hectares recorded despite mapping completed', severity: 'high' })
-  }
-  if (!mappingDone && mappingStarted && !hasHectares) {
-    reasons.push({ reason: 'Mapping in progress — hectares pending', severity: 'medium' })
-  }
-  if (!hasCoords) {
-    reasons.push({ reason: 'No GPS coordinates recorded', severity: 'medium' })
-  }
-  if (hasRemarkIssue) {
-    reasons.push({ reason: `Issue flagged: ${entry.remarks.slice(0, 80)}`, severity: 'high' })
-  }
-
-  // On-track: mapping completed or in progress with no high-severity issues
-  const highSeverityCount = reasons.filter((r) => r.severity === 'high').length
-  if ((mappingDone || mappingStarted) && highSeverityCount === 0) {
-    return { status: 'on-track', reasons }
-  }
-
-  // Off-track: has high-severity issues or mapping not started
-  if (reasons.length > 0) {
-    return { status: 'off-track', reasons }
-  }
-
-  // Default to on-track if no issues found
-  return { status: 'on-track', reasons: [] }
-}
-
-/** Get the indicator key an entry contributes to */
-function getIndicator(entry: ProDocEntry): string {
-  const isNew = entry.status === 'New'
-  const terrestrial = entry.ccaType === 'Terrestrial' || entry.ccaType === 'Marine & Terrestrial'
-  if (isNew) return terrestrial ? '1.1' : '2.1'
-  return terrestrial ? '1.2' : '2.2'
-}
-
-/** Classify all areas into activity statuses */
-export function computeActivityStatuses(
+/** Compute tracking status for all four ProDoc indicators */
+export function computeIndicatorTracking(
   newAreas: ProDocEntry[],
   existingAreas: ProDocEntry[],
-): ActivityStatus[] {
-  return [...newAreas, ...existingAreas].map((entry) => {
-    const { status, reasons } = classifyActivity(entry)
+): IndicatorTracking[] {
+  const analytics = computeProDocAnalytics(newAreas, existingAreas)
+
+  const indicators: Array<{
+    key: string
+    mappedHa: number
+    progressPct: number
+    areas: ProDocEntry[]
+    filterFn: (e: ProDocEntry) => boolean
+    sumFn: (entries: ProDocEntry[]) => number
+    isExisting: boolean
+  }> = [
+    {
+      key: '1.1', mappedHa: analytics.newCcaHa, progressPct: analytics.newCcaProgress,
+      areas: newAreas, filterFn: isCCA, sumFn: sumTerrestrial, isExisting: false,
+    },
+    {
+      key: '1.2', mappedHa: analytics.existCcaHa, progressPct: analytics.existCcaProgress,
+      areas: existingAreas, filterFn: isCCA, sumFn: sumTerrestrial, isExisting: true,
+    },
+    {
+      key: '2.1', mappedHa: analytics.newMpaHa, progressPct: analytics.newMpaProgress,
+      areas: newAreas, filterFn: isMPA, sumFn: sumMarine, isExisting: false,
+    },
+    {
+      key: '2.2', mappedHa: analytics.existMpaHa, progressPct: analytics.existMpaProgress,
+      areas: existingAreas, filterFn: isMPA, sumFn: sumMarine, isExisting: true,
+    },
+  ]
+
+  return indicators.map(({ key, mappedHa, progressPct, areas, filterFn, isExisting }) => {
+    const target = PRODOC_TARGETS[key as keyof typeof PRODOC_TARGETS]
+    const relevantAreas = areas.filter(filterFn)
+    const totalAreas = relevantAreas.length
+
+    const mappingCompleted = relevantAreas.filter((a) => a.mappingStatus === 'Completed').length
+    const mappingInProgress = relevantAreas.filter((a) => a.mappingStatus === 'In Progress').length
+    const mappingNotStarted = relevantAreas.filter((a) => a.mappingStatus === '').length
+    const registered = relevantAreas.filter((a) => a.registrationStatus === 'Registered').length
+    const notRegistered = totalAreas - registered
+
+    // Determine issues
+    const issues: IndicatorIssue[] = []
+
+    // Hectare shortfall
+    const shortfall = target.targetHa - mappedHa
+    if (shortfall > 0) {
+      issues.push({
+        issue: `${shortfall.toLocaleString(undefined, { maximumFractionDigits: 1 })} ha short of ${target.targetHa.toLocaleString()} ha target`,
+        severity: progressPct < 50 ? 'high' : 'medium',
+      })
+    }
+
+    // Mapping not started
+    if (mappingNotStarted > 0) {
+      const notStartedNames = relevantAreas.filter((a) => a.mappingStatus === '').map((a) => a.name)
+      issues.push({
+        issue: `${mappingNotStarted} of ${totalAreas} areas have mapping not started`,
+        severity: 'high',
+        areas: notStartedNames,
+      })
+    }
+
+    // Registration gaps
+    if (notRegistered > 0) {
+      const unregNames = relevantAreas.filter((a) => a.registrationStatus !== 'Registered').map((a) => a.name)
+      issues.push({
+        issue: `${notRegistered} of ${totalAreas} areas not yet registered`,
+        severity: isExisting ? 'high' : 'medium',
+        areas: unregNames,
+      })
+    }
+
+    // Areas with remarks flagging issues
+    const remarkedAreas = relevantAreas.filter((a) => /reconfirm|remap|review|issue|problem|incorrect/i.test(a.remarks))
+    if (remarkedAreas.length > 0) {
+      issues.push({
+        issue: `${remarkedAreas.length} area(s) with flagged issues in remarks`,
+        severity: 'high',
+        areas: remarkedAreas.map((a) => `${a.name}: ${a.remarks.slice(0, 60)}`),
+      })
+    }
+
+    // Determine overall status
+    let status: IndicatorTrackingStatus = 'on-track'
+    if (progressPct >= 100) {
+      status = 'achieved'
+    } else {
+      const highIssues = issues.filter((i) => i.severity === 'high').length
+      if (highIssues > 0 || progressPct < 10) {
+        status = 'off-track'
+      }
+    }
+
     return {
-      entry,
+      key,
+      label: target.label,
       status,
-      indicator: getIndicator(entry),
-      offTrackReasons: reasons,
+      progressPct,
+      mappedHa,
+      targetHa: target.targetHa,
+      totalAreas,
+      mappingCompleted,
+      mappingInProgress,
+      mappingNotStarted,
+      registered,
+      notRegistered,
+      issues,
     }
   })
 }

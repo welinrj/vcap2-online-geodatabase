@@ -5,7 +5,7 @@ import {
 } from '../../data/prodocTrackerData'
 import { type ColumnDef } from '../../services/prodocStore'
 import { useProDoc } from '../../contexts/useProDoc'
-import { sumTerrestrial, sumMarine, isCCA, isMPA, computeProDocAnalytics, computeActivityStatuses } from '../../services/prodocAnalytics'
+import { sumTerrestrial, sumMarine, isCCA, isMPA, computeProDocAnalytics, computeIndicatorTracking } from '../../services/prodocAnalytics'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -220,14 +220,11 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     { key: '2.2' as const, actual: analytics.existMpaHa },
   ]
 
-  // Activity tracking statuses
-  const activityStatuses = useMemo(
-    () => computeActivityStatuses(newAreas, existingAreas),
+  // Indicator-level tracking (1.1, 1.2, 2.1, 2.2)
+  const indicatorTracking = useMemo(
+    () => computeIndicatorTracking(newAreas, existingAreas),
     [newAreas, existingAreas],
   )
-  const achievedActivities = activityStatuses.filter((a) => a.status === 'achieved')
-  const onTrackActivities = activityStatuses.filter((a) => a.status === 'on-track')
-  const offTrackActivities = activityStatuses.filter((a) => a.status === 'off-track')
 
   // Area council breakdown
   const councilMap = new Map<string, { count: number; terrestrial: number; marine: number }>()
@@ -407,89 +404,82 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         </div>
       </div>
 
-      {/* Activity Tracking Status */}
+      {/* Indicator Activity Tracking (1.1, 1.2, 2.1, 2.2) */}
       <div className="pdt-activity-section">
         <h3 className="pdt-section-title">
           <Icons8Icon name="activity" size={18} className="pdt-section-icon" />
           Activity Tracking Status
         </h3>
         <p className="pdt-section-desc">
-          Overview of all activities classified as achieved, on-track, or off-track based on mapping, registration, and data completeness.
+          Tracking status of ProDoc indicator activities — achieved, on-track, or off-track with flagged blockers.
         </p>
 
-        {/* Summary row */}
-        <div className="pdt-activity-summary">
-          <div className="pdt-activity-summary-card pdt-activity-achieved">
-            <Icons8Icon name="approval" size={20} />
-            <span className="pdt-activity-count">{achievedActivities.length}</span>
-            <span className="pdt-activity-label">Achieved</span>
-          </div>
-          <div className="pdt-activity-summary-card pdt-activity-on-track">
-            <Icons8Icon name="clock" size={20} />
-            <span className="pdt-activity-count">{onTrackActivities.length}</span>
-            <span className="pdt-activity-label">On Track</span>
-          </div>
-          <div className="pdt-activity-summary-card pdt-activity-off-track">
-            <Icons8Icon name="error" size={20} />
-            <span className="pdt-activity-count">{offTrackActivities.length}</span>
-            <span className="pdt-activity-label">Off Track</span>
-          </div>
-        </div>
+        <div className="pdt-ind-tracking-grid">
+          {indicatorTracking.map((ind) => {
+            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'on-track' ? '#2563eb' : '#dc2626'
+            const statusBg = ind.status === 'achieved' ? 'rgba(34,197,94,0.08)' : ind.status === 'on-track' ? 'rgba(37,99,235,0.08)' : 'rgba(220,38,38,0.08)'
+            const statusBorder = ind.status === 'achieved' ? 'rgba(34,197,94,0.2)' : ind.status === 'on-track' ? 'rgba(37,99,235,0.2)' : 'rgba(220,38,38,0.2)'
+            const statusIcon = ind.status === 'achieved' ? 'approval' : ind.status === 'on-track' ? 'clock' : 'error'
+            const statusLabel = ind.status === 'achieved' ? 'Achieved' : ind.status === 'on-track' ? 'On Track' : 'Off Track'
+            const isCcaInd = ind.key.startsWith('1')
 
-        {/* Stacked proportion bar */}
-        <div className="pdt-activity-bar">
-          {activityStatuses.length > 0 && (
-            <>
+            return (
               <div
-                className="pdt-activity-bar-seg pdt-activity-bar-achieved"
-                style={{ width: `${(achievedActivities.length / activityStatuses.length) * 100}%` }}
-              />
-              <div
-                className="pdt-activity-bar-seg pdt-activity-bar-ontrack"
-                style={{ width: `${(onTrackActivities.length / activityStatuses.length) * 100}%` }}
-              />
-              <div
-                className="pdt-activity-bar-seg pdt-activity-bar-offtrack"
-                style={{ width: `${(offTrackActivities.length / activityStatuses.length) * 100}%` }}
-              />
-            </>
-          )}
-        </div>
+                className="pdt-ind-track-card"
+                key={ind.key}
+                style={{ borderColor: statusBorder, background: statusBg }}
+              >
+                <div className="pdt-ind-track-header">
+                  <span className={`pdt-target-badge ${isCcaInd ? 'pdt-badge-cca' : 'pdt-badge-mpa'}`}>
+                    {ind.key} — {ind.label}
+                  </span>
+                  <span className="pdt-ind-track-status" style={{ color: statusColor }}>
+                    <Icons8Icon name={statusIcon} size={14} color={statusColor} />
+                    {statusLabel}
+                  </span>
+                </div>
 
-        {/* Off-track details */}
-        {offTrackActivities.length > 0 && (
-          <div className="pdt-offtrack-details">
-            <h4 className="pdt-offtrack-heading">
-              <Icons8Icon name="error" size={16} color="#dc2626" />
-              Off-Track Activities — Flagged Issues ({offTrackActivities.length})
-            </h4>
-            <div className="pdt-offtrack-list">
-              {offTrackActivities.map((a) => (
-                <div className="pdt-offtrack-item" key={a.entry.id}>
-                  <div className="pdt-offtrack-header">
-                    <span className="pdt-offtrack-name">{a.entry.name}</span>
-                    <span className={`pdt-offtrack-ind ${a.indicator.startsWith('1') ? 'pdt-ind-cca' : 'pdt-ind-mpa'}`}>
-                      {a.indicator}
-                    </span>
-                    <span className="pdt-offtrack-type">{a.entry.ccaType}</span>
-                    <span className="pdt-offtrack-council">{a.entry.areaCouncil}</span>
+                <div className="pdt-ind-track-progress">
+                  <div className="pdt-ind-track-progress-track">
+                    <div
+                      className="pdt-ind-track-progress-fill"
+                      style={{ width: `${Math.min(ind.progressPct, 100)}%`, background: statusColor }}
+                    />
                   </div>
-                  <div className="pdt-offtrack-reasons">
-                    {a.offTrackReasons.map((r, idx) => (
-                      <span
-                        key={idx}
-                        className={`pdt-offtrack-reason ${r.severity === 'high' ? 'pdt-reason-high' : 'pdt-reason-medium'}`}
-                      >
-                        <Icons8Icon name={r.severity === 'high' ? 'error' : 'info'} size={12} />
-                        {r.reason}
-                      </span>
+                  <span className="pdt-ind-track-pct" style={{ color: statusColor }}>
+                    {ind.progressPct >= 100 ? '>100' : ind.progressPct.toFixed(1)}%
+                  </span>
+                </div>
+
+                <div className="pdt-ind-track-stats">
+                  <span>{formatHa(ind.mappedHa)} / {formatHa(ind.targetHa)}</span>
+                  <span>{ind.mappingCompleted}/{ind.totalAreas} mapped</span>
+                  <span>{ind.registered}/{ind.totalAreas} registered</span>
+                </div>
+
+                {ind.issues.length > 0 && (
+                  <div className="pdt-ind-track-issues">
+                    {ind.issues.map((issue, idx) => (
+                      <div key={idx} className="pdt-ind-track-issue">
+                        <span className={`pdt-offtrack-reason ${issue.severity === 'high' ? 'pdt-reason-high' : 'pdt-reason-medium'}`}>
+                          <Icons8Icon name={issue.severity === 'high' ? 'error' : 'info'} size={12} />
+                          {issue.issue}
+                        </span>
+                        {issue.areas && issue.areas.length > 0 && (
+                          <div className="pdt-ind-track-areas">
+                            {issue.areas.map((name, ai) => (
+                              <span key={ai} className="pdt-ind-track-area-tag">{name}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* ProDoc target progress with radial + bar chart */}
