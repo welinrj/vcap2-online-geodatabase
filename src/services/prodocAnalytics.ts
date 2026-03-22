@@ -62,7 +62,9 @@ export interface ProDocAnalytics {
   // Combined totals
   totalCcaHa: number
   totalMpaHa: number
-  // 30x30 progress
+  // 30x30 progress (all entries, regardless of status)
+  allTerrestrialHa: number
+  allMarineHa: number
   ccaProgress: number
   mpaProgress: number
   ccaLandPercent: number
@@ -111,15 +113,20 @@ export function computeProDocAnalytics(
   const newMpaProgress = Math.min((newMpaHa / PRODOC_TARGETS['2.1'].targetHa) * 100, 100)
   const existMpaProgress = Math.min((existMpaHa / PRODOC_TARGETS['2.2'].targetHa) * 100, 100)
 
-  // Combined
+  // Combined (indicator totals — filtered by registration/mapping)
   const totalCcaHa = newCcaHa + existCcaHa
   const totalMpaHa = newMpaHa + existMpaHa
-  const ccaProgress = CCA_TARGET_HA > 0 ? Math.min((totalCcaHa / CCA_TARGET_HA) * 100, 100) : 0
-  const mpaProgress = MPA_TARGET_HA > 0 ? Math.min((totalMpaHa / MPA_TARGET_HA) * 100, 100) : 0
-  const ccaLandPercent = VANUATU_LAND_HA > 0 ? (totalCcaHa / VANUATU_LAND_HA) * 100 : 0
-  const mpaEezPercent = VANUATU_EEZ_HA > 0 ? (totalMpaHa / VANUATU_EEZ_HA) * 100 : 0
-  const ccaRemainingHa = Math.max(CCA_TARGET_HA - totalCcaHa, 0)
-  const mpaRemainingHa = Math.max(MPA_TARGET_HA - totalMpaHa, 0)
+
+  // 30x30 — uses ALL entries' hectares (new + existing, regardless of status)
+  // divided by 30% of total land/EEZ
+  const allTerrestrialHa = sumTerrestrial(allAreas)
+  const allMarineHa = sumMarine(allAreas)
+  const ccaProgress = CCA_TARGET_HA > 0 ? (allTerrestrialHa / CCA_TARGET_HA) * 100 : 0
+  const mpaProgress = MPA_TARGET_HA > 0 ? (allMarineHa / MPA_TARGET_HA) * 100 : 0
+  const ccaLandPercent = VANUATU_LAND_HA > 0 ? (allTerrestrialHa / VANUATU_LAND_HA) * 100 : 0
+  const mpaEezPercent = VANUATU_EEZ_HA > 0 ? (allMarineHa / VANUATU_EEZ_HA) * 100 : 0
+  const ccaRemainingHa = Math.max(CCA_TARGET_HA - allTerrestrialHa, 0)
+  const mpaRemainingHa = Math.max(MPA_TARGET_HA - allMarineHa, 0)
 
   // Counts — only registered entries count towards targets
   const newCcaCount = newRegistered.filter(isCCA).length
@@ -157,6 +164,7 @@ export function computeProDocAnalytics(
     newCcaHa, existCcaHa, newMpaHa, existMpaHa,
     newCcaProgress, existCcaProgress, newMpaProgress, existMpaProgress,
     totalCcaHa, totalMpaHa,
+    allTerrestrialHa, allMarineHa,
     ccaProgress, mpaProgress, ccaLandPercent, mpaEezPercent,
     ccaRemainingHa, mpaRemainingHa,
     newCcaCount, newMpaCount, improvedCcaCount, improvedMpaCount,
