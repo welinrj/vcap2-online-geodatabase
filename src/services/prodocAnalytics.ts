@@ -120,8 +120,6 @@ function classifyActivity(entry: ProDocEntry): { status: TrackingStatus; reasons
 function getIndicator(entry: ProDocEntry): string {
   const isNew = entry.status === 'New'
   const terrestrial = entry.ccaType === 'Terrestrial' || entry.ccaType === 'Marine & Terrestrial'
-  const marine = entry.ccaType === 'Marine' || entry.ccaType === 'Marine & Terrestrial'
-  // Pick the primary indicator; dual-type entries map to terrestrial indicator
   if (isNew) return terrestrial ? '1.1' : '2.1'
   return terrestrial ? '1.2' : '2.2'
 }
