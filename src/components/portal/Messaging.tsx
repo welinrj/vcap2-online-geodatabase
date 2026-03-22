@@ -447,7 +447,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
           </>
         ) : (
           <div className="msg-no-chat">
-            <MessageSquare size={48} strokeWidth={1} />
+            <Icons8Icon name="chat" size={48} />
             <p>Select a conversation or start a new chat</p>
           </div>
         )}

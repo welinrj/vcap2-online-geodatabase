@@ -1,5 +1,14 @@
 import { useState, useEffect, useMemo, type FC } from 'react'
 import type { UserProfile } from '../../types/user'
+import {
+  listAllActivities,
+  getActivitiesForDate,
+  ACTIVITY_TYPES,
+  STATUS_LABELS,
+  PRIORITY_LABELS,
+  type Activity,
+} from '../../services/activityStore'
+import { listUsers } from '../../services/userStore'
 import Icons8Icon from '../Icons8Icon'
 import './ActivityCalendar.css'
 
@@ -14,11 +23,11 @@ const MONTHS = [
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-const STATUS_ICONS = {
-  planned: Circle,
-  'in-progress': Clock,
-  completed: CheckCircle2,
-  cancelled: XCircle,
+const STATUS_ICONS: Record<string, string> = {
+  planned: 'radio',
+  'in-progress': 'clock',
+  completed: 'approval',
+  cancelled: 'cancel',
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -299,7 +308,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                 ) : (
                   <div className="ac-activity-list">
                     {selectedDateActivities.map((a) => {
-                      const StatusIcon = STATUS_ICONS[a.status]
+                      const statusIconName = STATUS_ICONS[a.status]
                       return (
                         <button
                           key={a.id}
@@ -307,7 +316,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                           onClick={() => setSelectedActivity(a)}
                         >
                           <div className="ac-activity-top">
-                            <StatusIcon size={14} className={`ac-status-icon ac-status-${a.status}`} />
+                            <Icons8Icon name={statusIconName} size={14} className={`ac-status-icon ac-status-${a.status}`} />
                             <span className="ac-activity-title">{a.title}</span>
                           </div>
                           <div className="ac-activity-meta">
