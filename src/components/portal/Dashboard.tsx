@@ -36,6 +36,15 @@ const CHART_COLORS = {
   gray: '#e2e8f0',
 }
 
+/** Format a percentage with enough decimals to show meaningful digits */
+const formatPercent = (pct: number): string => {
+  if (pct >= 10) return pct.toFixed(1)
+  if (pct >= 1) return pct.toFixed(2)
+  if (pct >= 0.01) return pct.toFixed(3)
+  if (pct >= 0.001) return pct.toFixed(4)
+  return pct.toFixed(4)
+}
+
 const TOOLTIP_STYLE = {
   borderRadius: '10px',
   border: 'none',
@@ -396,7 +405,7 @@ const Dashboard: FC = () => {
           <div className="dash-target-card">
             <div className="dash-target-header">
               <span className="dash-target-type dash-target-cca">CCA — Terrestrial</span>
-              <span className="dash-target-pct">{ccaProgress.toFixed(1)}%</span>
+              <span className="dash-target-pct">{formatPercent(ccaProgress)}%</span>
             </div>
             <div className="dash-target-chart">
               <ResponsiveContainer width="100%" height={160}>
@@ -438,7 +447,7 @@ const Dashboard: FC = () => {
               </div>
             </div>
             <div className="dash-target-coverage">
-              {ccaLandPercent.toFixed(2)}% of Vanuatu land area covered
+              {formatPercent(ccaLandPercent)}% of Vanuatu land area covered
             </div>
           </div>
 
@@ -446,7 +455,7 @@ const Dashboard: FC = () => {
           <div className="dash-target-card">
             <div className="dash-target-header">
               <span className="dash-target-type dash-target-mpa">MPA — Marine</span>
-              <span className="dash-target-pct">{mpaProgress.toFixed(1)}%</span>
+              <span className="dash-target-pct">{formatPercent(mpaProgress)}%</span>
             </div>
             <div className="dash-target-chart">
               <ResponsiveContainer width="100%" height={160}>
@@ -488,7 +497,7 @@ const Dashboard: FC = () => {
               </div>
             </div>
             <div className="dash-target-coverage">
-              {mpaEezPercent.toFixed(4)}% of Vanuatu EEZ covered
+              {formatPercent(mpaEezPercent)}% of Vanuatu EEZ covered
             </div>
           </div>
         </div>
