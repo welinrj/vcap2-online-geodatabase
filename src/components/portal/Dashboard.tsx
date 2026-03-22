@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense, type FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
-import type { PortalCategory } from '../../types/geospatial'
 import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../services/datasetStore'
-import { seedDefaultCategories } from '../../services/portalCategoryStore'
 import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
@@ -70,20 +68,6 @@ const DonutCenter: FC<{
 )
 
 /** Map icon names from Firestore to Icons8 Glyph Neue names */
-const CATEGORY_ICON_MAP: Record<string, string> = {
-  TreePine: 'leaf',
-  Leaf: 'leaf',
-  Waves: 'sea',
-  Shell: 'sea',
-  Thermometer: 'thermometer',
-  Users: 'group',
-  Building2: 'monument',
-  Landmark: 'monument',
-  Folder: 'opened-folder',
-  FolderOpen: 'opened-folder',
-  LayoutGrid: 'four-squares',
-}
-
 /** Map file type to Icons8 Glyph Neue name */
 const FILE_TYPE_ICON_MAP: Record<string, string> = {
   GeoJSON: 'json',
@@ -93,10 +77,6 @@ const FILE_TYPE_ICON_MAP: Record<string, string> = {
   PDF: 'pdf',
   PNG: 'image-file',
   CSV: 'csv',
-}
-
-function getCategoryIconName(name: string) {
-  return CATEGORY_ICON_MAP[name] ?? 'opened-folder'
 }
 
 /** Race a promise against a timeout; resolves with fallback on timeout */
@@ -110,7 +90,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
 const Dashboard: FC = () => {
   const { newAreas, existingAreas } = useProDoc()
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
-  const [categories, setCategories] = useState<PortalCategory[]>([])
 
   useEffect(() => {
     let cancelled = false
@@ -119,9 +98,6 @@ const Dashboard: FC = () => {
     migrateFromLocalStorage().catch(() => {})
     withTimeout(listDatasets(), TIMEOUT_MS, [] as DatasetSummary[])
       .then((ds) => { if (!cancelled) setDatasets(ds) })
-      .catch(() => {})
-    withTimeout(seedDefaultCategories(), TIMEOUT_MS, [] as PortalCategory[])
-      .then((cats) => { if (!cancelled) setCategories(cats) })
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
@@ -518,41 +494,6 @@ const Dashboard: FC = () => {
                 <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Portal Data Categories */}
-      {categories.length > 0 && (
-        <div className="dash-categories">
-          <div className="dash-section-header">
-            <div>
-              <h3 className="dash-section-title">
-                <Icons8Icon name="four-squares" size={18} className="dash-section-icon" />
-                Data Categories
-              </h3>
-              <p className="dash-section-desc">Browse datasets by thematic category</p>
-            </div>
-          </div>
-          <div className="dash-category-grid">
-            {categories.map((cat) => {
-              const iconName = getCategoryIconName(cat.icon)
-              const count = datasets.filter((d) => d.metadata.portalCategory === cat.id).length
-              return (
-                <div className="dash-category-card" key={cat.id} style={{ borderTopColor: cat.color }}>
-                  <div className="dash-category-icon">
-                    <Icons8Icon name={iconName} size={24} color={cat.color} />
-                  </div>
-                  <div className="dash-category-info">
-                    <span className="dash-category-name">{cat.name}</span>
-                    <span className="dash-category-desc">{cat.description}</span>
-                  </div>
-                  <span className="dash-category-count" style={{ background: cat.color }}>
-                    {count}
-                  </span>
-                </div>
-              )
-            })}
           </div>
         </div>
       )}
