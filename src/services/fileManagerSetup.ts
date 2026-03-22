@@ -128,12 +128,13 @@ export async function hasDefaultFolders(ownerId: string): Promise<boolean> {
     where('parentId', '==', null),
   )
   const snap = await getDocs(q)
-  // Consider setup done if user already has at least 3 root folders
-  return snap.docs.filter((d) => !d.data()._deleted).length >= 3
+  // Consider setup done if user already has any root folder
+  return snap.docs.filter((d) => !d.data()._deleted).length >= 1
 }
 
 /**
- * Recursively create a folder tree in Firestore.
+ * Recursively create a folder tree in Firestore,
+ * skipping any folder that already exists (by name + parentId).
  */
 async function createFolderTree(
   nodes: FolderNode[],
@@ -142,23 +143,41 @@ async function createFolderTree(
   ownerName: string,
 ): Promise<number> {
   if (!db) return 0
+
+  // Load existing siblings to avoid duplicates
+  const existingQ = query(
+    collection(db, FOLDERS_COL),
+    where('ownerId', '==', ownerId),
+    where('parentId', '==', parentId),
+  )
+  const existingSnap = await getDocs(existingQ)
+  const existingNames = new Map<string, string>()
+  for (const d of existingSnap.docs) {
+    if (!d.data()._deleted) {
+      existingNames.set(d.data().name as string, d.id)
+    }
+  }
+
   let count = 0
   for (const node of nodes) {
-    const id = generateId('folder')
-    const now = new Date().toISOString()
-    await setDoc(doc(db, FOLDERS_COL, id), {
-      id,
-      name: node.name,
-      parentId,
-      ownerId,
-      ownerName,
-      createdAt: now,
-      updatedAt: now,
-      _ts: serverTimestamp(),
-    })
-    count++
+    let folderId = existingNames.get(node.name)
+    if (!folderId) {
+      folderId = generateId('folder')
+      const now = new Date().toISOString()
+      await setDoc(doc(db, FOLDERS_COL, folderId), {
+        id: folderId,
+        name: node.name,
+        parentId,
+        ownerId,
+        ownerName,
+        createdAt: now,
+        updatedAt: now,
+        _ts: serverTimestamp(),
+      })
+      count++
+    }
     if (node.children?.length) {
-      count += await createFolderTree(node.children, id, ownerId, ownerName)
+      count += await createFolderTree(node.children, folderId, ownerId, ownerName)
     }
   }
   return count
