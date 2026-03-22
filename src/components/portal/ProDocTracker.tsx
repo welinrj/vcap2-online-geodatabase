@@ -32,10 +32,10 @@ function formatHa(val: number | null): string {
 }
 
 const COLORS = {
-  green: '#22c55e',
-  blue: '#3b82f6',
-  amber: '#f59e0b',
-  purple: '#a855f7',
+  green: '#2D5E5A',
+  blue: '#E39341',
+  amber: '#B34839',
+  purple: '#477A6E',
   gray: '#e2e8f0',
 }
 
@@ -418,7 +418,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         <div className="pdt-ind-tracking-grid">
           {indicatorTracking.map((ind) => {
             const indColor = INDICATOR_COLORS[ind.key] ?? '#64748b'
-            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'off-track' ? '#dc2626' : indColor
+            const statusColor = ind.status === 'achieved' ? '#2D5E5A' : ind.status === 'off-track' ? '#dc2626' : indColor
             const statusIcon = ind.status === 'achieved' ? 'approval' : ind.status === 'on-track' ? 'clock' : 'error'
             const statusLabel = ind.status === 'achieved' ? 'Achieved' : ind.status === 'on-track' ? 'On Track' : 'Off Track'
 

@@ -12,8 +12,8 @@ interface Props {
   onSaved: () => void
 }
 
-const STYLE_DEFAULT = { color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.3 }
-const STYLE_SELECTED = { color: '#b45309', weight: 3, fillColor: '#d97706', fillOpacity: 0.5 }
+const STYLE_DEFAULT = { color: '#2D5E5A', weight: 2, fillColor: '#3E7A75', fillOpacity: 0.3 }
+const STYLE_SELECTED = { color: '#963A2E', weight: 3, fillColor: '#B34839', fillOpacity: 0.5 }
 const DEFAULT_CENTER: [number, number] = [-17.7333, 168.3273]
 
 const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
@@ -80,7 +80,7 @@ const FeatureEditor: FC<Props> = ({ dataset, onClose, onSaved }) => {
         const idx = (f as { _fe_idx?: number })._fe_idx ?? -1
         return L.circleMarker(latlng, {
           radius: 8,
-          fillColor: idx === selectedIdx ? '#d97706' : '#2d6a4f',
+          fillColor: idx === selectedIdx ? '#B34839' : '#2D5E5A',
           color: '#fff',
           weight: 2,
           fillOpacity: idx === selectedIdx ? 0.9 : 0.85,

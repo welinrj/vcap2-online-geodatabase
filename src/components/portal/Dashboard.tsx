@@ -25,13 +25,13 @@ import './Dashboard.css'
 const DashboardMap = lazy(() => import('./DashboardMap'))
 
 const CHART_COLORS = {
-  green: '#16a34a',
-  greenLight: '#4ade80',
-  blue: '#2563eb',
-  blueLight: '#60a5fa',
-  amber: '#d97706',
-  purple: '#7c3aed',
-  cyan: '#0891b2',
+  green: '#2D5E5A',
+  greenLight: '#3E7A75',
+  blue: '#E39341',
+  blueLight: '#F0AD5E',
+  amber: '#B34839',
+  purple: '#477A6E',
+  cyan: '#5A9A8E',
   gray: '#e2e8f0',
 }
 
@@ -313,7 +313,7 @@ const Dashboard: FC = () => {
         <div className="dash-indicator-tracking-grid">
           {indicatorTracking.map((ind) => {
             const indColor = INDICATOR_COLORS[ind.key] ?? '#64748b'
-            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'off-track' ? '#dc2626' : indColor
+            const statusColor = ind.status === 'achieved' ? '#2D5E5A' : ind.status === 'off-track' ? '#dc2626' : indColor
             const statusIcon = ind.status === 'achieved' ? 'approval' : ind.status === 'on-track' ? 'clock' : 'error'
             const statusLabel = ind.status === 'achieved' ? 'Achieved' : ind.status === 'on-track' ? 'On Track' : 'Off Track'
 

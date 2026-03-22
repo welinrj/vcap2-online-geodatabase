@@ -209,10 +209,10 @@
   min-width: 2px;
 }
 
-.dash-kpi-fill-green { background: linear-gradient(90deg, #15803d, #22c55e); }
-.dash-kpi-fill-blue { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
-.dash-kpi-fill-purple { background: linear-gradient(90deg, #6d28d9, #a855f7); }
-.dash-kpi-fill-amber { background: linear-gradient(90deg, #b45309, #f59e0b); }
+.dash-kpi-fill-green { background: linear-gradient(90deg, #234B48, #2D5E5A); }
+.dash-kpi-fill-blue { background: linear-gradient(90deg, #E08030, #E39341); }
+.dash-kpi-fill-purple { background: linear-gradient(90deg, #3A6A5E, #477A6E); }
+.dash-kpi-fill-amber { background: linear-gradient(90deg, #963A2E, #B34839); }
 
 /* ── Dashboard map ── */
 .dash-map-section {
@@ -302,13 +302,13 @@
 }
 
 .dash-map-swatch-cca {
-  background: rgba(34, 197, 94, 0.35);
-  border: 2px solid #16a34a;
+  background: rgba(45, 94, 90, 0.35);
+  border: 2px solid #2D5E5A;
 }
 
 .dash-map-swatch-mpa {
-  background: rgba(59, 130, 246, 0.3);
-  border: 2px solid #2563eb;
+  background: rgba(227, 147, 65, 0.3);
+  border: 2px solid #E39341;
 }
 
 @media (max-width: 768px) {
