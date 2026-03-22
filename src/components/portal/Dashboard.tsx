@@ -15,7 +15,6 @@ import {
   LandPlot,
   Compass,
   Database,
-  TrendingUp,
   MapPinned,
   Layers,
   FileJson,
