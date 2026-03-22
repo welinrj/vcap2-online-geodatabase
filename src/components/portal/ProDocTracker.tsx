@@ -5,7 +5,7 @@ import {
 } from '../../data/prodocTrackerData'
 import { type ColumnDef } from '../../services/prodocStore'
 import { useProDoc } from '../../contexts/useProDoc'
-import { sumTerrestrial, sumMarine, isCCA, isMPA } from '../../services/prodocAnalytics'
+import { sumTerrestrial, sumMarine, isCCA, isMPA, computeProDocAnalytics } from '../../services/prodocAnalytics'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -196,8 +196,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
 
   const totalNewTerrestrial = sumTerrestrial(newAreas)
   const totalNewMarine = sumMarine(newAreas)
-  const totalExistingTerrestrial = sumTerrestrial(existingAreas)
-  const totalExistingMarine = sumMarine(existingAreas)
   const completedCount = allEntries.filter((e) => e.mappingStatus === 'Completed').length
   const inProgressCount = allEntries.filter((e) => e.mappingStatus === 'In Progress').length
   const withCoords = allEntries.filter((e) => e.xCoord !== null && e.yCoord !== null)
@@ -210,12 +208,16 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const mpaRegistered = mpaEntries.filter((e) => e.registrationStatus === 'Registered').length
   const mpaNotRegistered = mpaEntries.filter((e) => e.registrationStatus !== 'Registered').length
 
-  // ProDoc target progress
+  // ProDoc target progress — use shared analytics (registered entries only)
+  const analytics = useMemo(
+    () => computeProDocAnalytics(newAreas, existingAreas),
+    [newAreas, existingAreas],
+  )
   const prodocProgress = [
-    { key: '1.1' as const, actual: totalNewTerrestrial, label: 'New CCA Terrestrial' },
-    { key: '1.2' as const, actual: totalExistingTerrestrial, label: 'Existing CCA Terrestrial' },
-    { key: '2.1' as const, actual: totalNewMarine, label: 'New MPA Marine' },
-    { key: '2.2' as const, actual: totalExistingMarine, label: 'Existing MPA Marine' },
+    { key: '1.1' as const, actual: analytics.newCcaHa },
+    { key: '1.2' as const, actual: analytics.existCcaHa },
+    { key: '2.1' as const, actual: analytics.newMpaHa },
+    { key: '2.2' as const, actual: analytics.existMpaHa },
   ]
 
   // Area council breakdown
@@ -232,10 +234,11 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   // Radial bar data for ProDoc targets
   const radialData = prodocProgress.map(({ key, actual }) => {
     const target = PRODOC_TARGETS[key]
-    const pct = target.targetHa > 0 ? Math.min((actual / target.targetHa) * 100, 100) : 0
+    const rawPct = target.targetHa > 0 ? (actual / target.targetHa) * 100 : 0
     return {
       name: key,
-      value: pct,
+      value: Math.min(rawPct, 100), // cap visual bar at 100%
+      rawPct,
       fill: key.startsWith('1') ? COLORS.green : COLORS.blue,
     }
   })
@@ -434,7 +437,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
               {radialData.map((d) => (
                 <span key={d.name} className="pdt-radial-legend-item">
                   <span className="pdt-radial-dot" style={{ background: d.fill }} />
-                  {d.name}: {d.value.toFixed(1)}%
+                  {d.name}: {d.rawPct > 100 ? `>${100}` : d.rawPct.toFixed(1)}%
                 </span>
               ))}
             </div>
@@ -444,7 +447,8 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
           <div className="pdt-target-grid">
             {prodocProgress.map(({ key, actual }) => {
               const target = PRODOC_TARGETS[key]
-              const pct = target.targetHa > 0 ? Math.min((actual / target.targetHa) * 100, 100) : 0
+              const rawPct = target.targetHa > 0 ? (actual / target.targetHa) * 100 : 0
+              const exceeded = rawPct > 100
               const isGreen = key.startsWith('1')
               return (
                 <div key={key} className="pdt-target-card">
@@ -452,13 +456,13 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                     <span className={`pdt-target-badge ${isGreen ? 'pdt-badge-cca' : 'pdt-badge-mpa'}`}>
                       {key}
                     </span>
-                    <span className="pdt-target-pct">{pct.toFixed(1)}%</span>
+                    <span className="pdt-target-pct">{exceeded ? '>100' : rawPct.toFixed(1)}%</span>
                   </div>
                   <div className="pdt-target-label">{target.label}</div>
                   <div className="pdt-progress-bar">
                     <div
                       className={`pdt-progress-fill ${isGreen ? 'pdt-fill-green' : 'pdt-fill-blue'}`}
-                      style={{ width: `${pct}%` }}
+                      style={{ width: `${Math.min(rawPct, 100)}%` }}
                     />
                   </div>
                   <div className="pdt-target-nums">
