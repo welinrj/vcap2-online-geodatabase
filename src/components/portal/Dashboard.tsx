@@ -5,7 +5,7 @@ import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../servic
 import { seedDefaultCategories } from '../../services/portalCategoryStore'
 import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
-import { useProDoc } from '../../contexts/ProDocContext'
+import { useProDoc } from '../../contexts/useProDoc'
 import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
 import {
   ShieldCheck,

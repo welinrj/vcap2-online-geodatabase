@@ -4,7 +4,7 @@ import {
   type ProDocEntry,
 } from '../../data/prodocTrackerData'
 import { type ColumnDef } from '../../services/prodocStore'
-import { useProDoc } from '../../contexts/ProDocContext'
+import { useProDoc } from '../../contexts/useProDoc'
 import { sumTerrestrial, sumMarine, isCCA, isMPA } from '../../services/prodocAnalytics'
 import {
   ShieldCheck,
@@ -54,10 +54,6 @@ const COLORS = {
   gray: '#e2e8f0',
 }
 
-const CCA_TYPES: ProDocEntry['ccaType'][] = ['Marine', 'Marine & Terrestrial', 'Terrestrial']
-const STATUSES: ProDocEntry['status'][] = ['New', 'Existing']
-const MAPPING_STATUSES: ProDocEntry['mappingStatus'][] = ['Completed', 'In Progress', '']
-const REGISTRATION_STATUSES: ProDocEntry['registrationStatus'][] = ['Registered', 'Not Yet Registered', '']
 
 function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & Record<string, unknown> {
   const entry: ProDocEntry & Record<string, unknown> = {
@@ -127,7 +123,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     setDragColIndex(null)
     setDragOverColIndex(null)
     markDirty()
-  }, [dragColIndex, markDirty])
+  }, [dragColIndex, markDirty, setColumns])
 
   const handleColDragEnd = useCallback(() => {
     setDragColIndex(null)
@@ -192,7 +188,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     setNewColName('')
     setShowAddCol(false)
     markDirty()
-  }, [newColName, newColType, columns, markDirty])
+  }, [newColName, newColType, columns, markDirty, setColumns, setNewAreas, setExistingAreas])
 
   const removeColumn = useCallback(
     (key: string) => {
@@ -208,7 +204,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       setExistingAreas(removeField)
       markDirty()
     },
-    [markDirty]
+    [markDirty, setColumns, setNewAreas, setExistingAreas]
   )
 
   // Summary stats

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type FC, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, useRef, type FC, type ReactNode } from 'react'
 import type { ProDocEntry } from '../data/prodocTrackerData'
 import {
   newAreas as defaultNewAreas,
@@ -10,6 +10,7 @@ import {
   onProDocDataChanged,
   type ColumnDef,
 } from '../services/prodocStore'
+import { ProDocContext } from './proDocContextDef'
 
 // IDs reclassified from Existing → New (migration applied on load)
 const RECLASSIFIED_TO_NEW = new Set(['MPA250302', 'MPA250301', 'MTPA2501', 'MPA2402'])
@@ -47,29 +48,6 @@ function applyMigration(
     newAreas: [...newAreas, ...toAppend],
     existingAreas: prunedExisting,
   }
-}
-
-interface ProDocContextValue {
-  newAreas: ProDocEntry[]
-  existingAreas: ProDocEntry[]
-  columns: ColumnDef[]
-  isLoading: boolean
-  isDirty: boolean
-  isSaving: boolean
-  saveStatus: 'idle' | 'saved' | 'error'
-  setNewAreas: React.Dispatch<React.SetStateAction<ProDocEntry[]>>
-  setExistingAreas: React.Dispatch<React.SetStateAction<ProDocEntry[]>>
-  setColumns: React.Dispatch<React.SetStateAction<ColumnDef[]>>
-  markDirty: () => void
-  handleSave: () => Promise<void>
-}
-
-const ProDocContext = createContext<ProDocContextValue | null>(null)
-
-export const useProDoc = (): ProDocContextValue => {
-  const ctx = useContext(ProDocContext)
-  if (!ctx) throw new Error('useProDoc must be used within ProDocProvider')
-  return ctx
 }
 
 export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
@@ -121,7 +99,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
     })
 
     return unsubscribe
-  }, [])
+  }, [setNewAreas, setExistingAreas, setColumns])
 
   const markDirty = useCallback(() => {
     if (!isLoading) {
