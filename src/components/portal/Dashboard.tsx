@@ -417,14 +417,14 @@ const Dashboard: FC = () => {
             </div>
             <div className="dash-30x30-body">
               <div className="dash-30x30-donut dash-donut-wrapper">
-                <ResponsiveContainer width="100%" height={180}>
+                <ResponsiveContainer width="100%" height={150}>
                   <PieChart>
                     <Pie
                       data={ccaDonutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={58}
-                      outerRadius={78}
+                      innerRadius={46}
+                      outerRadius={64}
                       paddingAngle={3}
                       dataKey="value"
                       strokeWidth={0}
@@ -485,15 +485,15 @@ const Dashboard: FC = () => {
               </span>
             </div>
             <div className="dash-30x30-body">
-              <div className="dash-30x30-donut">
-                <ResponsiveContainer width="100%" height={180}>
+              <div className="dash-30x30-donut dash-donut-wrapper">
+                <ResponsiveContainer width="100%" height={150}>
                   <PieChart>
                     <Pie
                       data={mpaDonutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={58}
-                      outerRadius={78}
+                      innerRadius={46}
+                      outerRadius={64}
                       paddingAngle={3}
                       dataKey="value"
                       strokeWidth={0}
