@@ -4,7 +4,7 @@ import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../servic
 import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
-import { computeProDocAnalytics, computeActivityStatuses, CCA_TARGET_HA, MPA_TARGET_HA, type TrackingStatus } from '../../services/prodocAnalytics'
+import { computeProDocAnalytics, computeActivityStatuses, CCA_TARGET_HA, MPA_TARGET_HA } from '../../services/prodocAnalytics'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
