@@ -160,16 +160,25 @@ vi.mock('firebase/firestore', () => ({
   writeBatch: mockWriteBatch,
   query: mockQuery,
   orderBy: mockOrderBy,
-  onSnapshot: (_query: { collectionPath: string }, callback: (snapshot: { docs: Array<{ data: () => Record<string, unknown> }> }) => void) => {
-    // Fire once immediately with current data for tests
-    const prefix = _query.collectionPath + '/'
-    const docs: Array<{ data: () => Record<string, unknown> }> = []
-    for (const [key, value] of store.entries()) {
-      if (key.startsWith(prefix)) {
-        docs.push({ data: () => value })
+  onSnapshot: (_query: { __type?: string; collectionPath: string; fullPath?: string }, callback: (snapshot: unknown) => void) => {
+    if (_query.__type === 'docRef') {
+      // Document snapshot
+      const data = store.get(_query.fullPath!)
+      callback({
+        exists: () => !!data,
+        data: () => data ?? null,
+      })
+    } else {
+      // Collection/query snapshot
+      const prefix = _query.collectionPath + '/'
+      const docs: Array<{ data: () => Record<string, unknown> }> = []
+      for (const [key, value] of store.entries()) {
+        if (key.startsWith(prefix)) {
+          docs.push({ data: () => value })
+        }
       }
+      callback({ docs })
     }
-    callback({ docs })
     // Return unsubscribe function
     return () => {}
   },
