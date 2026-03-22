@@ -48,6 +48,100 @@ export const MPA_TARGET_HA = 20_520_000 // 30% of Vanuatu EEZ
 export const VANUATU_LAND_HA = 1_226_905 // total surface coastal area
 export const VANUATU_EEZ_HA = 68_400_000 // total EEZ
 
+/** Tracking status for an individual area/activity */
+export type TrackingStatus = 'achieved' | 'on-track' | 'off-track'
+
+export interface OffTrackReason {
+  reason: string
+  severity: 'high' | 'medium'
+}
+
+export interface ActivityStatus {
+  entry: ProDocEntry
+  status: TrackingStatus
+  /** Indicator key this activity contributes to (e.g. '1.1', '2.1') */
+  indicator: string
+  offTrackReasons: OffTrackReason[]
+}
+
+/** Classify a single area's tracking status and off-track reasons */
+function classifyActivity(entry: ProDocEntry): { status: TrackingStatus; reasons: OffTrackReason[] } {
+  const reasons: OffTrackReason[] = []
+
+  const registered = entry.registrationStatus === 'Registered'
+  const mappingDone = entry.mappingStatus === 'Completed'
+  const mappingStarted = entry.mappingStatus === 'In Progress'
+  const hasHectares = (entry.hectaresTerrestrial !== null && entry.hectaresTerrestrial > 0)
+    || (entry.hectaresMarine !== null && entry.hectaresMarine > 0)
+  const hasCoords = entry.xCoord !== null && entry.yCoord !== null
+  const hasRemarkIssue = /reconfirm|remap|review|issue|problem|incorrect/i.test(entry.remarks)
+
+  // Achieved: registered + mapping completed + has hectares data
+  if (registered && mappingDone && hasHectares) {
+    return { status: 'achieved', reasons: [] }
+  }
+
+  // Determine off-track reasons
+  if (!mappingDone && !mappingStarted) {
+    reasons.push({ reason: 'Mapping not started', severity: 'high' })
+  }
+  if (!registered) {
+    reasons.push({ reason: 'Not yet registered', severity: entry.status === 'Existing' ? 'high' : 'medium' })
+  }
+  if (mappingDone && !hasHectares) {
+    reasons.push({ reason: 'No hectares recorded despite mapping completed', severity: 'high' })
+  }
+  if (!mappingDone && mappingStarted && !hasHectares) {
+    reasons.push({ reason: 'Mapping in progress — hectares pending', severity: 'medium' })
+  }
+  if (!hasCoords) {
+    reasons.push({ reason: 'No GPS coordinates recorded', severity: 'medium' })
+  }
+  if (hasRemarkIssue) {
+    reasons.push({ reason: `Issue flagged: ${entry.remarks.slice(0, 80)}`, severity: 'high' })
+  }
+
+  // On-track: mapping completed or in progress with no high-severity issues
+  const highSeverityCount = reasons.filter((r) => r.severity === 'high').length
+  if ((mappingDone || mappingStarted) && highSeverityCount === 0) {
+    return { status: 'on-track', reasons }
+  }
+
+  // Off-track: has high-severity issues or mapping not started
+  if (reasons.length > 0) {
+    return { status: 'off-track', reasons }
+  }
+
+  // Default to on-track if no issues found
+  return { status: 'on-track', reasons: [] }
+}
+
+/** Get the indicator key an entry contributes to */
+function getIndicator(entry: ProDocEntry): string {
+  const isNew = entry.status === 'New'
+  const terrestrial = entry.ccaType === 'Terrestrial' || entry.ccaType === 'Marine & Terrestrial'
+  const marine = entry.ccaType === 'Marine' || entry.ccaType === 'Marine & Terrestrial'
+  // Pick the primary indicator; dual-type entries map to terrestrial indicator
+  if (isNew) return terrestrial ? '1.1' : '2.1'
+  return terrestrial ? '1.2' : '2.2'
+}
+
+/** Classify all areas into activity statuses */
+export function computeActivityStatuses(
+  newAreas: ProDocEntry[],
+  existingAreas: ProDocEntry[],
+): ActivityStatus[] {
+  return [...newAreas, ...existingAreas].map((entry) => {
+    const { status, reasons } = classifyActivity(entry)
+    return {
+      entry,
+      status,
+      indicator: getIndicator(entry),
+      offTrackReasons: reasons,
+    }
+  })
+}
+
 export interface ProDocAnalytics {
   // ProDoc indicator hectares
   newCcaHa: number

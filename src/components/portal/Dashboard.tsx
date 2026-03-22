@@ -4,7 +4,7 @@ import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../servic
 import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
-import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA } from '../../services/prodocAnalytics'
+import { computeProDocAnalytics, computeActivityStatuses, CCA_TARGET_HA, MPA_TARGET_HA, type TrackingStatus } from '../../services/prodocAnalytics'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -123,6 +123,15 @@ const Dashboard: FC = () => {
     mappingCompleted, mappingInProgress, mappingNotStarted, totalSites,
     provinceBarData,
   } = analytics
+
+  // Activity tracking statuses
+  const activityStatuses = useMemo(
+    () => computeActivityStatuses(newAreas, existingAreas),
+    [newAreas, existingAreas],
+  )
+  const achievedActivities = activityStatuses.filter((a) => a.status === 'achieved')
+  const onTrackActivities = activityStatuses.filter((a) => a.status === 'on-track')
+  const offTrackActivities = activityStatuses.filter((a) => a.status === 'off-track')
 
   const ccaAreas = [...newAreas, ...existingAreas].filter(
     (e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial',
@@ -286,6 +295,151 @@ const Dashboard: FC = () => {
             )
           })}
         </div>
+      </div>
+
+      {/* Activity Tracking Status */}
+      <div className="dash-targets">
+        <div className="dash-section-header">
+          <div>
+            <h3 className="dash-section-title">
+              <Icons8Icon name="activity" size={18} className="dash-section-icon" />
+              Activity Tracking Status
+            </h3>
+            <p className="dash-section-desc">Status of all conservation area activities — achieved, on-track, and off-track with flagged issues.</p>
+          </div>
+        </div>
+
+        {/* Summary badges */}
+        <div className="dash-activity-summary">
+          <div className="dash-activity-summary-card dash-activity-achieved">
+            <Icons8Icon name="approval" size={20} />
+            <span className="dash-activity-summary-count">{achievedActivities.length}</span>
+            <span className="dash-activity-summary-label">Achieved</span>
+          </div>
+          <div className="dash-activity-summary-card dash-activity-on-track">
+            <Icons8Icon name="clock" size={20} />
+            <span className="dash-activity-summary-count">{onTrackActivities.length}</span>
+            <span className="dash-activity-summary-label">On Track</span>
+          </div>
+          <div className="dash-activity-summary-card dash-activity-off-track">
+            <Icons8Icon name="error" size={20} />
+            <span className="dash-activity-summary-count">{offTrackActivities.length}</span>
+            <span className="dash-activity-summary-label">Off Track</span>
+          </div>
+        </div>
+
+        {/* Progress bar showing proportions */}
+        <div className="dash-activity-bar">
+          <div className="dash-activity-bar-track">
+            {activityStatuses.length > 0 && (
+              <>
+                <div
+                  className="dash-activity-bar-segment dash-activity-bar-achieved"
+                  style={{ width: `${(achievedActivities.length / activityStatuses.length) * 100}%` }}
+                  title={`${achievedActivities.length} achieved`}
+                />
+                <div
+                  className="dash-activity-bar-segment dash-activity-bar-ontrack"
+                  style={{ width: `${(onTrackActivities.length / activityStatuses.length) * 100}%` }}
+                  title={`${onTrackActivities.length} on track`}
+                />
+                <div
+                  className="dash-activity-bar-segment dash-activity-bar-offtrack"
+                  style={{ width: `${(offTrackActivities.length / activityStatuses.length) * 100}%` }}
+                  title={`${offTrackActivities.length} off track`}
+                />
+              </>
+            )}
+          </div>
+          <div className="dash-activity-bar-legend">
+            <span><span className="dash-legend-dot" style={{ background: '#16a34a' }} /> Achieved</span>
+            <span><span className="dash-legend-dot" style={{ background: '#2563eb' }} /> On Track</span>
+            <span><span className="dash-legend-dot" style={{ background: '#dc2626' }} /> Off Track</span>
+          </div>
+        </div>
+
+        {/* Off-track activities with reasons */}
+        {offTrackActivities.length > 0 && (
+          <div className="dash-activity-offtrack-section">
+            <h4 className="dash-activity-offtrack-title">
+              <Icons8Icon name="error" size={16} color="#dc2626" />
+              Off-Track Activities — Flagged Issues
+            </h4>
+            <div className="dash-activity-offtrack-list">
+              {offTrackActivities.map((a) => (
+                <div className="dash-activity-offtrack-item" key={a.entry.id}>
+                  <div className="dash-activity-offtrack-header">
+                    <span className="dash-activity-offtrack-name">{a.entry.name}</span>
+                    <div className="dash-activity-offtrack-meta">
+                      <span className={`dash-activity-indicator-badge ${a.indicator.startsWith('1') ? 'dash-activity-ind-cca' : 'dash-activity-ind-mpa'}`}>
+                        {a.indicator}
+                      </span>
+                      <span className="dash-activity-offtrack-type">{a.entry.ccaType}</span>
+                      <span className="dash-activity-offtrack-council">{a.entry.areaCouncil}</span>
+                    </div>
+                  </div>
+                  <div className="dash-activity-offtrack-reasons">
+                    {a.offTrackReasons.map((r, idx) => (
+                      <span
+                        key={idx}
+                        className={`dash-activity-reason ${r.severity === 'high' ? 'dash-activity-reason-high' : 'dash-activity-reason-medium'}`}
+                      >
+                        <Icons8Icon name={r.severity === 'high' ? 'error' : 'info'} size={12} />
+                        {r.reason}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* On-track activities */}
+        {onTrackActivities.length > 0 && (
+          <div className="dash-activity-ontrack-section">
+            <h4 className="dash-activity-ontrack-title">
+              <Icons8Icon name="clock" size={16} color="#2563eb" />
+              On-Track Activities ({onTrackActivities.length})
+            </h4>
+            <div className="dash-activity-compact-list">
+              {onTrackActivities.map((a) => (
+                <div className="dash-activity-compact-item dash-activity-compact-ontrack" key={a.entry.id}>
+                  <span className="dash-activity-compact-name">{a.entry.name}</span>
+                  <span className={`dash-activity-indicator-badge ${a.indicator.startsWith('1') ? 'dash-activity-ind-cca' : 'dash-activity-ind-mpa'}`}>
+                    {a.indicator}
+                  </span>
+                  <span className="dash-activity-compact-status">
+                    {a.entry.mappingStatus || 'Pending'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Achieved activities */}
+        {achievedActivities.length > 0 && (
+          <div className="dash-activity-achieved-section">
+            <h4 className="dash-activity-achieved-title">
+              <Icons8Icon name="approval" size={16} color="#16a34a" />
+              Achieved Activities ({achievedActivities.length})
+            </h4>
+            <div className="dash-activity-compact-list">
+              {achievedActivities.map((a) => (
+                <div className="dash-activity-compact-item dash-activity-compact-achieved" key={a.entry.id}>
+                  <span className="dash-activity-compact-name">{a.entry.name}</span>
+                  <span className={`dash-activity-indicator-badge ${a.indicator.startsWith('1') ? 'dash-activity-ind-cca' : 'dash-activity-ind-mpa'}`}>
+                    {a.indicator}
+                  </span>
+                  <span className="dash-activity-compact-check">
+                    <Icons8Icon name="approval" size={14} color="#16a34a" />
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 30x30 Target tracking with donut charts */}
