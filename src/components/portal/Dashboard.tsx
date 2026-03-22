@@ -6,7 +6,7 @@ import { seedDefaultCategories } from '../../services/portalCategoryStore'
 import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
-import { computeProDocAnalytics, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
+import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA } from '../../services/prodocAnalytics'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -429,8 +429,8 @@ const Dashboard: FC = () => {
                 <span className="dash-target-stat-lbl">Mapped</span>
               </div>
               <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(VANUATU_LAND_HA)}</span>
-                <span className="dash-target-stat-lbl">Total Land</span>
+                <span className="dash-target-stat-val">{formatArea(CCA_TARGET_HA)}</span>
+                <span className="dash-target-stat-lbl">Target (30%)</span>
               </div>
               <div className="dash-target-stat">
                 <span className="dash-target-stat-val">{formatArea(ccaRemainingHa)}</span>
@@ -479,8 +479,8 @@ const Dashboard: FC = () => {
                 <span className="dash-target-stat-lbl">Mapped</span>
               </div>
               <div className="dash-target-stat">
-                <span className="dash-target-stat-val">{formatArea(VANUATU_EEZ_HA)}</span>
-                <span className="dash-target-stat-lbl">Total EEZ</span>
+                <span className="dash-target-stat-val">{formatArea(MPA_TARGET_HA)}</span>
+                <span className="dash-target-stat-lbl">Target (30%)</span>
               </div>
               <div className="dash-target-stat">
                 <span className="dash-target-stat-val">{formatArea(mpaRemainingHa)}</span>

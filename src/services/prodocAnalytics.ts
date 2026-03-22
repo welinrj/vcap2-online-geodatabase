@@ -118,14 +118,15 @@ export function computeProDocAnalytics(
   const totalMpaHa = newMpaHa + existMpaHa
 
   // 30x30 — uses ALL entries' hectares (new + existing, regardless of status)
+  // divided by 30% of total land/EEZ
   const allTerrestrialHa = sumTerrestrial(allAreas)
   const allMarineHa = sumMarine(allAreas)
-  const ccaProgress = VANUATU_LAND_HA > 0 ? (allTerrestrialHa / VANUATU_LAND_HA) * 100 : 0
-  const mpaProgress = VANUATU_EEZ_HA > 0 ? (allMarineHa / VANUATU_EEZ_HA) * 100 : 0
-  const ccaLandPercent = ccaProgress
-  const mpaEezPercent = mpaProgress
-  const ccaRemainingHa = Math.max(VANUATU_LAND_HA - allTerrestrialHa, 0)
-  const mpaRemainingHa = Math.max(VANUATU_EEZ_HA - allMarineHa, 0)
+  const ccaProgress = CCA_TARGET_HA > 0 ? (allTerrestrialHa / CCA_TARGET_HA) * 100 : 0
+  const mpaProgress = MPA_TARGET_HA > 0 ? (allMarineHa / MPA_TARGET_HA) * 100 : 0
+  const ccaLandPercent = VANUATU_LAND_HA > 0 ? (allTerrestrialHa / VANUATU_LAND_HA) * 100 : 0
+  const mpaEezPercent = VANUATU_EEZ_HA > 0 ? (allMarineHa / VANUATU_EEZ_HA) * 100 : 0
+  const ccaRemainingHa = Math.max(CCA_TARGET_HA - allTerrestrialHa, 0)
+  const mpaRemainingHa = Math.max(MPA_TARGET_HA - allMarineHa, 0)
 
   // Counts — only registered entries count towards targets
   const newCcaCount = newRegistered.filter(isCCA).length
