@@ -3,7 +3,7 @@ import type { UserProfile } from '../types/user'
 import {
   LayoutDashboard,
   Database,
-  ShieldCheck,
+  Globe,
   FileBarChart2,
   CalendarDays,
   LogOut,
@@ -50,7 +50,7 @@ const authNavItems = [
   {
     id: 'protected-areas',
     label: 'CCAs & MPAs',
-    icon: <ShieldCheck className="nav-icon" size={18} />,
+    icon: <Globe className="nav-icon" size={18} />,
   },
   {
     id: 'activity-planner',

@@ -8,27 +8,33 @@ import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
 import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
 import {
-  ShieldCheck,
+  Sprout,
+  Fish,
+  TreeDeciduous,
+  Anchor,
+  LandPlot,
+  Compass,
   Database,
-  HardDrive,
   TrendingUp,
-  MapPin,
+  MapPinned,
   Layers,
   FileJson,
   FileSpreadsheet,
   FileImage,
   FileText,
-  CheckCircle2,
+  CircleCheckBig,
   Clock,
-  AlertCircle,
+  CircleDashed,
   Target,
-  TreePine,
+  Leaf,
   Waves,
   Thermometer,
   Users,
-  Building2,
+  Landmark,
   Folder,
-  FolderOpen,
+  LayoutGrid,
+  Activity,
+  Shell,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -48,20 +54,30 @@ import './Dashboard.css'
 const DashboardMap = lazy(() => import('./DashboardMap'))
 
 const CHART_COLORS = {
-  green: '#22c55e',
-  greenLight: '#86efac',
-  blue: '#3b82f6',
-  blueLight: '#93c5fd',
-  amber: '#f59e0b',
-  purple: '#a855f7',
-  cyan: '#06b6d4',
+  green: '#16a34a',
+  greenLight: '#4ade80',
+  blue: '#2563eb',
+  blueLight: '#60a5fa',
+  amber: '#d97706',
+  purple: '#7c3aed',
+  cyan: '#0891b2',
   gray: '#e2e8f0',
+}
+
+const TOOLTIP_STYLE = {
+  borderRadius: '10px',
+  border: 'none',
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+  fontSize: '0.78rem',
+  padding: '8px 12px',
+  background: 'rgba(255, 255, 255, 0.95)',
+  backdropFilter: 'blur(8px)',
 }
 
 const FILE_TYPE_ICONS: Record<string, typeof FileJson> = {
   GeoJSON: FileJson,
   Shapefile: Layers,
-  KML: MapPin,
+  KML: MapPinned,
   GeoPackage: Database,
   PDF: FileText,
   PNG: FileImage,
@@ -70,13 +86,17 @@ const FILE_TYPE_ICONS: Record<string, typeof FileJson> = {
 
 /** Map icon names from Firestore to lucide components */
 const CATEGORY_ICONS: Record<string, typeof Folder> = {
-  TreePine,
+  TreePine: Leaf,
+  Leaf,
   Waves,
+  Shell,
   Thermometer,
   Users,
-  Building2,
+  Building2: Landmark,
+  Landmark,
   Folder,
-  FolderOpen,
+  FolderOpen: LayoutGrid,
+  LayoutGrid,
 }
 
 function getCategoryIcon(name: string) {
@@ -220,7 +240,7 @@ const Dashboard: FC = () => {
           <div className="dash-section-header">
             <div>
               <h3 className="dash-section-title">
-                <FolderOpen size={18} className="dash-section-icon" />
+                <LayoutGrid size={18} className="dash-section-icon" />
                 Data Categories
               </h3>
               <p className="dash-section-desc">Browse datasets by thematic category</p>
@@ -253,7 +273,7 @@ const Dashboard: FC = () => {
       <div className="dash-stats dash-stats-6">
         <div className="dash-stat-card dash-stat-green">
           <div className="dash-stat-icon">
-            <TreePine size={20} />
+            <Sprout size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{newCcaCount}</span>
@@ -262,7 +282,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-blue">
           <div className="dash-stat-icon">
-            <ShieldCheck size={20} />
+            <Fish size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{newMpaCount}</span>
@@ -271,7 +291,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-green">
           <div className="dash-stat-icon">
-            <TrendingUp size={20} />
+            <TreeDeciduous size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{improvedCcaCount}</span>
@@ -280,7 +300,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-blue">
           <div className="dash-stat-icon">
-            <TrendingUp size={20} />
+            <Anchor size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{improvedMpaCount}</span>
@@ -289,7 +309,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-purple">
           <div className="dash-stat-icon">
-            <CheckCircle2 size={20} />
+            <LandPlot size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{ccaMappedComplete} / {ccaAreas.length}</span>
@@ -299,7 +319,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-amber">
           <div className="dash-stat-icon">
-            <CheckCircle2 size={20} />
+            <Compass size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{mpaMappedComplete} / {mpaAreas.length}</span>
@@ -349,11 +369,12 @@ const Dashboard: FC = () => {
                         data={donutData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={40}
-                        outerRadius={58}
-                        paddingAngle={2}
+                        innerRadius={42}
+                        outerRadius={60}
+                        paddingAngle={3}
                         dataKey="value"
                         strokeWidth={0}
+                        cornerRadius={4}
                       >
                         {donutData.map((entry, index) => (
                           <Cell key={index} fill={entry.color} />
@@ -361,7 +382,7 @@ const Dashboard: FC = () => {
                       </Pie>
                       <Tooltip
                         formatter={(value) => formatArea(Number(value))}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
+                        contentStyle={TOOLTIP_STYLE}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -411,11 +432,12 @@ const Dashboard: FC = () => {
                     data={ccaDonutData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={70}
-                    paddingAngle={2}
+                    innerRadius={52}
+                    outerRadius={72}
+                    paddingAngle={3}
                     dataKey="value"
                     strokeWidth={0}
+                    cornerRadius={5}
                   >
                     {ccaDonutData.map((entry, index) => (
                       <Cell key={index} fill={entry.color} />
@@ -423,7 +445,7 @@ const Dashboard: FC = () => {
                   </Pie>
                   <Tooltip
                     formatter={(value) => formatArea(Number(value))}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
+                    contentStyle={TOOLTIP_STYLE}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -460,11 +482,12 @@ const Dashboard: FC = () => {
                     data={mpaDonutData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={70}
-                    paddingAngle={2}
+                    innerRadius={52}
+                    outerRadius={72}
+                    paddingAngle={3}
                     dataKey="value"
                     strokeWidth={0}
+                    cornerRadius={5}
                   >
                     {mpaDonutData.map((entry, index) => (
                       <Cell key={index} fill={entry.color} />
@@ -472,7 +495,7 @@ const Dashboard: FC = () => {
                   </Pie>
                   <Tooltip
                     formatter={(value) => formatArea(Number(value))}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
+                    contentStyle={TOOLTIP_STYLE}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -503,7 +526,7 @@ const Dashboard: FC = () => {
         {/* Mapping status from ProDoc Tracker */}
         <div className="dash-panel">
           <h3 className="dash-section-title">
-            <TrendingUp size={18} className="dash-section-icon" />
+            <Activity size={18} className="dash-section-icon" />
             Mapping Status
           </h3>
           {mappingPieData.length > 0 ? (
@@ -515,25 +538,26 @@ const Dashboard: FC = () => {
                       data={mappingPieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={35}
-                      outerRadius={55}
+                      innerRadius={36}
+                      outerRadius={56}
                       paddingAngle={3}
                       dataKey="value"
                       strokeWidth={0}
+                      cornerRadius={4}
                     >
                       {mappingPieData.map((entry, index) => (
                         <Cell key={index} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
+                      contentStyle={TOOLTIP_STYLE}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
               <div className="dash-status-legend">
                 <div className="dash-status-item">
-                  <CheckCircle2 size={16} color={CHART_COLORS.green} />
+                  <CircleCheckBig size={16} color={CHART_COLORS.green} />
                   <span className="dash-status-count">{mappingCompleted}</span>
                   <span className="dash-status-label">Completed</span>
                 </div>
@@ -543,7 +567,7 @@ const Dashboard: FC = () => {
                   <span className="dash-status-label">In Progress</span>
                 </div>
                 <div className="dash-status-item">
-                  <AlertCircle size={16} color={CHART_COLORS.gray} />
+                  <CircleDashed size={16} color={CHART_COLORS.gray} />
                   <span className="dash-status-count">{mappingNotStarted}</span>
                   <span className="dash-status-label">Not Started</span>
                 </div>
@@ -562,17 +586,17 @@ const Dashboard: FC = () => {
         {/* GIS data overview */}
         <div className="dash-panel">
           <h3 className="dash-section-title">
-            <HardDrive size={18} className="dash-section-icon" />
+            <Database size={18} className="dash-section-icon" />
             GIS Database
           </h3>
           <div className="dash-status-legend">
             <div className="dash-status-item">
-              <Database size={16} color={CHART_COLORS.purple} />
+              <Layers size={16} color={CHART_COLORS.purple} />
               <span className="dash-status-count">{totalFiles}</span>
               <span className="dash-status-label">Datasets</span>
             </div>
             <div className="dash-status-item">
-              <HardDrive size={16} color={CHART_COLORS.amber} />
+              <Database size={16} color={CHART_COLORS.amber} />
               <span className="dash-status-count">{formatBytes(totalSize)}</span>
               <span className="dash-status-label">Total Size</span>
             </div>
@@ -597,7 +621,7 @@ const Dashboard: FC = () => {
         {provinceBarData.length > 0 && (
           <div className="dash-panel dash-panel-wide">
             <h3 className="dash-section-title">
-              <MapPin size={18} className="dash-section-icon" />
+              <MapPinned size={18} className="dash-section-icon" />
               Coverage by Province
             </h3>
             <div className="dash-province-chart">
@@ -608,29 +632,30 @@ const Dashboard: FC = () => {
                   margin={{ top: 0, right: 16, bottom: 0, left: 0 }}
                   barCategoryGap="20%"
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                   <XAxis
                     type="number"
                     tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                     tick={{ fontSize: 11, fill: '#94a3b8' }}
-                    axisLine={{ stroke: '#e2e8f0' }}
+                    axisLine={{ stroke: '#f1f5f9' }}
+                    tickLine={{ stroke: '#f1f5f9' }}
                     unit=" ha"
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
                     width={80}
-                    tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }}
+                    tick={{ fontSize: 12, fill: '#475569', fontWeight: 600 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <Tooltip
                     formatter={(value, name) => [formatArea(Number(value)), String(name)]}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
-                    cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                    contentStyle={TOOLTIP_STYLE}
+                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                   />
-                  <Bar dataKey="Terrestrial" fill={CHART_COLORS.green} radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Terrestrial" fill={CHART_COLORS.green} radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="Marine" fill={CHART_COLORS.blue} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               <div className="dash-province-legend">

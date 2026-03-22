@@ -144,10 +144,10 @@
   height: 3px;
 }
 
-.dash-stat-green::before { background: linear-gradient(90deg, #16a34a, #22c55e); }
-.dash-stat-blue::before { background: linear-gradient(90deg, #2563eb, #3b82f6); }
-.dash-stat-purple::before { background: linear-gradient(90deg, #7c3aed, #a855f7); }
-.dash-stat-amber::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.dash-stat-green::before { background: linear-gradient(90deg, #15803d, #16a34a); }
+.dash-stat-blue::before { background: linear-gradient(90deg, #1d4ed8, #2563eb); }
+.dash-stat-purple::before { background: linear-gradient(90deg, #6d28d9, #7c3aed); }
+.dash-stat-amber::before { background: linear-gradient(90deg, #b45309, #d97706); }
 
 .dash-stat-card:hover {
   background: rgba(255, 255, 255, 0.88);
