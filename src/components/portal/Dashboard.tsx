@@ -5,6 +5,7 @@ import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
 import { computeProDocAnalytics, computeIndicatorTracking, CCA_TARGET_HA, MPA_TARGET_HA } from '../../services/prodocAnalytics'
+import { INDICATOR_COLORS, INDICATOR_BG, INDICATOR_BORDER } from '../../constants/indicatorColors'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -146,7 +147,7 @@ const Dashboard: FC = () => {
       mapped: newCcaHa,
       target: PRODOC_TARGETS['1.1'].targetHa,
       progress: newCcaProgress,
-      color: CHART_COLORS.green,
+      color: INDICATOR_COLORS['1.1'],
       type: 'Terrestrial',
     },
     {
@@ -156,7 +157,7 @@ const Dashboard: FC = () => {
       mapped: existCcaHa,
       target: PRODOC_TARGETS['1.2'].targetHa,
       progress: existCcaProgress,
-      color: CHART_COLORS.greenLight,
+      color: INDICATOR_COLORS['1.2'],
       type: 'Terrestrial',
     },
     {
@@ -166,7 +167,7 @@ const Dashboard: FC = () => {
       mapped: newMpaHa,
       target: PRODOC_TARGETS['2.1'].targetHa,
       progress: newMpaProgress,
-      color: CHART_COLORS.blue,
+      color: INDICATOR_COLORS['2.1'],
       type: 'Marine',
     },
     {
@@ -176,7 +177,7 @@ const Dashboard: FC = () => {
       mapped: existMpaHa,
       target: PRODOC_TARGETS['2.2'].targetHa,
       progress: existMpaProgress,
-      color: CHART_COLORS.blueLight,
+      color: INDICATOR_COLORS['2.2'],
       type: 'Marine',
     },
   ]
@@ -236,7 +237,10 @@ const Dashboard: FC = () => {
             const progressClamped = Math.min(ind.progress, 100)
             return (
               <div className="dash-indicator-card" key={ind.key}>
-                <span className={`dash-indicator-badge ${ind.type === 'Terrestrial' ? 'dash-indicator-cca' : 'dash-indicator-mpa'}`}>
+                <span
+                  className="dash-indicator-badge"
+                  style={{ background: INDICATOR_BG[ind.key], color: ind.color, border: `1px solid ${INDICATOR_BORDER[ind.key]}` }}
+                >
                   {ind.key} — {ind.label}
                 </span>
                 <div className="dash-indicator-donut dash-donut-wrapper">
@@ -308,22 +312,23 @@ const Dashboard: FC = () => {
 
         <div className="dash-indicator-tracking-grid">
           {indicatorTracking.map((ind) => {
-            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'on-track' ? '#2563eb' : '#dc2626'
-            const statusBg = ind.status === 'achieved' ? 'rgba(34,197,94,0.08)' : ind.status === 'on-track' ? 'rgba(37,99,235,0.08)' : 'rgba(220,38,38,0.08)'
-            const statusBorder = ind.status === 'achieved' ? 'rgba(34,197,94,0.2)' : ind.status === 'on-track' ? 'rgba(37,99,235,0.2)' : 'rgba(220,38,38,0.2)'
+            const indColor = INDICATOR_COLORS[ind.key] ?? '#64748b'
+            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'off-track' ? '#dc2626' : indColor
             const statusIcon = ind.status === 'achieved' ? 'approval' : ind.status === 'on-track' ? 'clock' : 'error'
             const statusLabel = ind.status === 'achieved' ? 'Achieved' : ind.status === 'on-track' ? 'On Track' : 'Off Track'
-            const isCcaInd = ind.key.startsWith('1')
 
             return (
               <div
                 className="dash-ind-track-card"
                 key={ind.key}
-                style={{ borderColor: statusBorder, background: statusBg }}
+                style={{ borderColor: INDICATOR_BORDER[ind.key], borderLeft: `4px solid ${indColor}` }}
               >
                 {/* Header */}
                 <div className="dash-ind-track-header">
-                  <span className={`dash-indicator-badge ${isCcaInd ? 'dash-indicator-cca' : 'dash-indicator-mpa'}`}>
+                  <span
+                    className="dash-indicator-badge"
+                    style={{ background: INDICATOR_BG[ind.key], color: indColor, border: `1px solid ${INDICATOR_BORDER[ind.key]}` }}
+                  >
                     {ind.key} — {ind.label}
                   </span>
                   <span className="dash-ind-track-status" style={{ color: statusColor }}>
@@ -337,10 +342,10 @@ const Dashboard: FC = () => {
                   <div className="dash-ind-track-progress-track">
                     <div
                       className="dash-ind-track-progress-fill"
-                      style={{ width: `${Math.min(ind.progressPct, 100)}%`, background: statusColor }}
+                      style={{ width: `${Math.min(ind.progressPct, 100)}%`, background: indColor }}
                     />
                   </div>
-                  <span className="dash-ind-track-pct" style={{ color: statusColor }}>
+                  <span className="dash-ind-track-pct" style={{ color: indColor }}>
                     {ind.progressPct >= 100 ? '>100' : ind.progressPct.toFixed(1)}%
                   </span>
                 </div>

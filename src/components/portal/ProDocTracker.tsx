@@ -6,6 +6,7 @@ import {
 import { type ColumnDef } from '../../services/prodocStore'
 import { useProDoc } from '../../contexts/useProDoc'
 import { sumTerrestrial, sumMarine, isCCA, isMPA, computeProDocAnalytics, computeIndicatorTracking } from '../../services/prodocAnalytics'
+import { INDICATOR_COLORS, INDICATOR_BG, INDICATOR_BORDER } from '../../constants/indicatorColors'
 import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
@@ -245,7 +246,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       name: key,
       value: Math.min(rawPct, 100), // cap visual bar at 100%
       rawPct,
-      fill: key.startsWith('1') ? COLORS.green : COLORS.blue,
+      fill: INDICATOR_COLORS[key] ?? (key.startsWith('1') ? COLORS.green : COLORS.blue),
     }
   })
 
@@ -416,21 +417,22 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
 
         <div className="pdt-ind-tracking-grid">
           {indicatorTracking.map((ind) => {
-            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'on-track' ? '#2563eb' : '#dc2626'
-            const statusBg = ind.status === 'achieved' ? 'rgba(34,197,94,0.08)' : ind.status === 'on-track' ? 'rgba(37,99,235,0.08)' : 'rgba(220,38,38,0.08)'
-            const statusBorder = ind.status === 'achieved' ? 'rgba(34,197,94,0.2)' : ind.status === 'on-track' ? 'rgba(37,99,235,0.2)' : 'rgba(220,38,38,0.2)'
+            const indColor = INDICATOR_COLORS[ind.key] ?? '#64748b'
+            const statusColor = ind.status === 'achieved' ? '#16a34a' : ind.status === 'off-track' ? '#dc2626' : indColor
             const statusIcon = ind.status === 'achieved' ? 'approval' : ind.status === 'on-track' ? 'clock' : 'error'
             const statusLabel = ind.status === 'achieved' ? 'Achieved' : ind.status === 'on-track' ? 'On Track' : 'Off Track'
-            const isCcaInd = ind.key.startsWith('1')
 
             return (
               <div
                 className="pdt-ind-track-card"
                 key={ind.key}
-                style={{ borderColor: statusBorder, background: statusBg }}
+                style={{ borderColor: INDICATOR_BORDER[ind.key], borderLeft: `4px solid ${indColor}` }}
               >
                 <div className="pdt-ind-track-header">
-                  <span className={`pdt-target-badge ${isCcaInd ? 'pdt-badge-cca' : 'pdt-badge-mpa'}`}>
+                  <span
+                    className="pdt-target-badge"
+                    style={{ background: INDICATOR_BG[ind.key], color: indColor, border: `1px solid ${INDICATOR_BORDER[ind.key]}` }}
+                  >
                     {ind.key} — {ind.label}
                   </span>
                   <span className="pdt-ind-track-status" style={{ color: statusColor }}>
@@ -443,10 +445,10 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                   <div className="pdt-ind-track-progress-track">
                     <div
                       className="pdt-ind-track-progress-fill"
-                      style={{ width: `${Math.min(ind.progressPct, 100)}%`, background: statusColor }}
+                      style={{ width: `${Math.min(ind.progressPct, 100)}%`, background: indColor }}
                     />
                   </div>
-                  <span className="pdt-ind-track-pct" style={{ color: statusColor }}>
+                  <span className="pdt-ind-track-pct" style={{ color: indColor }}>
                     {ind.progressPct >= 100 ? '>100' : ind.progressPct.toFixed(1)}%
                   </span>
                 </div>
@@ -514,20 +516,23 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
               const target = PRODOC_TARGETS[key]
               const rawPct = target.targetHa > 0 ? (actual / target.targetHa) * 100 : 0
               const exceeded = rawPct > 100
-              const isGreen = key.startsWith('1')
+              const indColor = INDICATOR_COLORS[key]
               return (
                 <div key={key} className="pdt-target-card">
                   <div className="pdt-target-header">
-                    <span className={`pdt-target-badge ${isGreen ? 'pdt-badge-cca' : 'pdt-badge-mpa'}`}>
+                    <span
+                      className="pdt-target-badge"
+                      style={{ background: INDICATOR_BG[key], color: indColor, border: `1px solid ${INDICATOR_BORDER[key]}` }}
+                    >
                       {key}
                     </span>
-                    <span className="pdt-target-pct">{exceeded ? '>100' : rawPct.toFixed(1)}%</span>
+                    <span className="pdt-target-pct" style={{ color: indColor }}>{exceeded ? '>100' : rawPct.toFixed(1)}%</span>
                   </div>
                   <div className="pdt-target-label">{target.label}</div>
                   <div className="pdt-progress-bar">
                     <div
-                      className={`pdt-progress-fill ${isGreen ? 'pdt-fill-green' : 'pdt-fill-blue'}`}
-                      style={{ width: `${Math.min(rawPct, 100)}%` }}
+                      className="pdt-progress-fill"
+                      style={{ width: `${Math.min(rawPct, 100)}%`, background: indColor }}
                     />
                   </div>
                   <div className="pdt-target-nums">
