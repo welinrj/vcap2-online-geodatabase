@@ -81,6 +81,18 @@ service firebase.storage {
       allow delete: if request.auth.uid == userId || isAdmin();
     }
 
+    // File Manager uploads - authenticated users manage their own files
+    match /fm-files/{userId}/{allPaths=**} {
+      // Authenticated users can read any file (needed for shared files)
+      allow read: if isAuthenticated();
+
+      // Users can upload/update their own files (50MB limit)
+      allow create, update: if request.auth.uid == userId && isReasonableSize();
+
+      // Users can delete their own files; admins can delete any
+      allow delete: if request.auth.uid == userId || isAdmin();
+    }
+
     // System files (admin only)
     match /system/{allPaths=**} {
       allow read: if isAuthenticated();

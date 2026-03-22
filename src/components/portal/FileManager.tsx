@@ -224,14 +224,10 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
 
   async function handleDownloadFile(file: FileEntry) {
     try {
-      // If file data isn't loaded (list only returns metadata), fetch it
-      if (!file.data) {
-        const full = await getFile(file.id)
-        if (full) downloadFile(full)
-        else showAlert('error', 'File data not found')
-      } else {
-        downloadFile(file)
-      }
+      // Fetch full metadata (includes storageUrl) if needed
+      const entry = file.storageUrl ? file : await getFile(file.id)
+      if (entry) await downloadFile(entry)
+      else showAlert('error', 'File data not found')
     } catch {
       showAlert('error', 'Failed to download file')
     }
@@ -273,7 +269,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   async function handleDownloadShared(share: FileShare) {
     if (share.itemType === 'file') {
       const file = await getFile(share.itemId)
-      if (file) downloadFile(file)
+      if (file) await downloadFile(file)
       else showAlert('error', 'File no longer exists')
     }
   }
@@ -344,11 +340,19 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
             <button className="fm-btn fm-btn-primary" onClick={() => setShowNewFolder(true)}>
               <Icons8Icon name="plus" size={16} /> New Folder
             </button>
-            {currentFolderId && (
-              <button className="fm-btn fm-btn-primary" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                <Icons8Icon name="upload" size={16} /> {uploading ? 'Uploading...' : 'Upload Files'}
-              </button>
-            )}
+            <button
+              className="fm-btn fm-btn-primary"
+              onClick={() => {
+                if (!currentFolderId) {
+                  showAlert('error', 'Please open a folder before uploading files')
+                  return
+                }
+                fileInputRef.current?.click()
+              }}
+              disabled={uploading}
+            >
+              <Icons8Icon name="upload" size={16} /> {uploading ? 'Uploading...' : 'Upload Files'}
+            </button>
             <input
               ref={fileInputRef}
               type="file"
