@@ -1,19 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  MessageSquare,
-  Send,
-  Plus,
-  Users,
-  Paperclip,
-  ArrowLeft,
-  Phone,
-  Video,
-  X,
-  Search,
-  Download,
-  FileText,
-  Trash2,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import type { UserProfile } from '../../types/user'
 import type { Conversation, Message } from '../../types/messaging'
 import {
@@ -279,19 +265,19 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
       {/* Conversation List */}
       <div className={`msg-sidebar ${activeConv ? 'msg-sidebar-hidden-mobile' : ''}`}>
         <div className="msg-sidebar-header">
-          <h3><MessageSquare size={18} /> Messages</h3>
+          <h3><Icons8Icon name="chat" size={18} /> Messages</h3>
           <div className="msg-sidebar-actions">
             <button className="msg-icon-btn" onClick={() => setShowNewChat(true)} title="New chat">
-              <Plus size={16} />
+              <Icons8Icon name="plus" size={16} />
             </button>
             <button className="msg-icon-btn" onClick={() => setShowNewGroup(true)} title="New group">
-              <Users size={16} />
+              <Icons8Icon name="group" size={16} />
             </button>
           </div>
         </div>
 
         <div className="msg-search-bar">
-          <Search size={14} />
+          <Icons8Icon name="search" size={14} />
           <input
             type="text"
             placeholder="Search conversations..."
@@ -328,7 +314,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                   onClick={(e) => { e.stopPropagation(); handleDeleteConv(conv.id) }}
                   title="Delete"
                 >
-                  <Trash2 size={12} />
+                  <Icons8Icon name="trash" size={12} />
                 </button>
               </div>
             </div>
@@ -342,7 +328,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
           <>
             <div className="msg-chat-header">
               <button className="msg-back-btn" onClick={clearActiveConv}>
-                <ArrowLeft size={18} />
+                <Icons8Icon name="back" size={18} />
               </button>
               <span className={`msg-conv-avatar msg-avatar-sm ${activeConv.type === 'group' ? 'msg-avatar-group' : ''}`}>
                 {getConvAvatar(activeConv)}
@@ -367,7 +353,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                     }}
                     title="Voice call"
                   >
-                    <Phone size={16} />
+                    <Icons8Icon name="phone" size={16} />
                   </button>
                   <button
                     className="msg-icon-btn"
@@ -379,7 +365,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                     }}
                     title="Video call"
                   >
-                    <Video size={16} />
+                    <Icons8Icon name="video-call" size={16} />
                   </button>
                 </div>
               )}
@@ -403,7 +389,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                             </div>
                           ) : (
                             <div className="msg-attachment-file">
-                              <FileText size={16} />
+                              <Icons8Icon name="pdf" size={16} />
                               <span>{msg.attachmentName}</span>
                             </div>
                           )}
@@ -413,7 +399,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                               download={msg.attachmentName}
                               className="msg-attachment-download"
                             >
-                              <Download size={14} /> Download
+                              <Icons8Icon name="download" size={14} /> Download
                             </a>
                           )}
                         </div>
@@ -428,7 +414,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
 
             <div className="msg-input-bar">
               <button className="msg-icon-btn" onClick={() => fileInputRef.current?.click()} title="Attach file">
-                <Paperclip size={16} />
+                <Icons8Icon name="paperclip" size={16} />
               </button>
               <input
                 ref={fileInputRef}
@@ -455,7 +441,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                 onClick={handleSend}
                 disabled={!draft.trim()}
               >
-                <Send size={16} />
+                <Icons8Icon name="send" size={16} />
               </button>
             </div>
           </>
@@ -474,11 +460,11 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
             <div className="msg-modal-header">
               <h4>New Chat</h4>
               <button className="msg-icon-btn" onClick={() => { setShowNewChat(false); setChatError(null) }}>
-                <X size={16} />
+                <Icons8Icon name="cancel" size={16} />
               </button>
             </div>
             <div className="msg-search-bar">
-              <Search size={14} />
+              <Icons8Icon name="search" size={14} />
               <input
                 type="text"
                 placeholder="Search users..."
@@ -522,7 +508,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
             <div className="msg-modal-header">
               <h4>New Group Chat</h4>
               <button className="msg-icon-btn" onClick={() => setShowNewGroup(false)}>
-                <X size={16} />
+                <Icons8Icon name="cancel" size={16} />
               </button>
             </div>
             <div style={{ padding: '0.75rem 1rem' }}>
@@ -536,7 +522,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
               />
             </div>
             <div className="msg-search-bar">
-              <Search size={14} />
+              <Icons8Icon name="search" size={14} />
               <input
                 type="text"
                 placeholder="Search users..."
@@ -552,7 +538,7 @@ export default function Messaging({ currentUser, onStartCall }: MessagingProps) 
                     <span key={uid} className="msg-selected-chip">
                       {u?.name || uid}
                       <button onClick={() => setSelectedUsers((s) => s.filter((x) => x !== uid))}>
-                        <X size={10} />
+                        <Icons8Icon name="cancel" size={10} />
                       </button>
                     </span>
                   )

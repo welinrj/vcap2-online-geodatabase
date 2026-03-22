@@ -1,6 +1,6 @@
 import type { FC } from 'react'
 import type { UserProfile } from '../types/user'
-import { LogIn } from 'lucide-react'
+import Icons8Icon from './Icons8Icon'
 import NotificationPanel from './portal/NotificationPanel'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
 
@@ -36,7 +36,7 @@ const Header: FC<HeaderProps> = ({ title, user, isAuthenticated, onLogin, onNavi
           </>
         ) : (
           <button className="header-login-btn" onClick={onLogin}>
-            <LogIn size={16} />
+            <Icons8Icon name="enter" size={16} />
             Staff Login
           </button>
         )}

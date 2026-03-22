@@ -7,34 +7,7 @@ import { formatArea } from '../../services/protectedAreaStore'
 import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
 import { computeProDocAnalytics, CCA_TARGET_HA, MPA_TARGET_HA, VANUATU_LAND_HA, VANUATU_EEZ_HA } from '../../services/prodocAnalytics'
-import {
-  Sprout,
-  Fish,
-  TreeDeciduous,
-  Anchor,
-  LandPlot,
-  Compass,
-  Database,
-  MapPinned,
-  Layers,
-  FileJson,
-  FileSpreadsheet,
-  FileImage,
-  FileText,
-  CircleCheckBig,
-  Clock,
-  CircleDashed,
-  Target,
-  Leaf,
-  Waves,
-  Thermometer,
-  Users,
-  Landmark,
-  Folder,
-  LayoutGrid,
-  Activity,
-  Shell,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
   PieChart,
@@ -73,33 +46,34 @@ const TOOLTIP_STYLE = {
   backdropFilter: 'blur(8px)',
 }
 
-const FILE_TYPE_ICONS: Record<string, typeof FileJson> = {
-  GeoJSON: FileJson,
-  Shapefile: Layers,
-  KML: MapPinned,
-  GeoPackage: Database,
-  PDF: FileText,
-  PNG: FileImage,
-  CSV: FileSpreadsheet,
+/** Map icon names from Firestore to Icons8 Glyph Neue names */
+const CATEGORY_ICON_MAP: Record<string, string> = {
+  TreePine: 'leaf',
+  Leaf: 'leaf',
+  Waves: 'sea',
+  Shell: 'sea',
+  Thermometer: 'thermometer',
+  Users: 'group',
+  Building2: 'monument',
+  Landmark: 'monument',
+  Folder: 'opened-folder',
+  FolderOpen: 'opened-folder',
+  LayoutGrid: 'four-squares',
 }
 
-/** Map icon names from Firestore to lucide components */
-const CATEGORY_ICONS: Record<string, typeof Folder> = {
-  TreePine: Leaf,
-  Leaf,
-  Waves,
-  Shell,
-  Thermometer,
-  Users,
-  Building2: Landmark,
-  Landmark,
-  Folder,
-  FolderOpen: LayoutGrid,
-  LayoutGrid,
+/** Map file type to Icons8 Glyph Neue name */
+const FILE_TYPE_ICON_MAP: Record<string, string> = {
+  GeoJSON: 'json',
+  Shapefile: 'layers',
+  KML: 'map-pin',
+  GeoPackage: 'database',
+  PDF: 'pdf',
+  PNG: 'image-file',
+  CSV: 'csv',
 }
 
-function getCategoryIcon(name: string) {
-  return CATEGORY_ICONS[name] ?? Folder
+function getCategoryIconName(name: string) {
+  return CATEGORY_ICON_MAP[name] ?? 'opened-folder'
 }
 
 /** Race a promise against a timeout; resolves with fallback on timeout */
@@ -239,7 +213,7 @@ const Dashboard: FC = () => {
           <div className="dash-section-header">
             <div>
               <h3 className="dash-section-title">
-                <LayoutGrid size={18} className="dash-section-icon" />
+                <Icons8Icon name="four-squares" size={18} className="dash-section-icon" />
                 Data Categories
               </h3>
               <p className="dash-section-desc">Browse datasets by thematic category</p>
@@ -247,12 +221,12 @@ const Dashboard: FC = () => {
           </div>
           <div className="dash-category-grid">
             {categories.map((cat) => {
-              const Icon = getCategoryIcon(cat.icon)
+              const iconName = getCategoryIconName(cat.icon)
               const count = datasets.filter((d) => d.metadata.portalCategory === cat.id).length
               return (
                 <div className="dash-category-card" key={cat.id} style={{ borderTopColor: cat.color }}>
-                  <div className="dash-category-icon" style={{ color: cat.color }}>
-                    <Icon size={24} />
+                  <div className="dash-category-icon">
+                    <Icons8Icon name={iconName} size={24} color={cat.color} />
                   </div>
                   <div className="dash-category-info">
                     <span className="dash-category-name">{cat.name}</span>
@@ -272,7 +246,7 @@ const Dashboard: FC = () => {
       <div className="dash-stats dash-stats-6">
         <div className="dash-stat-card dash-stat-green">
           <div className="dash-stat-icon">
-            <Sprout size={20} />
+            <Icons8Icon name="sprout" size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{newCcaCount}</span>
@@ -281,7 +255,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-blue">
           <div className="dash-stat-icon">
-            <Fish size={20} />
+            <Icons8Icon name="fish" size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{newMpaCount}</span>
@@ -290,7 +264,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-green">
           <div className="dash-stat-icon">
-            <TreeDeciduous size={20} />
+            <Icons8Icon name="deciduous-tree" size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{improvedCcaCount}</span>
@@ -299,7 +273,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-blue">
           <div className="dash-stat-icon">
-            <Anchor size={20} />
+            <Icons8Icon name="anchor" size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{improvedMpaCount}</span>
@@ -308,7 +282,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-purple">
           <div className="dash-stat-icon">
-            <LandPlot size={20} />
+            <Icons8Icon name="geography" size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{ccaMappedComplete} / {ccaAreas.length}</span>
@@ -318,7 +292,7 @@ const Dashboard: FC = () => {
         </div>
         <div className="dash-stat-card dash-stat-amber">
           <div className="dash-stat-icon">
-            <Compass size={20} />
+            <Icons8Icon name="compass" size={20} />
           </div>
           <div className="dash-stat-info">
             <span className="dash-stat-value">{mpaMappedComplete} / {mpaAreas.length}</span>
@@ -338,7 +312,7 @@ const Dashboard: FC = () => {
         <div className="dash-section-header">
           <div>
             <h3 className="dash-section-title">
-              <Target size={18} className="dash-section-icon" />
+              <Icons8Icon name="goal" size={18} className="dash-section-icon" />
               ProDoc Indicator Progress
             </h3>
             <p className="dash-section-desc">Progress towards VCAP2 Project Document targets for new and existing conservation areas (from ProDoc Tracker data).</p>
@@ -410,7 +384,7 @@ const Dashboard: FC = () => {
         <div className="dash-section-header">
           <div>
             <h3 className="dash-section-title">
-              <Target size={18} className="dash-section-icon" />
+              <Icons8Icon name="goal" size={18} className="dash-section-icon" />
               30x30 Target Progress
             </h3>
             <p className="dash-section-desc">Progress towards Vanuatu's commitment under the Global Biodiversity Framework to protect 30% of land and sea areas by 2030.</p>
@@ -525,7 +499,7 @@ const Dashboard: FC = () => {
         {/* Mapping status from ProDoc Tracker */}
         <div className="dash-panel">
           <h3 className="dash-section-title">
-            <Activity size={18} className="dash-section-icon" />
+            <Icons8Icon name="activity" size={18} className="dash-section-icon" />
             Mapping Status
           </h3>
           {mappingPieData.length > 0 ? (
@@ -556,22 +530,22 @@ const Dashboard: FC = () => {
               </div>
               <div className="dash-status-legend">
                 <div className="dash-status-item">
-                  <CircleCheckBig size={16} color={CHART_COLORS.green} />
+                  <Icons8Icon name="approval" size={16} color={CHART_COLORS.green} />
                   <span className="dash-status-count">{mappingCompleted}</span>
                   <span className="dash-status-label">Completed</span>
                 </div>
                 <div className="dash-status-item">
-                  <Clock size={16} color={CHART_COLORS.amber} />
+                  <Icons8Icon name="clock" size={16} color={CHART_COLORS.amber} />
                   <span className="dash-status-count">{mappingInProgress}</span>
                   <span className="dash-status-label">In Progress</span>
                 </div>
                 <div className="dash-status-item">
-                  <CircleDashed size={16} color={CHART_COLORS.gray} />
+                  <Icons8Icon name="checked" size={16} color={CHART_COLORS.gray} />
                   <span className="dash-status-count">{mappingNotStarted}</span>
                   <span className="dash-status-label">Not Started</span>
                 </div>
                 <div className="dash-status-item">
-                  <Layers size={16} color={CHART_COLORS.cyan} />
+                  <Icons8Icon name="layers" size={16} color={CHART_COLORS.cyan} />
                   <span className="dash-status-count">{totalSites}</span>
                   <span className="dash-status-label">Total Sites</span>
                 </div>
@@ -585,31 +559,31 @@ const Dashboard: FC = () => {
         {/* GIS data overview */}
         <div className="dash-panel">
           <h3 className="dash-section-title">
-            <Database size={18} className="dash-section-icon" />
+            <Icons8Icon name="database" size={18} className="dash-section-icon" />
             GIS Database
           </h3>
           <div className="dash-status-legend">
             <div className="dash-status-item">
-              <Layers size={16} color={CHART_COLORS.purple} />
+              <Icons8Icon name="layers" size={16} color={CHART_COLORS.purple} />
               <span className="dash-status-count">{totalFiles}</span>
               <span className="dash-status-label">Datasets</span>
             </div>
             <div className="dash-status-item">
-              <Database size={16} color={CHART_COLORS.amber} />
+              <Icons8Icon name="hdd" size={16} color={CHART_COLORS.amber} />
               <span className="dash-status-count">{formatBytes(totalSize)}</span>
               <span className="dash-status-label">Total Size</span>
             </div>
             <div className="dash-status-item">
-              <Layers size={16} color={CHART_COLORS.cyan} />
+              <Icons8Icon name="layers" size={16} color={CHART_COLORS.cyan} />
               <span className="dash-status-count">{totalFeatures.toLocaleString()}</span>
               <span className="dash-status-label">GIS Features</span>
             </div>
           </div>
           <h4 className="dash-section-subtitle">Supported File Types</h4>
           <div className="dash-file-types">
-            {Object.entries(FILE_TYPE_ICONS).map(([ft, Icon]) => (
+            {Object.entries(FILE_TYPE_ICON_MAP).map(([ft, iconName]) => (
               <div key={ft} className="dash-file-type">
-                <Icon size={16} className="dash-ft-icon" />
+                <Icons8Icon name={iconName} size={16} className="dash-ft-icon" />
                 <span>{ft}</span>
               </div>
             ))}
@@ -620,7 +594,7 @@ const Dashboard: FC = () => {
         {provinceBarData.length > 0 && (
           <div className="dash-panel dash-panel-wide">
             <h3 className="dash-section-title">
-              <MapPinned size={18} className="dash-section-icon" />
+              <Icons8Icon name="map-pin" size={18} className="dash-section-icon" />
               Coverage by Province
             </h3>
             <div className="dash-province-chart">

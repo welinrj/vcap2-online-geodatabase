@@ -1,14 +1,5 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react'
-import {
-  UserPlus,
-  Trash2,
-  KeyRound,
-  Shield,
-  Edit3,
-  Check,
-  X,
-  AlertTriangle,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import type { UserProfile, UserRole } from '../../types/user'
 import { listUsers, updateUser, deleteUserProfile } from '../../services/userStore'
 import './UserManagement.css'
@@ -178,7 +169,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
     return (
       <div className="um">
         <div className="um-no-access">
-          <Shield size={48} />
+          <Icons8Icon name="globe" size={48} />
           <h2>Access Denied</h2>
           <p>Only administrators can manage users.</p>
         </div>
@@ -197,14 +188,14 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
           className="um-btn um-btn-primary"
           onClick={() => setShowCreateForm(!showCreateForm)}
         >
-          <UserPlus size={16} />
+          <Icons8Icon name="add-user-male" size={16} />
           {showCreateForm ? 'Cancel' : 'Create User'}
         </button>
       </div>
 
       {actionMsg.text && (
         <div className={`um-alert um-alert-${actionMsg.type}`} onClick={() => setActionMsg({ text: '', type: '' })}>
-          {actionMsg.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
+          {actionMsg.type === 'success' ? <Icons8Icon name="ok" size={16} /> : <Icons8Icon name="error" size={16} />}
           {actionMsg.text}
         </div>
       )}
@@ -223,7 +214,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
       {showCreateForm && (
         <div className="um-card um-create-form-card">
           <h3 className="um-card-title">
-            <UserPlus size={18} />
+            <Icons8Icon name="add-user-male" size={18} />
             Create New User
           </h3>
           <form className="um-create-form" onSubmit={handleCreateUser}>
@@ -288,7 +279,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
       {/* Users Table */}
       <div className="um-card">
         <h3 className="um-card-title">
-          <Shield size={18} />
+          <Icons8Icon name="globe" size={18} />
           All Users ({users.length})
         </h3>
         {loading ? (
@@ -343,14 +334,14 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                             onClick={() => handleChangeRole(user.id, editRoleValue)}
                             title="Save"
                           >
-                            <Check size={14} />
+                            <Icons8Icon name="ok" size={14} />
                           </button>
                           <button
                             className="um-icon-btn"
                             onClick={() => setEditRoleId(null)}
                             title="Cancel"
                           >
-                            <X size={14} />
+                            <Icons8Icon name="cancel" size={14} />
                           </button>
                         </div>
                       ) : (
@@ -392,14 +383,14 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                               onClick={() => handleChangePassword(user.id)}
                               title="Set password"
                             >
-                              <Check size={14} />
+                              <Icons8Icon name="ok" size={14} />
                             </button>
                             <button
                               className="um-icon-btn"
                               onClick={() => { setPasswordResetId(null); setPasswordResetMsg('') }}
                               title="Cancel"
                             >
-                              <X size={14} />
+                              <Icons8Icon name="cancel" size={14} />
                             </button>
                             {passwordResetMsg && (
                               <span className="um-inline-msg">{passwordResetMsg}</span>
@@ -412,7 +403,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                               onClick={() => { setPasswordResetId(user.id); setNewPasswordValue('') }}
                               title="Change password"
                             >
-                              <KeyRound size={14} />
+                              <Icons8Icon name="key" size={14} />
                             </button>
                             {user.id !== currentUser?.id && (
                               <>
@@ -424,7 +415,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                                   }}
                                   title="Change role"
                                 >
-                                  <Edit3 size={14} />
+                                  <Icons8Icon name="edit" size={14} />
                                 </button>
                                 {/* Delete */}
                                 {deleteConfirmId === user.id ? (
@@ -435,14 +426,14 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                                       onClick={() => handleDeleteUser(user.id)}
                                       title="Confirm delete"
                                     >
-                                      <Check size={14} />
+                                      <Icons8Icon name="ok" size={14} />
                                     </button>
                                     <button
                                       className="um-icon-btn"
                                       onClick={() => setDeleteConfirmId(null)}
                                       title="Cancel"
                                     >
-                                      <X size={14} />
+                                      <Icons8Icon name="cancel" size={14} />
                                     </button>
                                   </div>
                                 ) : (
@@ -451,7 +442,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                                     onClick={() => setDeleteConfirmId(user.id)}
                                     title="Delete user"
                                   >
-                                    <Trash2 size={14} />
+                                    <Icons8Icon name="trash" size={14} />
                                   </button>
                                 )}
                               </>

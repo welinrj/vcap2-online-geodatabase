@@ -21,26 +21,7 @@ import {
 } from '../../services/fileManagerStore'
 import { setupDefaultFolders } from '../../services/fileManagerSetup'
 import { listUsers } from '../../services/userStore'
-import {
-  FolderPlus,
-  Upload,
-  Trash2,
-  Download,
-  Share2,
-  FolderOpen,
-  FileIcon,
-  ChevronRight,
-  ArrowLeft,
-  Send,
-  X,
-  Inbox,
-  Edit3,
-  Check,
-  FileImage,
-  FileText,
-  FileSpreadsheet,
-  FileArchive,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import './FileManager.css'
 
 interface FileManagerProps {
@@ -49,20 +30,21 @@ interface FileManagerProps {
 
 type Tab = 'my-files' | 'shared-with-me' | 'sent'
 
-const FILE_ICON_MAP: Record<string, typeof FileIcon> = {
-  'image/': FileImage,
-  'text/': FileText,
-  'application/pdf': FileText,
-  'application/vnd.': FileSpreadsheet,
-  'application/zip': FileArchive,
-  'application/x-zip': FileArchive,
-}
+/** Map MIME prefix to Icons8 icon name (null = use Lucide fallback) */
+const FILE_ICON_NAME_MAP: [string, string | null][] = [
+  ['image/', 'image-file'],
+  ['text/', 'pdf'],
+  ['application/pdf', 'pdf'],
+  ['application/vnd.', 'xls'],
+  ['application/zip', null],
+  ['application/x-zip', null],
+]
 
-function getFileIcon(mimeType: string) {
-  for (const [prefix, Icon] of Object.entries(FILE_ICON_MAP)) {
-    if (mimeType.startsWith(prefix)) return Icon
+function getFileIcons8Name(mimeType: string): string | null {
+  for (const [prefix, name] of FILE_ICON_NAME_MAP) {
+    if (mimeType.startsWith(prefix)) return name
   }
-  return FileIcon
+  return null
 }
 
 const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
@@ -321,16 +303,16 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       {/* Tabs */}
       <div className="fm-tabs">
         <button className={`fm-tab ${tab === 'my-files' ? 'fm-tab-active' : ''}`} onClick={() => setTab('my-files')}>
-          <FolderOpen size={16} /> My Files
+          <Icons8Icon name="opened-folder" size={16} /> My Files
         </button>
         <button
           className={`fm-tab ${tab === 'shared-with-me' ? 'fm-tab-active' : ''}`}
           onClick={() => setTab('shared-with-me')}
         >
-          <Inbox size={16} /> Shared with Me
+          <Icons8Icon name="opened-folder" size={16} /> Shared with Me
         </button>
         <button className={`fm-tab ${tab === 'sent' ? 'fm-tab-active' : ''}`} onClick={() => setTab('sent')}>
-          <Send size={16} /> Sent
+          <Icons8Icon name="chat" size={16} /> Sent
         </button>
       </div>
 
@@ -341,7 +323,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
           <div className="fm-breadcrumb">
             {breadcrumb.map((b, i) => (
               <span key={b.id ?? 'root'} className="fm-breadcrumb-item">
-                {i > 0 && <ChevronRight size={14} className="fm-breadcrumb-sep" />}
+                {i > 0 && <Icons8Icon name="chevron-right" size={14} className="fm-breadcrumb-sep" />}
                 <button
                   className={`fm-breadcrumb-btn ${i === breadcrumb.length - 1 ? 'fm-breadcrumb-current' : ''}`}
                   onClick={() => navigateToBreadcrumb(i)}
@@ -356,15 +338,15 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
           <div className="fm-toolbar">
             {breadcrumb.length > 1 && (
               <button className="fm-btn fm-btn-secondary" onClick={() => navigateToBreadcrumb(breadcrumb.length - 2)}>
-                <ArrowLeft size={16} /> Back
+                <Icons8Icon name="back" size={16} /> Back
               </button>
             )}
             <button className="fm-btn fm-btn-primary" onClick={() => setShowNewFolder(true)}>
-              <FolderPlus size={16} /> New Folder
+              <Icons8Icon name="plus" size={16} /> New Folder
             </button>
             {currentFolderId && (
               <button className="fm-btn fm-btn-primary" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                <Upload size={16} /> {uploading ? 'Uploading...' : 'Upload Files'}
+                <Icons8Icon name="upload" size={16} /> {uploading ? 'Uploading...' : 'Upload Files'}
               </button>
             )}
             <input
@@ -413,7 +395,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
               {folders.map((folder) => (
                 <div key={folder.id} className="fm-item fm-item-folder" onDoubleClick={() => navigateToFolder(folder)}>
                   <div className="fm-item-icon" onClick={() => navigateToFolder(folder)}>
-                    <FolderOpen size={32} />
+                    <Icons8Icon name="opened-folder" size={32} />
                   </div>
                   <div className="fm-item-info">
                     {renamingId === folder.id ? (
@@ -429,7 +411,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                           autoFocus
                         />
                         <button className="fm-icon-btn" onClick={() => handleRenameFolder(folder.id)}>
-                          <Check size={14} />
+                          <Icons8Icon name="ok" size={14} />
                         </button>
                       </div>
                     ) : (
@@ -447,21 +429,21 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                         setRenameValue(folder.name)
                       }}
                     >
-                      <Edit3 size={14} />
+                      <Icons8Icon name="edit" size={14} />
                     </button>
                     <button
                       className="fm-icon-btn"
                       title="Share"
                       onClick={() => openShareModal('folder', folder.id, folder.name)}
                     >
-                      <Share2 size={14} />
+                      <Icons8Icon name="share" size={14} />
                     </button>
                     <button
                       className="fm-icon-btn fm-icon-btn-danger"
                       title="Delete"
                       onClick={() => handleDeleteFolder(folder)}
                     >
-                      <Trash2 size={14} />
+                      <Icons8Icon name="trash" size={14} />
                     </button>
                   </div>
                 </div>
@@ -469,11 +451,11 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
 
               {/* Files */}
               {files.map((file) => {
-                const Icon = getFileIcon(file.mimeType)
+                const iconName = getFileIcons8Name(file.mimeType) ?? 'file'
                 return (
                   <div key={file.id} className="fm-item fm-item-file">
                     <div className="fm-item-icon">
-                      <Icon size={32} />
+                      <Icons8Icon name={iconName} size={32} />
                     </div>
                     <div className="fm-item-info">
                       <span className="fm-item-name">{file.name}</span>
@@ -481,21 +463,21 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                     </div>
                     <div className="fm-item-actions">
                       <button className="fm-icon-btn" title="Download" onClick={() => handleDownloadFile(file)}>
-                        <Download size={14} />
+                        <Icons8Icon name="download" size={14} />
                       </button>
                       <button
                         className="fm-icon-btn"
                         title="Share"
                         onClick={() => openShareModal('file', file.id, file.name)}
                       >
-                        <Share2 size={14} />
+                        <Icons8Icon name="share" size={14} />
                       </button>
                       <button
                         className="fm-icon-btn fm-icon-btn-danger"
                         title="Delete"
                         onClick={() => handleDeleteFile(file)}
                       >
-                        <Trash2 size={14} />
+                        <Icons8Icon name="trash" size={14} />
                       </button>
                     </div>
                   </div>
@@ -505,7 +487,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
               {/* Empty state */}
               {folders.length === 0 && files.length === 0 && (
                 <div className="fm-empty">
-                  <FolderOpen size={48} />
+                  <Icons8Icon name="opened-folder" size={48} />
                   <p>{currentFolderId ? 'This folder is empty' : 'No folders yet. Create one to get started.'}</p>
                 </div>
               )}
@@ -519,14 +501,14 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
         <div className="fm-share-list">
           {sharedWithMe.length === 0 ? (
             <div className="fm-empty">
-              <Inbox size={48} />
+              <Icons8Icon name="opened-folder" size={48} />
               <p>Nothing shared with you yet</p>
             </div>
           ) : (
             sharedWithMe.map((share) => (
               <div key={share.id} className="fm-share-item">
                 <div className="fm-share-icon">
-                  {share.itemType === 'folder' ? <FolderOpen size={20} /> : <FileIcon size={20} />}
+                  {share.itemType === 'folder' ? <Icons8Icon name="opened-folder" size={20} /> : <Icons8Icon name="file" size={20} />}
                 </div>
                 <div className="fm-share-info">
                   <span className="fm-share-name">{share.itemName}</span>
@@ -538,7 +520,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                 <div className="fm-share-actions">
                   {share.itemType === 'file' && (
                     <button className="fm-icon-btn" title="Download" onClick={() => handleDownloadShared(share)}>
-                      <Download size={14} />
+                      <Icons8Icon name="download" size={14} />
                     </button>
                   )}
                   <button
@@ -546,7 +528,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                     title="Remove"
                     onClick={() => handleRemoveShare(share.id)}
                   >
-                    <X size={14} />
+                    <Icons8Icon name="cancel" size={14} />
                   </button>
                 </div>
               </div>
@@ -560,14 +542,14 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
         <div className="fm-share-list">
           {sentShares.length === 0 ? (
             <div className="fm-empty">
-              <Send size={48} />
+              <Icons8Icon name="send" size={48} />
               <p>You haven't sent anything yet</p>
             </div>
           ) : (
             sentShares.map((share) => (
               <div key={share.id} className="fm-share-item">
                 <div className="fm-share-icon">
-                  {share.itemType === 'folder' ? <FolderOpen size={20} /> : <FileIcon size={20} />}
+                  {share.itemType === 'folder' ? <Icons8Icon name="opened-folder" size={20} /> : <Icons8Icon name="file" size={20} />}
                 </div>
                 <div className="fm-share-info">
                   <span className="fm-share-name">{share.itemName}</span>
@@ -582,7 +564,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                     title="Revoke"
                     onClick={() => handleRemoveShare(share.id)}
                   >
-                    <Trash2 size={14} />
+                    <Icons8Icon name="trash" size={14} />
                   </button>
                 </div>
               </div>
@@ -597,10 +579,10 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
           <div className="fm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="fm-modal-header">
               <h3>
-                <Share2 size={18} /> Share "{shareModal.name}"
+                <Icons8Icon name="share" size={18} /> Share "{shareModal.name}"
               </h3>
               <button className="fm-icon-btn" onClick={() => setShareModal(null)}>
-                <X size={18} />
+                <Icons8Icon name="cancel" size={18} />
               </button>
             </div>
             <div className="fm-modal-body">
@@ -628,7 +610,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                 Cancel
               </button>
               <button className="fm-btn fm-btn-primary" onClick={handleShare} disabled={!shareTargetId}>
-                <Send size={14} /> Send
+                <Icons8Icon name="send" size={14} /> Send
               </button>
             </div>
           </div>

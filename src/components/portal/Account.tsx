@@ -1,5 +1,5 @@
 import { useState, useRef, type FC, type ChangeEvent, type FormEvent } from 'react'
-import { Camera, Save, User, Phone, Mail, Briefcase } from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import { updateUser } from '../../services/userStore'
 import type { UserProfile } from '../../types/user'
 import './Account.css'
@@ -34,7 +34,7 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
     return (
       <div className="data-portal">
         <div className="acc-no-access">
-          <User size={48} />
+          <Icons8Icon name="user" size={48} />
           <h2>Account Settings</h2>
           <p>Please log in to manage your account.</p>
         </div>
@@ -130,7 +130,7 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
                   </span>
                 )}
                 <span className="acc-avatar-overlay">
-                  <Camera size={20} />
+                  <Icons8Icon name="camera" size={20} />
                 </span>
               </button>
               <input
@@ -150,14 +150,14 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
           {/* Profile fields */}
           <div className="acc-card">
             <h2 className="acc-card-title">
-              <User size={16} />
+              <Icons8Icon name="user" size={16} />
               Personal Information
             </h2>
 
             <div className="acc-form-grid">
               <div className="acc-form-group">
                 <label className="acc-label" htmlFor="acc-name">
-                  <User size={14} />
+                  <Icons8Icon name="user" size={14} />
                   Full Name *
                 </label>
                 <input
@@ -173,7 +173,7 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
 
               <div className="acc-form-group">
                 <label className="acc-label" htmlFor="acc-position">
-                  <Briefcase size={14} />
+                  <Icons8Icon name="briefcase" size={14} />
                   Position
                 </label>
                 <input
@@ -188,7 +188,7 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
 
               <div className="acc-form-group">
                 <label className="acc-label" htmlFor="acc-email">
-                  <Mail size={14} />
+                  <Icons8Icon name="mail" size={14} />
                   Email Address
                 </label>
                 <input
@@ -203,7 +203,7 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
 
               <div className="acc-form-group">
                 <label className="acc-label" htmlFor="acc-phone">
-                  <Phone size={14} />
+                  <Icons8Icon name="phone" size={14} />
                   Phone Number
                 </label>
                 <input
@@ -225,7 +225,7 @@ const Account: FC<AccountProps> = ({ currentUser, onUserUpdated }) => {
               className="acc-btn acc-btn-primary"
               disabled={saving}
             >
-              <Save size={16} />
+              <Icons8Icon name="save" size={16} />
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
