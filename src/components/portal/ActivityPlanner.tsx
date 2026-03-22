@@ -140,9 +140,14 @@ const ActivityPlanner: FC<ActivityPlannerProps> = ({ currentUser }) => {
         <div className="portal-empty">
           <p>{activities.length === 0 ? 'No activities planned yet.' : 'No activities match the current filters.'}</p>
           {activities.length === 0 && (
-            <p style={{ fontSize: '0.82rem', marginTop: '0.5rem' }}>
-              Plan field surveys, boundary mapping, community consultations, and more for your CCAs and MPAs.
-            </p>
+            <>
+              <p style={{ fontSize: '0.82rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
+                Plan field surveys, boundary mapping, community consultations, and more for your CCAs and MPAs.
+              </p>
+              <button className="btn btn-primary ap-empty-cta" onClick={() => setShowForm(true)}>
+                + Plan Your First Activity
+              </button>
+            </>
           )}
         </div>
       ) : (
