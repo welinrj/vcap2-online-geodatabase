@@ -433,6 +433,36 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
   overflow: hidden;
   min-width: 0;
+  position: relative;
+}
+
+/* Faded theme background for indicator progress cards */
+.dash-indicator-card::before {
+  content: '';
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 130px;
+  height: 130px;
+  opacity: 0.05;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: bottom right;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='%23477A6E'%3E%3Ccircle cx='80' cy='80' r='55' fill='none' stroke='%23477A6E' stroke-width='12' stroke-dasharray='120 230'/%3E%3Ccircle cx='80' cy='80' r='38' fill='none' stroke='%23477A6E' stroke-width='6' stroke-dasharray='80 160'/%3E%3Cpath d='M80 30v10M80 120v10M30 80h10M120 80h10' stroke='%23477A6E' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M50 50l7 7M103 103l7 7M103 50l7-7M50 103l-7 7' stroke='%23477A6E' stroke-width='2' stroke-linecap='round'/%3E%3Cpolygon points='80,55 85,70 80,66 75,70' /%3E%3C/svg%3E");
+}
+
+/* Per-indicator themed backgrounds — CCA terrestrial cards */
+.dash-indicator-card:nth-child(1)::before,
+.dash-indicator-card:nth-child(2)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='%232D5E5A'%3E%3Cpath d='M80 15c-22 0-42 18-42 42 0 12 5 22 12 30-4 6-6 14-6 22 0 16 10 30 24 36v10h24v-10c14-6 24-20 24-36 0-8-2-16-6-22 7-8 12-18 12-30 0-24-20-42-42-42z'/%3E%3Crect x='76' y='145' width='8' height='12' rx='2'/%3E%3Ccircle cx='40' cy='30' r='3'/%3E%3Ccircle cx='125' cy='25' r='4'/%3E%3Cpath d='M30 45c8-4 14 0 18 6M130 45c-8-4-14 0-18 6' fill='none' stroke='%232D5E5A' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+/* Per-indicator themed backgrounds — MPA marine cards */
+.dash-indicator-card:nth-child(3)::before,
+.dash-indicator-card:nth-child(4)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='%23E39341'%3E%3Cpath d='M10 85c12-16 24-16 36 0s24 16 36 0 24-16 36 0 24 16 36 0' fill='none' stroke='%23E39341' stroke-width='3.5'/%3E%3Cpath d='M10 110c12-14 24-14 36 0s24 14 36 0 24-14 36 0 24 14 36 0' fill='none' stroke='%23E39341' stroke-width='2.5'/%3E%3Cpath d='M10 132c12-10 24-10 36 0s24 10 36 0 24-10 36 0 24 10 36 0' fill='none' stroke='%23E39341' stroke-width='1.5'/%3E%3Cpath d='M75 40c-12-4-20 4-20 12s8 16 20 12c-4 6 4 10 8 6 6 5 14 0 12-8 10 2 12-8 4-12 4-8-4-16-12-14-4-6-12-4-12 4z'/%3E%3Ccircle cx='68' cy='46' r='2' fill='white'/%3E%3Cpath d='M52 50l-12 4 12-1.5z'/%3E%3C/svg%3E");
 }
 
 .dash-indicator-card:hover {
@@ -536,11 +566,44 @@
   padding: 1.25rem;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
   overflow: hidden;
+  position: relative;
+}
+
+/* Faded theme background illustrations for 30x30 cards */
+.dash-30x30-card::before {
+  content: '';
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  width: 180px;
+  height: 180px;
+  opacity: 0.06;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: bottom right;
+  z-index: 0;
+}
+
+/* Terrestrial CCA card — tree / leaf silhouette */
+.dash-30x30-card:first-child::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='%232D5E5A'%3E%3Cpath d='M100 20c-30 0-55 25-55 55 0 15 6 28 16 38-5 8-8 18-8 28 0 20 12 37 30 45v14h34v-14c18-8 30-25 30-45 0-10-3-20-8-28 10-10 16-23 16-38 0-30-25-55-55-55z'/%3E%3Crect x='95' y='160' width='10' height='30' rx='2'/%3E%3Cpath d='M60 185c20-8 40-8 60-8s40 0 60 8' fill='none' stroke='%232D5E5A' stroke-width='3'/%3E%3Cpath d='M40 50c10-5 20 0 25 8M160 50c-10-5-20 0-25 8' fill='none' stroke='%232D5E5A' stroke-width='2'/%3E%3Ccircle cx='50' cy='35' r='4'/%3E%3Ccircle cx='150' cy='35' r='4'/%3E%3Ccircle cx='30' cy='60' r='3'/%3E%3Ccircle cx='170' cy='60' r='3'/%3E%3C/svg%3E");
+}
+
+/* Marine MPA card — wave / fish silhouette */
+.dash-30x30-card:last-child::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='%23E39341'%3E%3Cpath d='M20 100c15-20 30-20 45 0s30 20 45 0 30-20 45 0 30 20 45 0' fill='none' stroke='%23E39341' stroke-width='4'/%3E%3Cpath d='M20 130c15-20 30-20 45 0s30 20 45 0 30-20 45 0 30 20 45 0' fill='none' stroke='%23E39341' stroke-width='3'/%3E%3Cpath d='M20 155c15-15 30-15 45 0s30 15 45 0 30-15 45 0 30 15 45 0' fill='none' stroke='%23E39341' stroke-width='2'/%3E%3Cpath d='M90 55c-15-5-25 5-25 15s10 20 25 15c-5 8 5 12 10 8 8 6 18 0 15-10 12 2 15-10 5-15 5-10-5-20-15-18-5-8-15-5-15 5z'/%3E%3Ccircle cx='82' cy='62' r='2.5' fill='white'/%3E%3Cpath d='M60 65l-15 5 15-2z'/%3E%3C/svg%3E");
 }
 
 .dash-30x30-card:hover {
   box-shadow: var(--shadow);
   transform: translateY(-1px);
+}
+
+.dash-30x30-card > *,
+.dash-indicator-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .dash-30x30-header {
