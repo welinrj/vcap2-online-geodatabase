@@ -20,15 +20,15 @@ interface AnimatedToastProps {
   onClick?: () => void
 }
 
-const THEME_CONFIG: Record<ToastTheme, { icon: typeof Info; color: string; bgAccent: string }> = {
-  success: { icon: CheckCircle2, color: '#22c55e', bgAccent: 'rgba(34, 197, 94, 0.12)' },
-  error: { icon: AlertCircle, color: '#ef4444', bgAccent: 'rgba(239, 68, 68, 0.12)' },
-  info: { icon: Info, color: '#3b82f6', bgAccent: 'rgba(59, 130, 246, 0.12)' },
-  message: { icon: MessageSquare, color: '#3b82f6', bgAccent: 'rgba(59, 130, 246, 0.12)' },
-  call: { icon: Phone, color: '#22c55e', bgAccent: 'rgba(34, 197, 94, 0.12)' },
-  videocall: { icon: Video, color: '#a855f7', bgAccent: 'rgba(168, 85, 247, 0.12)' },
-  attachment: { icon: Paperclip, color: '#f59e0b', bgAccent: 'rgba(245, 158, 11, 0.12)' },
-  group: { icon: Users, color: '#06b6d4', bgAccent: 'rgba(6, 182, 212, 0.12)' },
+const THEME_CONFIG: Record<ToastTheme, { icon: string; color: string; bgAccent: string }> = {
+  success: { icon: 'approval', color: '#22c55e', bgAccent: 'rgba(34, 197, 94, 0.12)' },
+  error: { icon: 'error', color: '#ef4444', bgAccent: 'rgba(239, 68, 68, 0.12)' },
+  info: { icon: 'info', color: '#3b82f6', bgAccent: 'rgba(59, 130, 246, 0.12)' },
+  message: { icon: 'chat', color: '#3b82f6', bgAccent: 'rgba(59, 130, 246, 0.12)' },
+  call: { icon: 'phone', color: '#22c55e', bgAccent: 'rgba(34, 197, 94, 0.12)' },
+  videocall: { icon: 'video-call', color: '#a855f7', bgAccent: 'rgba(168, 85, 247, 0.12)' },
+  attachment: { icon: 'paperclip', color: '#f59e0b', bgAccent: 'rgba(245, 158, 11, 0.12)' },
+  group: { icon: 'group', color: '#06b6d4', bgAccent: 'rgba(6, 182, 212, 0.12)' },
 }
 
 export function AnimatedToast({
@@ -47,7 +47,6 @@ export function AnimatedToast({
   const progressRef = useRef(100)
 
   const config = THEME_CONFIG[theme]
-  const Icon = config.icon
 
   const dismiss = useCallback(() => {
     setState('exiting')
@@ -106,7 +105,7 @@ export function AnimatedToast({
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
         style={{ backgroundColor: config.bgAccent }}
       >
-        <Icon size={18} style={{ color: config.color }} />
+        <Icons8Icon name={config.icon} size={18} color={config.color} />
       </div>
 
       {/* Content */}
