@@ -15,6 +15,7 @@ import {
   type ActivityStatus,
   type ActivityPriority,
 } from '../../services/activityStore'
+import './DataPortal.css'
 import './ActivityPlanner.css'
 
 interface ActivityPlannerProps {
