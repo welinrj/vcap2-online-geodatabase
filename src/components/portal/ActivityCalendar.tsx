@@ -1,27 +1,6 @@
 import { useState, useEffect, useMemo, type FC } from 'react'
 import type { UserProfile } from '../../types/user'
-import {
-  listAllActivities,
-  getActivitiesForDate,
-  ACTIVITY_TYPES,
-  STATUS_LABELS,
-  PRIORITY_LABELS,
-  type Activity,
-} from '../../services/activityStore'
-import { listUsers } from '../../services/userStore'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Clock,
-  MapPin,
-  User,
-  Users,
-  X,
-  Circle,
-  CheckCircle2,
-  XCircle,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import './ActivityCalendar.css'
 
 interface ActivityCalendarProps {
@@ -201,7 +180,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
       <div className="ac-header">
         <div className="ac-header-left">
           <h2 className="ac-title">
-            <Calendar size={22} /> Activity Calendar
+            <Icons8Icon name="calendar" size={22} /> Activity Calendar
           </h2>
           <span className="ac-subtitle">
             View schedules and team availability
@@ -209,7 +188,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
         </div>
         <div className="ac-header-right">
           <label className="ac-filter-label">
-            <Users size={14} /> Show:
+            <Icons8Icon name="group" size={14} /> Show:
           </label>
           <select
             className="ac-filter-select"
@@ -233,11 +212,11 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
             {/* Month nav */}
             <div className="ac-month-nav">
               <button className="ac-nav-btn" onClick={prevMonth}>
-                <ChevronLeft size={18} />
+                <Icons8Icon name="chevron-left" size={18} />
               </button>
               <h3 className="ac-month-title">{MONTHS[month]} {year}</h3>
               <button className="ac-nav-btn" onClick={nextMonth}>
-                <ChevronRight size={18} />
+                <Icons8Icon name="chevron-right" size={18} />
               </button>
               <button className="ac-today-btn" onClick={goToToday}>Today</button>
             </div>
@@ -312,7 +291,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                     })}
                   </h4>
                   <button className="ac-close-btn" onClick={() => setSelectedDate(null)}>
-                    <X size={16} />
+                    <Icons8Icon name="cancel" size={16} />
                   </button>
                 </div>
                 {selectedDateActivities.length === 0 ? (
@@ -332,7 +311,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                             <span className="ac-activity-title">{a.title}</span>
                           </div>
                           <div className="ac-activity-meta">
-                            <span><User size={12} /> {a.assignedToName || a.createdByName || 'Unassigned'}</span>
+                            <span><Icons8Icon name="user" size={12} /> {a.assignedToName || a.createdByName || 'Unassigned'}</span>
                             <span className="badge badge-format">{ACTIVITY_TYPES[a.type]}</span>
                           </div>
                         </button>
@@ -345,7 +324,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
               /* Team availability */
               <div className="ac-availability">
                 <h4 className="ac-avail-title">
-                  <Users size={16} /> Team Availability — {MONTHS[month]}
+                  <Icons8Icon name="group" size={16} /> Team Availability — {MONTHS[month]}
                 </h4>
                 {userAvailability.length === 0 ? (
                   <p className="ac-no-activities">No scheduled activities this month</p>
@@ -401,7 +380,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
             <div className="ac-modal-header">
               <h3>{selectedActivity.title}</h3>
               <button className="ac-close-btn" onClick={() => setSelectedActivity(null)}>
-                <X size={18} />
+                <Icons8Icon name="cancel" size={18} />
               </button>
             </div>
             <div className="ac-modal-body">
@@ -426,17 +405,17 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                   </span>
                 </div>
                 <div className="ac-modal-field">
-                  <span className="ac-modal-label"><User size={13} /> Assigned To</span>
+                  <span className="ac-modal-label"><Icons8Icon name="user" size={13} /> Assigned To</span>
                   <span>{selectedActivity.assignedToName || selectedActivity.createdByName || 'Unassigned'}</span>
                 </div>
                 {selectedActivity.areaName && (
                   <div className="ac-modal-field">
-                    <span className="ac-modal-label"><MapPin size={13} /> Area</span>
+                    <span className="ac-modal-label"><Icons8Icon name="map-pin" size={13} /> Area</span>
                     <span>{selectedActivity.areaName}</span>
                   </div>
                 )}
                 <div className="ac-modal-field">
-                  <span className="ac-modal-label"><Calendar size={13} /> Dates</span>
+                  <span className="ac-modal-label"><Icons8Icon name="calendar" size={13} /> Dates</span>
                   <span>
                     {selectedActivity.startDate}
                     {selectedActivity.endDate && selectedActivity.endDate !== selectedActivity.startDate

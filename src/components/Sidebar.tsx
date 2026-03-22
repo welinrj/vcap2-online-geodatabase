@@ -1,19 +1,6 @@
 import type { FC } from 'react'
 import type { UserProfile } from '../types/user'
-import {
-  LayoutDashboard,
-  Database,
-  Globe,
-  FileBarChart2,
-  CalendarDays,
-  LogOut,
-  LogIn,
-  Users,
-  FolderOpen,
-  CalendarCheck,
-  MessageSquare,
-  UserCog,
-} from 'lucide-react'
+import Icons8Icon from './Icons8Icon'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import coatOfArms from '../../assets/vanuatu-coat-of-arms.png'
 
@@ -31,12 +18,12 @@ const publicNavItems = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: <LayoutDashboard className="nav-icon" size={18} />,
+    icon: 'dashboard',
   },
   {
     id: 'prodoc-tracker',
     label: 'ProDoc Tracker',
-    icon: <FileBarChart2 className="nav-icon" size={18} />,
+    icon: 'statistics',
   },
 ]
 
@@ -45,32 +32,32 @@ const authNavItems = [
   {
     id: 'gis-database',
     label: 'GIS Database',
-    icon: <Database className="nav-icon" size={18} />,
+    icon: 'database',
   },
   {
     id: 'protected-areas',
     label: 'CCAs & MPAs',
-    icon: <Globe className="nav-icon" size={18} />,
+    icon: 'globe',
   },
   {
     id: 'activity-planner',
     label: 'Activity Planner',
-    icon: <CalendarDays className="nav-icon" size={18} />,
+    icon: 'calendar',
   },
   {
     id: 'file-manager',
     label: 'File Manager',
-    icon: <FolderOpen className="nav-icon" size={18} />,
+    icon: 'opened-folder',
   },
   {
     id: 'activity-calendar',
     label: 'Activity Calendar',
-    icon: <CalendarCheck className="nav-icon" size={18} />,
+    icon: 'event-accepted',
   },
   {
     id: 'messaging',
     label: 'Messages',
-    icon: <MessageSquare className="nav-icon" size={18} />,
+    icon: 'chat',
   },
 ]
 
@@ -78,7 +65,7 @@ const adminNavItems = [
   {
     id: 'user-management',
     label: 'User Management',
-    icon: <Users className="nav-icon" size={18} />,
+    icon: 'group',
     adminOnly: true,
   },
 ]
@@ -108,7 +95,7 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, onLogi
                 onClick={() => onNavigate(item.id)}
                 title={item.label}
               >
-                {item.icon}
+                <Icons8Icon name={item.icon} size={18} className="nav-icon" />
                 {item.label}
               </button>
             </li>
@@ -128,7 +115,7 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, onLogi
                     onClick={() => onNavigate(item.id)}
                     title={item.label}
                   >
-                    {item.icon}
+                    <Icons8Icon name={item.icon} size={18} className="nav-icon" />
                     {item.label}
                   </button>
                 </li>
@@ -150,7 +137,7 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, onLogi
                     onClick={() => onNavigate(item.id)}
                     title={item.label}
                   >
-                    {item.icon}
+                    <Icons8Icon name={item.icon} size={18} className="nav-icon" />
                     {item.label}
                   </button>
                 </li>
@@ -186,17 +173,17 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, onNavigate, onLogout, onLogi
                 onClick={() => onNavigate('account')}
                 title="Account Settings"
               >
-                <UserCog className="nav-icon" size={18} />
+                <Icons8Icon name="gear" size={18} className="nav-icon" />
                 Account
               </button>
               <button className="nav-item logout-btn" onClick={onLogout}>
-                <LogOut className="nav-icon" size={18} />
+                <Icons8Icon name="logout-rounded" size={18} className="nav-icon" />
                 Log Out
               </button>
             </>
           ) : (
             <button className="nav-item login-btn" onClick={onLogin}>
-              <LogIn className="nav-icon" size={18} />
+              <Icons8Icon name="enter" size={18} className="nav-icon" />
               Staff Login
             </button>
           )}

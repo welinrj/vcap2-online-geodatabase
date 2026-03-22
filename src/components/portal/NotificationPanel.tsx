@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  Bell,
-  MessageSquare,
-  Phone,
-  Video,
-  Paperclip,
-  Users,
-  Check,
-  CheckCheck,
-  X,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import type { UserProfile } from '../../types/user'
 import type { AppNotification } from '../../types/messaging'
 import {
@@ -104,11 +94,11 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
 
   const getIcon = (type: AppNotification['type']) => {
     switch (type) {
-      case 'message': return <MessageSquare size={14} />
-      case 'call': return <Phone size={14} />
-      case 'videocall': return <Video size={14} />
-      case 'attachment': return <Paperclip size={14} />
-      case 'group_invite': return <Users size={14} />
+      case 'message': return <Icons8Icon name="chat" size={14} />
+      case 'call': return <Icons8Icon name="phone" size={14} />
+      case 'videocall': return <Icons8Icon name="video-call" size={14} />
+      case 'attachment': return <Icons8Icon name="paperclip" size={14} />
+      case 'group_invite': return <Icons8Icon name="group" size={14} />
     }
   }
 
@@ -139,7 +129,7 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
       {/* Notification Bell */}
       <div className="notif-wrapper" ref={panelRef}>
         <button className="notif-bell" onClick={() => setOpen((o) => !o)}>
-          <Bell size={18} />
+          <Icons8Icon name="bell" size={18} />
           {unreadCount > 0 && (
             <span className="notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
           )}
@@ -155,7 +145,7 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
                   className="notif-mark-all"
                   onClick={() => markAllNotificationsRead(currentUser.id)}
                 >
-                  <CheckCheck size={14} /> Mark all read
+                  <Icons8Icon name="double-tick" size={14} /> Mark all read
                 </button>
               )}
             </div>
@@ -184,7 +174,7 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
                           onClick={(e) => { e.stopPropagation(); markNotificationRead(notif.id) }}
                           title="Mark read"
                         >
-                          <Check size={12} />
+                          <Icons8Icon name="ok" size={12} />
                         </button>
                       )}
                       <button
@@ -192,7 +182,7 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
                         onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id) }}
                         title="Delete"
                       >
-                        <X size={12} />
+                        <Icons8Icon name="cancel" size={12} />
                       </button>
                     </div>
                   </div>

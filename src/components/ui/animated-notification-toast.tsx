@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { X, CheckCircle2, AlertCircle, Info, MessageSquare, Phone, Video, Paperclip, Users } from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 
 /**
  * Animated Notification Toast inspired by 21st.dev notification components.
@@ -130,7 +130,7 @@ export function AnimatedToast({
           dismiss()
         }}
       >
-        <X size={14} />
+        <Icons8Icon name="cancel" size={14} />
       </button>
 
       {/* Progress bar */}

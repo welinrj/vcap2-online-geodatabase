@@ -1,20 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  MessageCircle,
-  Send,
-  Plus,
-  Users,
-  Paperclip,
-  ArrowLeft,
-  Phone,
-  Video,
-  X,
-  Search,
-  Download,
-  FileText,
-  Trash2,
-  Minimize2,
-} from 'lucide-react'
+import Icons8Icon from './Icons8Icon'
 import type { UserProfile } from '../types/user'
 import type { Conversation, Message } from '../types/messaging'
 import {
@@ -272,7 +257,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
         onClick={() => { if (!isOpen) setUnreadCount(0); setIsOpen(!isOpen) }}
         title={isOpen ? 'Close chat' : 'Open chat'}
       >
-        {isOpen ? <X size={22} /> : <MessageCircle size={22} />}
+        {isOpen ? <Icons8Icon name="cancel" size={22} /> : <Icons8Icon name="chat" size={22} />}
         {!isOpen && unreadCount > 0 && (
           <span className="chat-fab-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
         )}
@@ -283,18 +268,18 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
         <div className="chat-popup">
           <div className="chat-popup-header">
             <h4>
-              <MessageCircle size={16} />
+              <Icons8Icon name="chat" size={16} />
               Chat
             </h4>
             <div className="chat-popup-header-actions">
               <button className="msg-icon-btn" onClick={() => setShowNewChat(true)} title="New chat">
-                <Plus size={15} />
+                <Icons8Icon name="plus" size={15} />
               </button>
               <button className="msg-icon-btn" onClick={() => setShowNewGroup(true)} title="New group">
-                <Users size={15} />
+                <Icons8Icon name="group" size={15} />
               </button>
               <button className="msg-icon-btn" onClick={() => setIsOpen(false)} title="Minimize">
-                <Minimize2 size={15} />
+                <Icons8Icon name="collapse" size={15} />
               </button>
             </div>
           </div>
@@ -303,7 +288,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
           {!activeConv && !showNewChat && !showNewGroup ? (
             <div className="chat-popup-body">
               <div className="msg-search-bar">
-                <Search size={13} />
+                <Icons8Icon name="search" size={13} />
                 <input
                   type="text"
                   placeholder="Search conversations..."
@@ -339,7 +324,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                         onClick={(e) => { e.stopPropagation(); handleDeleteConv(conv.id) }}
                         title="Delete"
                       >
-                        <Trash2 size={11} />
+                        <Icons8Icon name="trash" size={11} />
                       </button>
                     </div>
                   </div>
@@ -351,7 +336,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
             <div className="chat-popup-body chat-popup-chat">
               <div className="chat-popup-chat-header">
                 <button className="chat-popup-back" onClick={clearActiveConv}>
-                  <ArrowLeft size={16} />
+                  <Icons8Icon name="back" size={16} />
                 </button>
                 <span className={`msg-conv-avatar msg-avatar-sm ${activeConv.type === 'group' ? 'msg-avatar-group' : ''}`}>
                   {getConvAvatar(activeConv)}
@@ -374,7 +359,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                       }}
                       title="Voice call"
                     >
-                      <Phone size={14} />
+                      <Icons8Icon name="phone" size={14} />
                     </button>
                     <button
                       className="msg-icon-btn"
@@ -384,7 +369,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                       }}
                       title="Video call"
                     >
-                      <Video size={14} />
+                      <Icons8Icon name="video-call" size={14} />
                     </button>
                   </div>
                 )}
@@ -408,7 +393,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                               </div>
                             ) : (
                               <div className="msg-attachment-file">
-                                <FileText size={14} />
+                                <Icons8Icon name="pdf" size={14} />
                                 <span>{msg.attachmentName}</span>
                               </div>
                             )}
@@ -418,7 +403,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                                 download={msg.attachmentName}
                                 className="msg-attachment-download"
                               >
-                                <Download size={12} /> Download
+                                <Icons8Icon name="download" size={12} /> Download
                               </a>
                             )}
                           </div>
@@ -433,7 +418,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
 
               <div className="chat-popup-input-bar">
                 <button className="msg-icon-btn" onClick={() => fileInputRef.current?.click()} title="Attach file">
-                  <Paperclip size={14} />
+                  <Icons8Icon name="paperclip" size={14} />
                 </button>
                 <input
                   ref={fileInputRef}
@@ -460,7 +445,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                   onClick={handleSend}
                   disabled={!draft.trim()}
                 >
-                  <Send size={14} />
+                  <Icons8Icon name="send" size={14} />
                 </button>
               </div>
             </div>
@@ -471,12 +456,12 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
             <div className="chat-popup-body">
               <div className="chat-popup-sub-header">
                 <button className="chat-popup-back" onClick={() => { setShowNewChat(false); setUserSearch(''); setChatError(null) }}>
-                  <ArrowLeft size={16} />
+                  <Icons8Icon name="back" size={16} />
                 </button>
                 <h5>New Chat</h5>
               </div>
               <div className="msg-search-bar">
-                <Search size={13} />
+                <Icons8Icon name="search" size={13} />
                 <input
                   type="text"
                   placeholder="Search users..."
@@ -517,7 +502,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
             <div className="chat-popup-body">
               <div className="chat-popup-sub-header">
                 <button className="chat-popup-back" onClick={() => { setShowNewGroup(false); setUserSearch(''); setSelectedUsers([]); setGroupName('') }}>
-                  <ArrowLeft size={16} />
+                  <Icons8Icon name="back" size={16} />
                 </button>
                 <h5>New Group</h5>
               </div>
@@ -533,7 +518,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                 />
               </div>
               <div className="msg-search-bar">
-                <Search size={13} />
+                <Icons8Icon name="search" size={13} />
                 <input
                   type="text"
                   placeholder="Search users..."
@@ -549,7 +534,7 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
                       <span key={uid} className="msg-selected-chip">
                         {u?.name || uid}
                         <button onClick={() => setSelectedUsers((s) => s.filter((x) => x !== uid))}>
-                          <X size={9} />
+                          <Icons8Icon name="cancel" size={9} />
                         </button>
                       </span>
                     )

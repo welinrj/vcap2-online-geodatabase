@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  Phone,
-  PhoneOff,
-  Video,
-  VideoOff,
-  Mic,
-  MicOff,
-  Monitor,
-  MonitorOff,
-  X,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import type { UserProfile } from '../../types/user'
 import type { CallSignal } from '../../types/messaging'
 import {
@@ -350,11 +340,11 @@ export default function VideoCall({
           <p>Incoming {callType} call...</p>
           <div className="vc-ringing-actions">
             <button className="vc-btn vc-btn-decline" onClick={handleDecline}>
-              <PhoneOff size={20} />
+              <Icons8Icon name="phone-disconnected" size={20} />
               <span>Decline</span>
             </button>
             <button className="vc-btn vc-btn-answer" onClick={answerCall}>
-              <Phone size={20} />
+              <Icons8Icon name="phone" size={20} />
               <span>Answer</span>
             </button>
           </div>
@@ -371,7 +361,7 @@ export default function VideoCall({
           <h3>Call {callStatus === 'declined' ? 'Declined' : 'Ended'}</h3>
           {errorMsg && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '0.5rem 0' }}>{errorMsg}</p>}
           <button className="vc-btn vc-btn-close" onClick={onClose}>
-            <X size={16} /> Close
+            <Icons8Icon name="cancel" size={16} /> Close
           </button>
         </div>
       </div>
@@ -384,7 +374,7 @@ export default function VideoCall({
         <div className="vc-header">
           <span>{remoteName} — {callStatus === 'ringing' ? 'Ringing...' : 'Connected'}</span>
           <button className="msg-icon-btn" onClick={handleHangup} title="Close">
-            <X size={16} />
+            <Icons8Icon name="cancel" size={16} />
           </button>
         </div>
         <div className="vc-videos">
@@ -414,7 +404,7 @@ export default function VideoCall({
             onClick={toggleAudio}
             title={audioEnabled ? 'Mute' : 'Unmute'}
           >
-            {audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}
+            {audioEnabled ? <Icons8Icon name="microphone" size={18} /> : <Icons8Icon name="no-microphone" size={18} />}
           </button>
           {callType === 'video' && (
             <button
@@ -422,7 +412,7 @@ export default function VideoCall({
               onClick={toggleVideo}
               title={videoEnabled ? 'Camera off' : 'Camera on'}
             >
-              {videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}
+              {videoEnabled ? <Icons8Icon name="video-call" size={18} /> : <Icons8Icon name="no-video" size={18} />}
             </button>
           )}
           {callType === 'video' && (
@@ -431,11 +421,11 @@ export default function VideoCall({
               onClick={toggleScreenShare}
               title={screenSharing ? 'Stop sharing' : 'Share screen'}
             >
-              {screenSharing ? <MonitorOff size={18} /> : <Monitor size={18} />}
+              {screenSharing ? <Icons8Icon name="monitor" size={18} /> : <Icons8Icon name="monitor" size={18} />}
             </button>
           )}
           <button className="vc-ctrl-btn vc-ctrl-hangup" onClick={handleHangup}>
-            <PhoneOff size={18} />
+            <Icons8Icon name="phone-disconnected" size={18} />
           </button>
         </div>
       </div>

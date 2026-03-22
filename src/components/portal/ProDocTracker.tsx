@@ -6,23 +6,7 @@ import {
 import { type ColumnDef } from '../../services/prodocStore'
 import { useProDoc } from '../../contexts/useProDoc'
 import { sumTerrestrial, sumMarine, isCCA, isMPA } from '../../services/prodocAnalytics'
-import {
-  ShieldCheck,
-  Waves,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  TreePine,
-  ArrowUpRight,
-  ChevronDown,
-  Plus,
-  Trash2,
-  X,
-  Columns3,
-  Save,
-  GripVertical,
-  Loader2,
-} from 'lucide-react'
+import Icons8Icon from '../Icons8Icon'
 import {
   ResponsiveContainer,
   BarChart,
@@ -269,7 +253,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     return (
       <div className="pdt">
         <div className="pdt-loading">
-          <Loader2 size={24} className="pdt-spinner" />
+          <Icons8Icon name="clock" size={24} className="pdt-spinner" />
           <span>Loading ProDoc data...</span>
         </div>
       </div>
@@ -294,16 +278,16 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
               disabled={isSaving || !isDirty}
               title={isDirty ? 'Save changes to database' : 'No unsaved changes'}
             >
-              {isSaving ? <Loader2 size={14} className="pdt-spinner" /> : <Save size={14} />}
+              {isSaving ? <Icons8Icon name="clock" size={14} className="pdt-spinner" /> : <Icons8Icon name="checkmark" size={14} />}
               {isSaving ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : saveStatus === 'error' ? 'Error' : isDirty ? 'Save Changes' : 'Saved'}
             </button>
           )}
           <span className="pdt-header-badge pdt-badge-new">
-            <TreePine size={12} />
+            <Icons8Icon name="leaf" size={12} />
             {newAreas.length} New
           </span>
           <span className="pdt-header-badge pdt-badge-existing">
-            <ArrowUpRight size={12} />
+            <Icons8Icon name="expand" size={12} />
             {existingAreas.length} Existing
           </span>
         </div>
@@ -313,7 +297,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       <div className="pdt-stats">
         <div className="pdt-stat-card pdt-stat-green">
           <div className="pdt-stat-icon">
-            <ShieldCheck size={20} />
+            <Icons8Icon name="globe" size={20} />
           </div>
           <div className="pdt-stat-info">
             <span className="pdt-stat-value">{formatHa(totalNewTerrestrial)}</span>
@@ -322,7 +306,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         </div>
         <div className="pdt-stat-card pdt-stat-blue">
           <div className="pdt-stat-icon">
-            <Waves size={20} />
+            <Icons8Icon name="sea" size={20} />
           </div>
           <div className="pdt-stat-info">
             <span className="pdt-stat-value">{formatHa(totalNewMarine)}</span>
@@ -331,7 +315,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         </div>
         <div className="pdt-stat-card pdt-stat-amber">
           <div className="pdt-stat-icon">
-            <CheckCircle2 size={20} />
+            <Icons8Icon name="approval" size={20} />
           </div>
           <div className="pdt-stat-info">
             <span className="pdt-stat-value">{completedCount}</span>
@@ -340,7 +324,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         </div>
         <div className="pdt-stat-card pdt-stat-purple">
           <div className="pdt-stat-icon">
-            <Clock size={20} />
+            <Icons8Icon name="clock" size={20} />
           </div>
           <div className="pdt-stat-info">
             <span className="pdt-stat-value">{inProgressCount}</span>
@@ -352,7 +336,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       {/* Registration Status */}
       <div className="pdt-registration-section">
         <h3 className="pdt-section-title">
-          <ShieldCheck size={18} className="pdt-section-icon" />
+          <Icons8Icon name="globe" size={18} className="pdt-section-icon" />
           Registration Status
         </h3>
         <div className="pdt-registration-grid">
@@ -491,7 +475,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       {/* Area council breakdown with bar chart */}
       <div className="pdt-breakdown">
         <h3 className="pdt-section-title">
-          <MapPin size={18} className="pdt-section-icon" />
+          <Icons8Icon name="map-pin" size={18} className="pdt-section-icon" />
           Coverage by Area Council
         </h3>
         {councilBarData.length > 0 && (
@@ -545,7 +529,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       {withCoords.length > 0 && (
         <div className="pdt-coords-section">
           <h3 className="pdt-section-title">
-            <MapPin size={18} className="pdt-section-icon" />
+            <Icons8Icon name="map-pin" size={18} className="pdt-section-icon" />
             Sites with GPS Coordinates
           </h3>
           <p className="pdt-section-desc">
@@ -560,7 +544,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                   {e.yCoord?.toFixed(4)}, {e.xCoord?.toFixed(4)}
                 </div>
                 <span className={`pdt-coord-status ${e.mappingStatus === 'Completed' ? 'pdt-cs-done' : 'pdt-cs-prog'}`}>
-                  {e.mappingStatus === 'Completed' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                  {e.mappingStatus === 'Completed' ? <Icons8Icon name="approval" size={10} /> : <Icons8Icon name="clock" size={10} />}
                   {e.mappingStatus || 'Pending'}
                 </span>
               </div>
@@ -589,14 +573,14 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
           {!readOnly && (
             <>
               <button className="pdt-action-btn pdt-action-add" onClick={addRow}>
-                <Plus size={14} />
+                <Icons8Icon name="plus" size={14} />
                 Add Row
               </button>
               <button
                 className="pdt-action-btn pdt-action-col"
                 onClick={() => setShowAddCol(!showAddCol)}
               >
-                <Columns3 size={14} />
+                <Icons8Icon name="columns" size={14} />
                 {showAddCol ? 'Cancel' : 'Add Column'}
               </button>
             </>
@@ -613,7 +597,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                 <option value="Marine & Terrestrial">Marine & Terrestrial</option>
                 <option value="Terrestrial">Terrestrial</option>
               </select>
-              <ChevronDown size={14} className="pdt-filter-chevron" />
+              <Icons8Icon name="chevron-right" size={14} className="pdt-filter-chevron" />
             </div>
             <div className="pdt-filter-wrapper">
               <select
@@ -625,7 +609,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                 <option value="Completed">Completed</option>
                 <option value="In Progress">In Progress</option>
               </select>
-              <ChevronDown size={14} className="pdt-filter-chevron" />
+              <Icons8Icon name="chevron-right" size={14} className="pdt-filter-chevron" />
             </div>
           </div>
         </div>
@@ -652,7 +636,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
             <option value="number">Number</option>
           </select>
           <button className="pdt-action-btn pdt-action-add" onClick={addColumn}>
-            <Plus size={14} />
+            <Icons8Icon name="plus" size={14} />
             Add
           </button>
         </div>
@@ -677,7 +661,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                   <div className="pdt-th-content">
                     {!readOnly && (
                       <span className="pdt-drag-handle" title="Drag to reorder">
-                        <GripVertical size={12} />
+                        <Icons8Icon name="columns" size={12} />
                       </span>
                     )}
                     <span>{col.label}</span>
@@ -687,7 +671,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
                         title={`Remove "${col.label}" column`}
                         onClick={() => removeColumn(col.key)}
                       >
-                        <X size={12} />
+                        <Icons8Icon name="cancel" size={12} />
                       </button>
                     )}
                   </div>
@@ -810,15 +794,15 @@ const EditableTableRow: FC<{
           {isDeletePending ? (
             <div className="pdt-delete-confirm">
               <button className="pdt-delete-yes" onClick={onDelete} title="Confirm delete">
-                <Trash2 size={12} />
+                <Icons8Icon name="trash" size={12} />
               </button>
               <button className="pdt-delete-no" onClick={onCancelDelete} title="Cancel">
-                <X size={12} />
+                <Icons8Icon name="cancel" size={12} />
               </button>
             </div>
           ) : (
             <button className="pdt-row-delete-btn" onClick={onDelete} title="Delete row">
-              <Trash2 size={13} />
+              <Icons8Icon name="trash" size={13} />
             </button>
           )}
         </td>
