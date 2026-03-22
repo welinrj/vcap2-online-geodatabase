@@ -97,11 +97,13 @@ export function computeProDocAnalytics(
   // Indicator hectares — only count registered entries as "achieved"
   const isRegistered = (e: ProDocEntry) => e.registrationStatus === 'Registered'
   const newRegistered = newAreas.filter(isRegistered)
-  const existRegistered = existingAreas.filter(isRegistered)
+  // Existing/strengthened areas require both registration AND completed mapping
+  const isMappingComplete = (e: ProDocEntry) => e.mappingStatus === 'Completed'
+  const existQualified = existingAreas.filter((e) => isRegistered(e) && isMappingComplete(e))
   const newCcaHa = sumTerrestrial(newRegistered)
-  const existCcaHa = sumTerrestrial(existRegistered)
+  const existCcaHa = sumTerrestrial(existQualified)
   const newMpaHa = sumMarine(newRegistered)
-  const existMpaHa = sumMarine(existRegistered)
+  const existMpaHa = sumMarine(existQualified)
 
   // Indicator progress
   const newCcaProgress = Math.min((newCcaHa / PRODOC_TARGETS['1.1'].targetHa) * 100, 100)
@@ -122,8 +124,8 @@ export function computeProDocAnalytics(
   // Counts — only registered entries count towards targets
   const newCcaCount = newRegistered.filter(isCCA).length
   const newMpaCount = newRegistered.filter(isMPA).length
-  const improvedCcaCount = existRegistered.filter(isCCA).length
-  const improvedMpaCount = existRegistered.filter(isMPA).length
+  const improvedCcaCount = existQualified.filter(isCCA).length
+  const improvedMpaCount = existQualified.filter(isMPA).length
 
   // Mapping completion
   const ccaAreas = allAreas.filter(isCCA)
