@@ -549,7 +549,7 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  opacity: 0.18;
+  opacity: 0.3;
   z-index: 0;
   pointer-events: none;
 }
@@ -559,7 +559,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(26, 35, 50, 0.7) 0%, rgba(26, 35, 50, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(26, 35, 50, 0.45) 0%, rgba(26, 35, 50, 0.15) 100%);
   z-index: 1;
   pointer-events: none;
 }
