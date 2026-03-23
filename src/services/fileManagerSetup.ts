@@ -122,14 +122,14 @@ export const VCAP2_DEFAULT_FOLDERS: FolderNode[] = [
  */
 export async function hasDefaultFolders(ownerId: string): Promise<boolean> {
   if (!db) return false
+  // Single-field query to avoid composite index requirement
   const q = query(
     collection(db, FOLDERS_COL),
     where('ownerId', '==', ownerId),
-    where('parentId', '==', null),
   )
   const snap = await getDocs(q)
   // Consider setup done if user already has any root folder
-  return snap.docs.filter((d) => !d.data()._deleted).length >= 1
+  return snap.docs.filter((d) => !d.data()._deleted && d.data().parentId === null).length >= 1
 }
 
 /**
@@ -144,15 +144,16 @@ async function createFolderTree(
 ): Promise<number> {
   if (!db) return 0
 
-  // Load existing siblings to avoid duplicates
+  // Load existing siblings to avoid duplicates (single-field query to avoid composite index)
   const existingQ = query(
     collection(db, FOLDERS_COL),
     where('ownerId', '==', ownerId),
-    where('parentId', '==', parentId),
   )
-  const existingSnap = await getDocs(existingQ)
+  const existingAllSnap = await getDocs(existingQ)
+  // Filter to matching parentId client-side
+  const existingDocs = existingAllSnap.docs.filter((d) => d.data().parentId === parentId)
   const existingNames = new Map<string, string>()
-  for (const d of existingSnap.docs) {
+  for (const d of existingDocs) {
     if (!d.data()._deleted) {
       existingNames.set(d.data().name as string, d.id)
     }

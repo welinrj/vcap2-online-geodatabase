@@ -31,6 +31,38 @@
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "participants", "arrayConfig": "CONTAINS" }
       ]
+    },
+    {
+      "collectionGroup": "fm_folders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "parentId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fm_files",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "folderId", "order": "ASCENDING" },
+        { "fieldPath": "ownerId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fm_files",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "_deleted", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fm_folders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "_deleted", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
