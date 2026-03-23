@@ -554,15 +554,6 @@
   pointer-events: none;
 }
 
-/* Gradient overlay for readability on photo backgrounds */
-.dash-card-dark::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(26, 35, 50, 0.45) 0%, rgba(26, 35, 50, 0.15) 100%);
-  z-index: 1;
-  pointer-events: none;
-}
 
 .dash-card-dark .dash-30x30-metric-val,
 .dash-card-dark .dash-indicator-stat-val {
