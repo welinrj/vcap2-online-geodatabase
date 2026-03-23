@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, lazy, Suspense, type FC } from 'react'
 import type { DatasetSummary } from '../../types/geospatial'
 import { listDatasets, formatBytes, migrateFromLocalStorage } from '../../services/datasetStore'
 import { formatArea } from '../../services/protectedAreaStore'
-import { PRODOC_TARGETS } from '../../data/prodocTrackerData'
+import { PRODOC_TARGETS, CORE_INDICATOR_5_TARGET_HA } from '../../data/prodocTrackerData'
 import { useProDoc } from '../../contexts/useProDoc'
 import { computeProDocAnalytics, computeIndicatorTracking, CCA_TARGET_HA, MPA_TARGET_HA } from '../../services/prodocAnalytics'
 import { INDICATOR_COLORS, INDICATOR_BG, INDICATOR_BORDER } from '../../constants/indicatorColors'
@@ -93,7 +93,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
 }
 
 const Dashboard: FC = () => {
-  const { newAreas, existingAreas } = useProDoc()
+  const { newAreas, existingAreas, coreIndicator5 } = useProDoc()
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
 
   useEffect(() => {
@@ -201,6 +201,15 @@ const Dashboard: FC = () => {
     { name: 'In Progress', value: mappingInProgress, color: CHART_COLORS.amber },
     { name: 'Not Started', value: mappingNotStarted, color: CHART_COLORS.gray },
   ].filter((d) => d.value > 0)
+
+  // Core Indicator 5 analytics
+  const ci5TotalHa = coreIndicator5.reduce((s, e) => s + (e.hectares ?? 0), 0)
+  const ci5RemainingHa = Math.max(CORE_INDICATOR_5_TARGET_HA - ci5TotalHa, 0)
+  const ci5Progress = CORE_INDICATOR_5_TARGET_HA > 0 ? (ci5TotalHa / CORE_INDICATOR_5_TARGET_HA) * 100 : 0
+  const ci5DonutData = [
+    { name: 'Restored', value: ci5TotalHa, color: CHART_COLORS.green },
+    { name: 'Remaining', value: ci5RemainingHa, color: CHART_COLORS.gray },
+  ]
 
 
   return (
@@ -671,6 +680,84 @@ const Dashboard: FC = () => {
           <span className="dash-kpi-value">{mpaMappedComplete}<span className="dash-kpi-of">/{mpaAreas.length}</span></span>
           <div className="dash-kpi-bar">
             <div className="dash-kpi-bar-fill dash-kpi-fill-amber" style={{ width: `${mpaAreas.length ? (mpaMappedComplete / mpaAreas.length) * 100 : 0}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Core Indicator 5 — Area of land restored */}
+      <div className="dash-targets">
+        <div className="dash-section-header">
+          <div>
+            <h3 className="dash-section-title">
+              <Icons8Icon name="sprout" size={18} className="dash-section-icon" />
+              Core Indicator 5 — Area of Land Restored
+            </h3>
+            <p className="dash-section-desc">Progress towards the {CORE_INDICATOR_5_TARGET_HA.toLocaleString()} ha restoration target across project sites.</p>
+          </div>
+        </div>
+        <div className="dash-ci5-layout">
+          <div className="dash-ci5-donut-card">
+            <div className="dash-30x30-donut dash-donut-wrapper">
+              <ResponsiveContainer width="100%" height={150}>
+                <PieChart>
+                  <Pie
+                    data={ci5DonutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={46}
+                    outerRadius={64}
+                    paddingAngle={3}
+                    dataKey="value"
+                    strokeWidth={0}
+                    cornerRadius={6}
+                    startAngle={90}
+                    endAngle={-270}
+                  >
+                    {ci5DonutData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`}
+                    contentStyle={TOOLTIP_STYLE}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <DonutCenter value={`${ci5Progress.toFixed(1)}%`} sub="of target" color={CHART_COLORS.green} />
+            </div>
+            <div className="dash-ci5-stats">
+              <div className="dash-indicator-stat">
+                <span className="dash-indicator-stat-val" style={{ color: CHART_COLORS.green }}>{ci5TotalHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha</span>
+                <span className="dash-indicator-stat-lbl">Restored</span>
+              </div>
+              <div className="dash-indicator-stat">
+                <span className="dash-indicator-stat-val">{CORE_INDICATOR_5_TARGET_HA.toLocaleString()} ha</span>
+                <span className="dash-indicator-stat-lbl">Target</span>
+              </div>
+              <div className="dash-indicator-stat">
+                <span className="dash-indicator-stat-val">{ci5RemainingHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha</span>
+                <span className="dash-indicator-stat-lbl">Remaining</span>
+              </div>
+            </div>
+            <div className="dash-ci5-progress">
+              <div className="dash-indicator-progress-track">
+                <div
+                  className="dash-indicator-progress-fill"
+                  style={{ width: `${Math.min(ci5Progress, 100)}%`, background: CHART_COLORS.green }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="dash-ci5-sites">
+            {coreIndicator5.map((site) => (
+              <div key={site.id} className="dash-ci5-site-card">
+                <div className="dash-ci5-site-name">{site.site || 'Unnamed'}</div>
+                <div className="dash-ci5-site-ha" style={{ color: CHART_COLORS.green }}>
+                  {site.hectares !== null ? `${site.hectares.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha` : '0 ha'}
+                </div>
+                {site.activities && <div className="dash-ci5-site-activity">{site.activities}</div>}
+              </div>
+            ))}
           </div>
         </div>
       </div>

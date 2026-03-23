@@ -1,5 +1,5 @@
-import type { ProDocEntry } from '../data/prodocTrackerData'
-import { newAreas as defaultNewAreas, existingAreas as defaultExistingAreas } from '../data/prodocTrackerData'
+import type { ProDocEntry, CoreIndicator5Entry } from '../data/prodocTrackerData'
+import { newAreas as defaultNewAreas, existingAreas as defaultExistingAreas, coreIndicator5Sites as defaultCI5Sites } from '../data/prodocTrackerData'
 import { db } from './firebase'
 import {
   doc,
@@ -13,6 +13,7 @@ interface ProDocDocument {
   newAreas: ProDocEntry[]
   existingAreas: ProDocEntry[]
   columns: ColumnDef[]
+  coreIndicator5?: CoreIndicator5Entry[]
   updatedAt: string
 }
 
@@ -40,12 +41,14 @@ export async function saveProDocData(
   newAreas: ProDocEntry[],
   existingAreas: ProDocEntry[],
   columns: ColumnDef[],
+  coreIndicator5?: CoreIndicator5Entry[],
 ): Promise<void> {
   const ref = doc(db, DOC_PATH, DOC_ID)
   const data: ProDocDocument = {
     newAreas,
     existingAreas,
     columns,
+    coreIndicator5,
     updatedAt: new Date().toISOString(),
   }
   await setDoc(ref, data)
@@ -70,5 +73,6 @@ export function getDefaultData() {
   return {
     newAreas: [...defaultNewAreas],
     existingAreas: [...defaultExistingAreas],
+    coreIndicator5: [...defaultCI5Sites],
   }
 }

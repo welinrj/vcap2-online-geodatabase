@@ -214,6 +214,86 @@
 .dash-kpi-fill-purple { background: linear-gradient(90deg, #3A6A5E, #477A6E); }
 .dash-kpi-fill-amber { background: linear-gradient(90deg, #963A2E, #B34839); }
 
+/* ═══════════════════════════════════════════════════
+   Core Indicator 5 — Area of land restored
+   ═══════════════════════════════════════════════════ */
+
+.dash-ci5-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .dash-ci5-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-ci5-donut-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dash-ci5-stats {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dash-ci5-progress {
+  width: 100%;
+}
+
+.dash-ci5-sites {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-ci5-site-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.dash-ci5-site-card:hover {
+  transform: translateY(-1px);
+}
+
+.dash-ci5-site-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 110px;
+}
+
+.dash-ci5-site-ha {
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 80px;
+}
+
+.dash-ci5-site-activity {
+  font-size: 0.72rem;
+  color: var(--color-text-tertiary);
+  flex: 1;
+}
+
 /* ── Dashboard map ── */
 .dash-map-section {
   background: rgba(255, 255, 255, 0.85);

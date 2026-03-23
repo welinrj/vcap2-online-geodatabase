@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback, type FC, type ChangeEvent } from 'react'
 import {
   PRODOC_TARGETS,
+  CORE_INDICATOR_5_TARGET_HA,
   type ProDocEntry,
+  type CoreIndicator5Entry,
 } from '../../data/prodocTrackerData'
 import { type ColumnDef } from '../../services/prodocStore'
 import { useProDoc } from '../../contexts/useProDoc'
@@ -68,6 +70,7 @@ function createEmptyEntry(tab: Tab, customColumns: ColumnDef[]): ProDocEntry & R
 const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const {
     newAreas, existingAreas, columns,
+    coreIndicator5, setCoreIndicator5,
     setNewAreas, setExistingAreas, setColumns,
     isLoading, isDirty, isSaving, saveStatus,
     markDirty, handleSave,
@@ -249,6 +252,38 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       fill: INDICATOR_COLORS[key] ?? (key.startsWith('1') ? COLORS.green : COLORS.blue),
     }
   })
+
+  // Core Indicator 5 analytics
+  const ci5TotalHa = coreIndicator5.reduce((s, e) => s + (e.hectares ?? 0), 0)
+  const ci5Progress = CORE_INDICATOR_5_TARGET_HA > 0 ? (ci5TotalHa / CORE_INDICATOR_5_TARGET_HA) * 100 : 0
+
+  const updateCI5Entry = useCallback(
+    (index: number, field: keyof CoreIndicator5Entry, value: string | number | null) => {
+      setCoreIndicator5((prev) => {
+        const updated = [...prev]
+        updated[index] = { ...updated[index], [field]: value }
+        return updated
+      })
+      markDirty()
+    },
+    [setCoreIndicator5, markDirty],
+  )
+
+  const addCI5Row = useCallback(() => {
+    setCoreIndicator5((prev) => [
+      ...prev,
+      { id: `CI5-${String(prev.length + 1).padStart(2, '0')}`, site: '', activities: '', hectares: null, remarks: '' },
+    ])
+    markDirty()
+  }, [setCoreIndicator5, markDirty])
+
+  const deleteCI5Row = useCallback(
+    (index: number) => {
+      setCoreIndicator5((prev) => prev.filter((_, i) => i !== index))
+      markDirty()
+    },
+    [setCoreIndicator5, markDirty],
+  )
 
   // Council bar chart data
   const councilBarData = councilBreakdown.slice(0, 8).map(([council, stats]) => ({
@@ -626,6 +661,99 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
           </div>
         </div>
       )}
+
+      {/* Core Indicator 5 — Area of land restored */}
+      <div className="pdt-ci5-section">
+        <h3 className="pdt-section-title">
+          <Icons8Icon name="sprout" size={18} className="pdt-section-icon" />
+          Core Indicator 5 — Area of Land Restored
+        </h3>
+        <p className="pdt-section-desc">
+          Target: {CORE_INDICATOR_5_TARGET_HA.toLocaleString()} ha | Achieved: {ci5TotalHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha | Progress: {ci5Progress.toFixed(1)}%
+        </p>
+        <div className="pdt-ci5-progress">
+          <div className="pdt-ind-track-progress-track">
+            <div
+              className="pdt-ind-track-progress-fill"
+              style={{ width: `${Math.min(ci5Progress, 100)}%`, background: '#2D5E5A' }}
+            />
+          </div>
+        </div>
+        <div className="pdt-table-wrap">
+          <table className="pdt-table">
+            <thead>
+              <tr>
+                {!readOnly && <th className="pdt-th-actions" />}
+                <th>ID</th>
+                <th>Site</th>
+                <th>Activities</th>
+                <th>Hectares</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {coreIndicator5.map((entry, i) => (
+                <tr key={entry.id || i}>
+                  {!readOnly && (
+                    <td className="pdt-cell-actions">
+                      <button className="pdt-row-delete-btn" onClick={() => deleteCI5Row(i)} title="Delete row">
+                        <Icons8Icon name="trash" size={13} />
+                      </button>
+                    </td>
+                  )}
+                  <td className="pdt-cell-id">
+                    {readOnly ? entry.id : (
+                      <input type="text" value={entry.id} onChange={(e) => updateCI5Entry(i, 'id', e.target.value)} />
+                    )}
+                  </td>
+                  <td className="pdt-cell-name">
+                    {readOnly ? entry.site : (
+                      <input type="text" value={entry.site} onChange={(e) => updateCI5Entry(i, 'site', e.target.value)} />
+                    )}
+                  </td>
+                  <td className="pdt-cell-remarks">
+                    {readOnly ? (entry.activities || '\u2014') : (
+                      <input type="text" value={entry.activities} onChange={(e) => updateCI5Entry(i, 'activities', e.target.value)} />
+                    )}
+                  </td>
+                  <td className="pdt-cell-num">
+                    {readOnly ? (entry.hectares !== null ? `${entry.hectares.toLocaleString(undefined, { maximumFractionDigits: 3 })} ha` : '\u2014') : (
+                      <input
+                        type="number"
+                        value={entry.hectares ?? ''}
+                        onChange={(e) => updateCI5Entry(i, 'hectares', e.target.value === '' ? null : parseFloat(e.target.value))}
+                      />
+                    )}
+                  </td>
+                  <td className="pdt-cell-remarks">
+                    {readOnly ? (entry.remarks || '\u2014') : (
+                      <input type="text" value={entry.remarks} onChange={(e) => updateCI5Entry(i, 'remarks', e.target.value)} />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                {!readOnly && <td />}
+                <td className="pdt-foot-label">Totals</td>
+                <td />
+                <td />
+                <td className="pdt-foot-val">
+                  {ci5TotalHa === 0 ? '\u2014' : `${ci5TotalHa.toLocaleString(undefined, { maximumFractionDigits: 3 })} ha`}
+                </td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        {!readOnly && (
+          <button className="pdt-action-btn pdt-action-add" onClick={addCI5Row} style={{ marginTop: '0.5rem' }}>
+            <Icons8Icon name="plus" size={14} />
+            Add Row
+          </button>
+        )}
+      </div>
 
       {/* Tab toggle + filters + actions */}
       <div className="pdt-toolbar">

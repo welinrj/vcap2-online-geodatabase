@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef, type FC, type ReactNode } from 'react'
-import type { ProDocEntry } from '../data/prodocTrackerData'
+import type { ProDocEntry, CoreIndicator5Entry } from '../data/prodocTrackerData'
 import {
   newAreas as defaultNewAreas,
   existingAreas as defaultExistingAreas,
+  coreIndicator5Sites as defaultCI5Sites,
 } from '../data/prodocTrackerData'
 import {
   loadProDocData,
@@ -54,6 +55,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [newAreas, setNewAreas] = useState<ProDocEntry[]>(() => [...defaultNewAreas])
   const [existingAreas, setExistingAreas] = useState<ProDocEntry[]>(() => [...defaultExistingAreas])
   const [columns, setColumns] = useState<ColumnDef[]>(() => [...DEFAULT_COLUMNS])
+  const [coreIndicator5, setCoreIndicator5] = useState<CoreIndicator5Entry[]>(() => [...defaultCI5Sites])
   const [isLoading, setIsLoading] = useState(true)
   const [isDirty, setIsDirty] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -80,6 +82,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
           setNewAreas(migrated.newAreas)
           setExistingAreas(migrated.existingAreas)
           setColumns(saved.columns)
+          if (saved.coreIndicator5) setCoreIndicator5(saved.coreIndicator5)
         }
       })
       .catch(() => {
@@ -96,6 +99,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
       setNewAreas(migrated.newAreas)
       setExistingAreas(migrated.existingAreas)
       setColumns(data.columns)
+      if (data.coreIndicator5) setCoreIndicator5(data.coreIndicator5)
     })
 
     return unsubscribe
@@ -113,7 +117,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setIsSaving(true)
     setSaveStatus('idle')
     try {
-      await saveProDocData(newAreas, existingAreas, columns)
+      await saveProDocData(newAreas, existingAreas, columns, coreIndicator5)
       setIsDirty(false)
       dirtyRef.current = false
       setSaveStatus('saved')
@@ -123,7 +127,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
     } finally {
       setIsSaving(false)
     }
-  }, [newAreas, existingAreas, columns])
+  }, [newAreas, existingAreas, columns, coreIndicator5])
 
   return (
     <ProDocContext.Provider
@@ -131,6 +135,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
         newAreas,
         existingAreas,
         columns,
+        coreIndicator5,
         isLoading,
         isDirty,
         isSaving,
@@ -138,6 +143,7 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setNewAreas,
         setExistingAreas,
         setColumns,
+        setCoreIndicator5,
         markDirty,
         handleSave,
       }}

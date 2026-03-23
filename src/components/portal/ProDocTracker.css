@@ -1299,3 +1299,15 @@ tr:hover .pdt-row-delete-btn {
   border-radius: 100px;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
+
+/* ═══════════════════════════════════════════════════
+   Core Indicator 5 Section
+   ═══════════════════════════════════════════════════ */
+
+.pdt-ci5-section {
+  margin-bottom: 1.5rem;
+}
+
+.pdt-ci5-progress {
+  margin: 0.5rem 0 1rem;
+}
