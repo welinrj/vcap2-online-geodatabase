@@ -611,8 +611,8 @@
   transform: translateY(-1px);
 }
 
-.dash-30x30-card > *,
-.dash-indicator-card > * {
+.dash-30x30-card > *:not(.dash-card-bg),
+.dash-indicator-card > *:not(.dash-card-bg) {
   position: relative;
   z-index: 2;
 }
