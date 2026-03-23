@@ -93,14 +93,17 @@ export async function createFolder(
 
 export async function listFolders(ownerId: string, parentId: string | null): Promise<FileFolder[]> {
   if (!db) return []
+  // Single-field query to avoid composite index requirement
   const q = query(
     collection(db, FOLDERS_COL),
     where('ownerId', '==', ownerId),
-    where('parentId', '==', parentId),
   )
   const snap = await getDocs(q)
   return snap.docs
-    .filter((d) => !d.data()._deleted)
+    .filter((d) => {
+      const data = d.data()
+      return !data._deleted && data.parentId === parentId
+    })
     .map((d) => {
       const data = d.data()
       return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
@@ -191,14 +194,17 @@ export async function uploadFile(
 
 export async function listFiles(folderId: string, ownerId: string): Promise<FileEntry[]> {
   if (!db) return []
+  // Single-field query to avoid composite index requirement
   const q = query(
     collection(db, FILES_COL),
     where('folderId', '==', folderId),
-    where('ownerId', '==', ownerId),
   )
   const snap = await getDocs(q)
   return snap.docs
-    .filter((d) => !d.data()._deleted)
+    .filter((d) => {
+      const data = d.data()
+      return !data._deleted && data.ownerId === ownerId
+    })
     .map((d) => {
       const data = d.data()
       return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
@@ -254,16 +260,18 @@ export async function restoreFile(fileId: string): Promise<void> {
 /** Restore a soft-deleted folder and its contents */
 export async function restoreFolder(folderId: string): Promise<void> {
   if (!db) return
-  // Restore files in folder
-  const filesQ = query(collection(db, FILES_COL), where('folderId', '==', folderId), where('_deleted', '==', true))
+  // Restore files in folder (single-field query + client-side filter)
+  const filesQ = query(collection(db, FILES_COL), where('folderId', '==', folderId))
   const filesSnap = await getDocs(filesQ)
   for (const d of filesSnap.docs) {
-    await updateDoc(d.ref, { _deleted: false, _deletedAt: '' })
+    if (d.data()._deleted) await updateDoc(d.ref, { _deleted: false, _deletedAt: '' })
   }
-  // Restore child folders recursively
-  const childQ = query(collection(db, FOLDERS_COL), where('parentId', '==', folderId), where('_deleted', '==', true))
+  // Restore child folders recursively (single-field query + client-side filter)
+  const childQ = query(collection(db, FOLDERS_COL), where('parentId', '==', folderId))
   const childSnap = await getDocs(childQ)
-  for (const d of childSnap.docs) await restoreFolder(d.id)
+  for (const d of childSnap.docs) {
+    if (d.data()._deleted) await restoreFolder(d.id)
+  }
   // Restore the folder itself
   await updateDoc(doc(db, FOLDERS_COL, folderId), { _deleted: false, _deletedAt: '' })
   await logAudit('restore', 'folder', folderId, folderId)
@@ -272,18 +280,23 @@ export async function restoreFolder(folderId: string): Promise<void> {
 /** List all soft-deleted files and folders (trash) */
 export async function listTrash(ownerId: string): Promise<{ files: FileEntry[]; folders: FileFolder[] }> {
   if (!db) return { files: [], folders: [] }
-  const filesQ = query(collection(db, FILES_COL), where('ownerId', '==', ownerId), where('_deleted', '==', true))
-  const foldersQ = query(collection(db, FOLDERS_COL), where('ownerId', '==', ownerId), where('_deleted', '==', true))
+  // Single-field queries + client-side filter to avoid composite index requirement
+  const filesQ = query(collection(db, FILES_COL), where('ownerId', '==', ownerId))
+  const foldersQ = query(collection(db, FOLDERS_COL), where('ownerId', '==', ownerId))
   const [filesSnap, foldersSnap] = await Promise.all([getDocs(filesQ), getDocs(foldersQ)])
   return {
-    files: filesSnap.docs.map((d) => {
-      const data = d.data()
-      return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
-    }),
-    folders: foldersSnap.docs.map((d) => {
-      const data = d.data()
-      return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
-    }),
+    files: filesSnap.docs
+      .filter((d) => d.data()._deleted)
+      .map((d) => {
+        const data = d.data()
+        return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
+      }),
+    folders: foldersSnap.docs
+      .filter((d) => d.data()._deleted)
+      .map((d) => {
+        const data = d.data()
+        return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
+      }),
   }
 }
 
