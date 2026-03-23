@@ -198,10 +198,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   // Summary stats
   const allEntries = [...newAreas, ...existingAreas]
 
-  const totalNewTerrestrial = sumTerrestrial(newAreas)
-  const totalNewMarine = sumMarine(newAreas)
-  const completedCount = allEntries.filter((e) => e.mappingStatus === 'Completed').length
-  const inProgressCount = allEntries.filter((e) => e.mappingStatus === 'In Progress').length
 
   // Registration status counts for CCA and MPA
   const ccaEntries = allEntries.filter(isCCA)
@@ -337,45 +333,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         </div>
       </div>
 
-      {/* Summary stats */}
-      <div className="pdt-stats">
-        <div className="pdt-stat-card pdt-stat-green">
-          <div className="pdt-stat-icon">
-            <Icons8Icon name="globe" size={20} />
-          </div>
-          <div className="pdt-stat-info">
-            <span className="pdt-stat-value">{formatHa(totalNewTerrestrial)}</span>
-            <span className="pdt-stat-label">New CCA (Terrestrial)</span>
-          </div>
-        </div>
-        <div className="pdt-stat-card pdt-stat-blue">
-          <div className="pdt-stat-icon">
-            <Icons8Icon name="sea" size={20} />
-          </div>
-          <div className="pdt-stat-info">
-            <span className="pdt-stat-value">{formatHa(totalNewMarine)}</span>
-            <span className="pdt-stat-label">New MPA (Marine)</span>
-          </div>
-        </div>
-        <div className="pdt-stat-card pdt-stat-amber">
-          <div className="pdt-stat-icon">
-            <Icons8Icon name="approval" size={20} />
-          </div>
-          <div className="pdt-stat-info">
-            <span className="pdt-stat-value">{completedCount}</span>
-            <span className="pdt-stat-label">Completed</span>
-          </div>
-        </div>
-        <div className="pdt-stat-card pdt-stat-purple">
-          <div className="pdt-stat-icon">
-            <Icons8Icon name="clock" size={20} />
-          </div>
-          <div className="pdt-stat-info">
-            <span className="pdt-stat-value">{inProgressCount}</span>
-            <span className="pdt-stat-label">In Progress</span>
-          </div>
-        </div>
-      </div>
 
       {/* Registration Status */}
       <div className="pdt-registration-section">
