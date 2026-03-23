@@ -156,15 +156,19 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
     })
     const conv = await createConversation('group', participants, names, currentUser.id, groupName.trim())
     for (const uid of selectedUsers) {
-      await createNotification({
-        userId: uid,
-        type: 'group_invite',
-        title: 'Added to group',
-        body: `${currentUser.name} added you to "${groupName.trim()}"`,
-        conversationId: conv.id,
-        fromUserId: currentUser.id,
-        fromUserName: currentUser.name,
-      })
+      try {
+        await createNotification({
+          userId: uid,
+          type: 'group_invite',
+          title: 'Added to group',
+          body: `${currentUser.name} added you to "${groupName.trim()}"`,
+          conversationId: conv.id,
+          fromUserId: currentUser.id,
+          fromUserName: currentUser.name,
+        })
+      } catch {
+        // Notification failure is non-fatal
+      }
     }
     setActiveConv(conv)
     setShowNewGroup(false)
@@ -179,15 +183,19 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
     await sendMessage(activeConv.id, currentUser.id, currentUser.name, text)
     const others = activeConv.participants.filter((p) => p !== currentUser.id)
     for (const uid of others) {
-      await createNotification({
-        userId: uid,
-        type: 'message',
-        title: activeConv.type === 'group' ? (activeConv.name || 'Group') : currentUser.name,
-        body: text.slice(0, 100),
-        conversationId: activeConv.id,
-        fromUserId: currentUser.id,
-        fromUserName: currentUser.name,
-      })
+      try {
+        await createNotification({
+          userId: uid,
+          type: 'message',
+          title: activeConv.type === 'group' ? (activeConv.name || 'Group') : currentUser.name,
+          body: text.slice(0, 100),
+          conversationId: activeConv.id,
+          fromUserId: currentUser.id,
+          fromUserName: currentUser.name,
+        })
+      } catch {
+        // Notification failure is non-fatal — message was already sent
+      }
     }
   }
 
@@ -207,15 +215,19 @@ export default function ChatPopup({ currentUser, onStartCall }: ChatPopupProps) 
     })
     const others = activeConv.participants.filter((p) => p !== currentUser.id)
     for (const uid of others) {
-      await createNotification({
-        userId: uid,
-        type: 'attachment',
-        title: activeConv.type === 'group' ? (activeConv.name || 'Group') : currentUser.name,
-        body: `Sent file: ${file.name}`,
-        conversationId: activeConv.id,
-        fromUserId: currentUser.id,
-        fromUserName: currentUser.name,
-      })
+      try {
+        await createNotification({
+          userId: uid,
+          type: 'attachment',
+          title: activeConv.type === 'group' ? (activeConv.name || 'Group') : currentUser.name,
+          body: `Sent file: ${file.name}`,
+          conversationId: activeConv.id,
+          fromUserId: currentUser.id,
+          fromUserName: currentUser.name,
+        })
+      } catch {
+        // Notification failure is non-fatal
+      }
     }
     e.target.value = ''
   }

@@ -159,6 +159,9 @@ service cloud.firestore {
     match /messages/{msgId} {
       allow read, write: if isAuthenticated();
     }
+    match /notifications/{notifId} {
+      allow read, write: if isAuthenticated();
+    }
 
     // Deny all other access by default
     match /{document=**} {
