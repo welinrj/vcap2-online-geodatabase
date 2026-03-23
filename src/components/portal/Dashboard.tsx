@@ -22,6 +22,7 @@ import {
 import vcap2Logo from '../../../assets/vcap2-logo.png'
 import bgTerrestrial from '../../../assets/bg-terrestrial.jpg'
 import bgMarine from '../../../assets/bg-marine.jpg'
+import bgMpaUnderwater from '../../../assets/bg-mpa-underwater.jpg'
 import './Dashboard.css'
 
 const DashboardMap = lazy(() => import('./DashboardMap'))
@@ -239,7 +240,7 @@ const Dashboard: FC = () => {
             const progressClamped = Math.min(ind.progress, 100)
             return (
               <div className="dash-indicator-card dash-card-dark" key={ind.key}>
-                <div className="dash-card-bg" style={{ backgroundImage: `url(${ind.type === 'Marine' ? bgMarine : bgTerrestrial})` }} />
+                <div className="dash-card-bg" style={{ backgroundImage: `url(${ind.key === '2.1' ? bgMpaUnderwater : ind.type === 'Marine' ? bgMarine : bgTerrestrial})` }} />
                 <span
                   className="dash-indicator-badge"
                   style={{ background: INDICATOR_BG[ind.key], color: ind.color, border: `1px solid ${INDICATOR_BORDER[ind.key]}` }}
