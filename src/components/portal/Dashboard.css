@@ -540,7 +540,7 @@
 
 /* ── Dark glassmorphism cards with real photo backgrounds ── */
 .dash-card-dark {
-  background: #1a2332;
+  background: transparent;
   color: #e8edf3;
 }
 
@@ -549,7 +549,7 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  opacity: 0.3;
+  opacity: 1;
   z-index: 0;
   pointer-events: none;
 }
