@@ -202,7 +202,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const totalNewMarine = sumMarine(newAreas)
   const completedCount = allEntries.filter((e) => e.mappingStatus === 'Completed').length
   const inProgressCount = allEntries.filter((e) => e.mappingStatus === 'In Progress').length
-  const withCoords = allEntries.filter((e) => e.xCoord !== null && e.yCoord !== null)
 
   // Registration status counts for CCA and MPA
   const ccaEntries = allEntries.filter(isCCA)
@@ -634,33 +633,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
         )}
       </div>
 
-      {/* Coordinate map preview */}
-      {withCoords.length > 0 && (
-        <div className="pdt-coords-section">
-          <h3 className="pdt-section-title">
-            <Icons8Icon name="map-pin" size={18} className="pdt-section-icon" />
-            Sites with GPS Coordinates
-          </h3>
-          <p className="pdt-section-desc">
-            {withCoords.length} of {allEntries.length} sites have recorded coordinates.
-          </p>
-          <div className="pdt-coords-grid">
-            {withCoords.map((e, i) => (
-              <div key={`${e.name}-${i}`} className="pdt-coord-card">
-                <div className="pdt-coord-name">{e.name}</div>
-                <div className="pdt-coord-council">{e.areaCouncil}</div>
-                <div className="pdt-coord-val">
-                  {e.yCoord?.toFixed(4)}, {e.xCoord?.toFixed(4)}
-                </div>
-                <span className={`pdt-coord-status ${e.mappingStatus === 'Completed' ? 'pdt-cs-done' : 'pdt-cs-prog'}`}>
-                  {e.mappingStatus === 'Completed' ? <Icons8Icon name="approval" size={10} /> : <Icons8Icon name="clock" size={10} />}
-                  {e.mappingStatus || 'Pending'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Core Indicator 5 — Area of land restored */}
       <div className="pdt-ci5-section">
