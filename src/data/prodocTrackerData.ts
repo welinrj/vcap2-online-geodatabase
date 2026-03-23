@@ -652,3 +652,21 @@ export const PRODOC_TARGETS = {
   '2.1': { label: 'New MPA', targetHa: 575, description: 'New Marine Protected Areas' },
   '2.2': { label: 'Existing MPA Strengthened', targetHa: 1766, description: 'Existing MPAs under improved management' },
 }
+
+/** Core Indicator 5 — Area of land restored (ha) */
+export interface CoreIndicator5Entry {
+  id: string
+  site: string
+  activities: string
+  hectares: number | null
+  remarks: string
+}
+
+export const CORE_INDICATOR_5_TARGET_HA = 5_000
+
+export const coreIndicator5Sites: CoreIndicator5Entry[] = [
+  { id: 'CI5-01', site: 'South Tanna', activities: '', hectares: null, remarks: '' },
+  { id: 'CI5-02', site: 'South Epi', activities: '', hectares: null, remarks: '' },
+  { id: 'CI5-03', site: 'West Ambrym', activities: '', hectares: null, remarks: '' },
+  { id: 'CI5-04', site: 'South Maewo', activities: '', hectares: null, remarks: '' },
+]
