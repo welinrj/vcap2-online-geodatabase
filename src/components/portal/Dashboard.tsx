@@ -20,6 +20,8 @@ import {
   CartesianGrid,
 } from 'recharts'
 import vcap2Logo from '../../../assets/vcap2-logo.png'
+import bgTerrestrial from '../../../assets/bg-terrestrial.jpg'
+import bgMarine from '../../../assets/bg-marine.jpg'
 import './Dashboard.css'
 
 const DashboardMap = lazy(() => import('./DashboardMap'))
@@ -236,7 +238,8 @@ const Dashboard: FC = () => {
             const pctDisplay = exceeded ? '>100%' : `${ind.progress.toFixed(1)}%`
             const progressClamped = Math.min(ind.progress, 100)
             return (
-              <div className="dash-indicator-card" key={ind.key}>
+              <div className="dash-indicator-card dash-card-dark" key={ind.key}>
+                <div className="dash-card-bg" style={{ backgroundImage: `url(${ind.type === 'Marine' ? bgMarine : bgTerrestrial})` }} />
                 <span
                   className="dash-indicator-badge"
                   style={{ background: INDICATOR_BG[ind.key], color: ind.color, border: `1px solid ${INDICATOR_BORDER[ind.key]}` }}
@@ -390,7 +393,8 @@ const Dashboard: FC = () => {
 
         <div className="dash-target-grid">
           {/* CCA Target */}
-          <div className="dash-30x30-card">
+          <div className="dash-30x30-card dash-card-dark">
+            <div className="dash-card-bg" style={{ backgroundImage: `url(${bgTerrestrial})` }} />
             <div className="dash-30x30-header">
               <span className="dash-30x30-badge dash-30x30-cca">
                 <Icons8Icon name="deciduous-tree" size={14} />
@@ -459,7 +463,8 @@ const Dashboard: FC = () => {
           </div>
 
           {/* MPA Target */}
-          <div className="dash-30x30-card">
+          <div className="dash-30x30-card dash-card-dark">
+            <div className="dash-card-bg" style={{ backgroundImage: `url(${bgMarine})` }} />
             <div className="dash-30x30-header">
               <span className="dash-30x30-badge dash-30x30-mpa">
                 <Icons8Icon name="fish" size={14} />
