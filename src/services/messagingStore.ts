@@ -83,15 +83,15 @@ export async function findDirectConversation(
   userId2: string,
 ): Promise<Conversation | null> {
   if (!db) return null
+  // Use single array-contains filter to avoid requiring a composite index
   const q = query(
     collection(db, CONVERSATIONS_COL),
-    where('type', '==', 'direct'),
     where('participants', 'array-contains', userId1),
   )
   const snap = await getDocs(q)
   for (const d of snap.docs) {
     const data = d.data() as Conversation
-    if (data.participants.includes(userId2) && data.participants.length === 2) {
+    if (data.type === 'direct' && data.participants.includes(userId2) && data.participants.length === 2) {
       return { ...data, createdAt: tsToString((d.data() as Record<string, unknown>).createdAt) }
     }
   }
