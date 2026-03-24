@@ -40,6 +40,11 @@ const authNavItems = [
     icon: 'globe',
   },
   {
+    id: 'fisheries-dashboard',
+    label: 'Fisheries Dashboard',
+    icon: 'fish',
+  },
+  {
     id: 'activity-planner',
     label: 'Activity Planner',
     icon: 'calendar',
