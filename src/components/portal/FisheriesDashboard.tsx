@@ -1,6 +1,6 @@
 import { useState, useEffect, type FC } from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import type { UserProfile } from '../../types/user'
 import type {
@@ -14,7 +14,6 @@ import {
   upsertProgress,
   listIndicators,
   listAllIndicatorProgress,
-  addIndicatorProgress,
 } from '../../services/fisheriesStore'
 import './DataPortal.css'
 
@@ -107,7 +106,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
     const { activityId, quarter } = editingProgress
     const updated = await upsertProgress(activityId, quarter, {
       ...editForm,
-      updatedBy: currentUser.uid,
+      updatedBy: currentUser.id,
     })
     setProgressMap(prev => ({
       ...prev,
@@ -198,7 +197,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
               <BarChart data={quarterBudgetData} barCategoryGap="30%">
                 <XAxis dataKey="quarter" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v: number) => `$${v.toLocaleString()}`} />
+                <Tooltip formatter={(v) => `$${Number(v).toLocaleString()}`} />
                 <Bar dataKey="budgeted" name="Budgeted" fill="#bfdbfe" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="actual" name="Actual" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
