@@ -16,6 +16,13 @@ import { ProDocContext } from './proDocContextDef'
 // IDs reclassified from Existing → New (migration applied on load)
 const RECLASSIFIED_TO_NEW = new Set(['MPA250302', 'MPA250301', 'MTPA2501', 'MPA2402'])
 
+// New MPA entries confirmed registered from project documentation (March 2026)
+const NEW_MPA_REGISTERED_IDS = new Set([
+  'MPA2514', 'MPA2511', 'MPA2512', 'MPA2513', 'MPA2515', // South Maewo
+  'MTPA2405', // Lonwolwol, West Ambrym
+  'MTPA2402', 'MTPA2403', 'MTPA2404', // Linduri, Wusi, Vasalea, West Coast Santo
+])
+
 const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: 'id', label: 'ID', type: 'text', builtin: true },
   { key: 'name', label: 'Boundary Name', type: 'text', builtin: true },
@@ -30,7 +37,21 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: 'remarks', label: 'Remarks', type: 'text', builtin: true },
 ]
 
-/** Apply migration: move reclassified entries from existing → new */
+/** Patch individual entry fields — corrects stale data values on load */
+function patchEntry(e: ProDocEntry): ProDocEntry {
+  let patched = e
+  // Correct Wusi marine ha (survey revision, March 2026)
+  if (e.id === 'MTPA2403' && e.hectaresMarine === 111.959) {
+    patched = { ...patched, hectaresMarine: 50.327 }
+  }
+  // Register confirmed new MPA entries (only if not yet explicitly set)
+  if (NEW_MPA_REGISTERED_IDS.has(e.id) && e.registrationStatus === '') {
+    patched = { ...patched, registrationStatus: 'Registered' as const }
+  }
+  return patched
+}
+
+/** Apply migration: move reclassified entries from existing → new, and patch stale values */
 function applyMigration(
   newAreas: ProDocEntry[],
   existingAreas: ProDocEntry[],
@@ -46,7 +67,7 @@ function applyMigration(
   const alreadyInNew = new Set(newAreas.map((e) => e.id))
   const toAppend = toMigrate.filter((e) => !alreadyInNew.has(e.id))
   return {
-    newAreas: [...newAreas, ...toAppend],
+    newAreas: [...newAreas, ...toAppend].map(patchEntry),
     existingAreas: prunedExisting,
   }
 }
