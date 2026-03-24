@@ -1,6 +1,6 @@
 import { useState, useEffect, type FC } from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import type { UserProfile } from '../../types/user'
 import type {
@@ -14,7 +14,6 @@ import {
   upsertProgress,
   listIndicators,
   listAllIndicatorProgress,
-  addIndicatorProgress,
 } from '../../services/fisheriesStore'
 import './DataPortal.css'
 
