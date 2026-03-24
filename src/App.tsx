@@ -24,6 +24,7 @@ const ActivityCalendar = lazy(() => import('./components/portal/ActivityCalendar
 const Messaging = lazy(() => import('./components/portal/Messaging'))
 const VideoCall = lazy(() => import('./components/portal/VideoCall'))
 const Account = lazy(() => import('./components/portal/Account'))
+const FisheriesDashboard = lazy(() => import('./components/portal/FisheriesDashboard'))
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   'gis-database': 'GIS Database',
@@ -35,6 +36,7 @@ const sectionTitles: Record<string, string> = {
   'activity-calendar': 'Activity Calendar',
   messaging: 'Messages',
   account: 'Account Settings',
+  'fisheries-dashboard': 'Fisheries Dashboard',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -170,6 +172,7 @@ function App() {
           {activeSection === 'user-management' && isAuthenticated && <UserManagement currentUser={currentUser} />}
           {activeSection === 'file-manager' && isAuthenticated && <FileManager currentUser={currentUser} />}
           {activeSection === 'activity-calendar' && isAuthenticated && <ActivityCalendar currentUser={currentUser} />}
+          {activeSection === 'fisheries-dashboard' && isAuthenticated && <FisheriesDashboard currentUser={currentUser} />}
           {activeSection === 'messaging' && isAuthenticated && (
             <Messaging currentUser={currentUser} onStartCall={handleStartCall} />
           )}
