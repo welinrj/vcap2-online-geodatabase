@@ -23,6 +23,58 @@ const NEW_MPA_REGISTERED_IDS = new Set([
   'MTPA2402', 'MTPA2403', 'MTPA2404', // Linduri, Wusi, Vasalea, West Coast Santo
 ])
 
+// Default existing MPA entries to inject if missing from DB (indicator 2.2)
+const DEFAULT_EXISTING_MPAS: ProDocEntry[] = [
+  {
+    id: 'MPA-E01',
+    name: 'Torres Islands Marine Reserve',
+    areaCouncil: 'Toga Island (Torres)',
+    beneficiary: '',
+    ccaType: 'Marine',
+    status: 'Existing',
+    xCoord: null,
+    yCoord: null,
+    scheduledTrip: '',
+    mappingStatus: 'Completed',
+    hectaresTerrestrial: null,
+    hectaresMarine: 69.299,
+    remarks: '',
+    registrationStatus: 'Registered',
+  },
+  {
+    id: 'MPA-E02',
+    name: 'East Vanualava Marine Reserve (Quanlap)',
+    areaCouncil: 'East Vanualava',
+    beneficiary: '',
+    ccaType: 'Marine',
+    status: 'Existing',
+    xCoord: null,
+    yCoord: null,
+    scheduledTrip: '',
+    mappingStatus: 'Completed',
+    hectaresTerrestrial: null,
+    hectaresMarine: 214.391,
+    remarks: '',
+    registrationStatus: 'Registered',
+  },
+  {
+    id: 'MPA-E03',
+    name: 'Hiu Island Marine Reserve',
+    areaCouncil: 'Hiu Island (Torres)',
+    beneficiary: '',
+    ccaType: 'Marine',
+    status: 'Existing',
+    xCoord: null,
+    yCoord: null,
+    scheduledTrip: '',
+    mappingStatus: '',
+    hectaresTerrestrial: null,
+    hectaresMarine: null,
+    remarks: '',
+    registrationStatus: '',
+  },
+]
+
 const DEFAULT_COLUMNS: ColumnDef[] = [
   { key: 'id', label: 'ID', type: 'text', builtin: true },
   { key: 'name', label: 'Boundary Name', type: 'text', builtin: true },
@@ -51,7 +103,8 @@ function patchEntry(e: ProDocEntry): ProDocEntry {
   return patched
 }
 
-/** Apply migration: move reclassified entries from existing → new, and patch stale values */
+/** Apply migration: move reclassified entries from existing → new, patch stale values,
+ *  and inject missing existing MPA entries */
 function applyMigration(
   newAreas: ProDocEntry[],
   existingAreas: ProDocEntry[],
@@ -66,9 +119,14 @@ function applyMigration(
   )
   const alreadyInNew = new Set(newAreas.map((e) => e.id))
   const toAppend = toMigrate.filter((e) => !alreadyInNew.has(e.id))
+
+  // Inject default existing MPA entries if not already present
+  const existingIds = new Set(prunedExisting.map((e) => e.id))
+  const missingMpas = DEFAULT_EXISTING_MPAS.filter((e) => !existingIds.has(e.id))
+
   return {
     newAreas: [...newAreas, ...toAppend].map(patchEntry),
-    existingAreas: prunedExisting,
+    existingAreas: [...prunedExisting, ...missingMpas],
   }
 }
 
