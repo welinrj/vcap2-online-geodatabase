@@ -38,15 +38,7 @@ const STATUS_LABELS: Record<ActivityStatus, string> = {
   delayed: 'Delayed',
 }
 
-const USD_TO_VUV = 119.25
-
-function toVuv(usd: number): number {
-  return Math.round(usd * USD_TO_VUV)
-}
-
-function fmtVuv(usd: number): string {
-  return `VT ${toVuv(usd).toLocaleString()}`
-}
+const DEFAULT_RATE = 119.25
 
 const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
   const [activities, setActivities] = useState<FisheriesActivity[]>([])
@@ -55,6 +47,24 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
   const [indProgressMap, setIndProgressMap] = useState<Record<string, IndicatorProgress[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'activities' | 'indicators'>('overview')
+  const [exchangeRate, setExchangeRate] = useState(() => {
+    const stored = localStorage.getItem('vcap2_vuv_rate')
+    return stored ? Number(stored) : DEFAULT_RATE
+  })
+
+  function updateRate(rate: number) {
+    const r = rate > 0 ? rate : DEFAULT_RATE
+    setExchangeRate(r)
+    localStorage.setItem('vcap2_vuv_rate', String(r))
+  }
+
+  function toVuv(usd: number): number {
+    return Math.round(usd * exchangeRate)
+  }
+
+  function fmtVuv(usd: number): string {
+    return `VT ${toVuv(usd).toLocaleString()}`
+  }
   const [selectedQuarter, setSelectedQuarter] = useState<Quarter>('Q1')
   const [editingProgress, setEditingProgress] = useState<{
     activityId: string
@@ -161,21 +171,43 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
 
   return (
     <div className="data-portal">
-      <div className="portal-toolbar">
+      <div className="portal-toolbar" style={{ flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>
           VCAP II Fisheries Dashboard
         </h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {(['overview', 'activities', 'indicators'] as const).map(tab => (
-            <button
-              key={tab}
-              className={`btn ${activeTab === tab ? 'btn-primary' : ''}`}
-              style={activeTab !== tab ? { background: 'transparent', border: '1px solid #e2e8f0' } : undefined}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '0.3rem 0.6rem',
+            fontSize: '0.8rem', color: '#15803d',
+          }}>
+            <span style={{ fontWeight: 600 }}>1 USD =</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={exchangeRate}
+              onChange={e => updateRate(Number(e.target.value))}
+              style={{
+                width: 70, padding: '0.2rem 0.35rem', borderRadius: 4,
+                border: '1px solid #86efac', fontSize: '0.8rem', fontWeight: 600,
+                textAlign: 'right', background: '#fff', color: '#15803d',
+              }}
+            />
+            <span style={{ fontWeight: 600 }}>VUV</span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {(['overview', 'activities', 'indicators'] as const).map(tab => (
+              <button
+                key={tab}
+                className={`btn ${activeTab === tab ? 'btn-primary' : ''}`}
+                style={activeTab !== tab ? { background: 'transparent', border: '1px solid #e2e8f0' } : undefined}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
