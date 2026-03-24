@@ -84,7 +84,10 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
 
       setLoading(false)
     }
-    load().catch(console.error)
+    load().catch(err => {
+      console.error('FisheriesDashboard load error:', err)
+      setLoading(false)
+    })
   }, [])
 
   function getProgress(activityId: string, quarter: Quarter): ActivityProgress | undefined {
