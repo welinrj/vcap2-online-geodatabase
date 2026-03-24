@@ -38,6 +38,16 @@ const STATUS_LABELS: Record<ActivityStatus, string> = {
   delayed: 'Delayed',
 }
 
+const USD_TO_VUV = 119.25
+
+function toVuv(usd: number): number {
+  return Math.round(usd * USD_TO_VUV)
+}
+
+function fmtVuv(usd: number): string {
+  return `VT ${toVuv(usd).toLocaleString()}`
+}
+
 const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
   const [activities, setActivities] = useState<FisheriesActivity[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, ActivityProgress>>({})
@@ -175,8 +185,8 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
           {/* KPI cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
             {[
-              { label: 'Total Budget', value: `$${totalBudget.toLocaleString()}` },
-              { label: 'Total Spent', value: `$${totalActual.toLocaleString()}` },
+              { label: 'Total Budget', value: `$${totalBudget.toLocaleString()}`, sub: fmtVuv(totalBudget) },
+              { label: 'Total Spent', value: `$${totalActual.toLocaleString()}`, sub: fmtVuv(totalActual) },
               { label: 'Budget Used', value: totalBudget ? `${((totalActual / totalBudget) * 100).toFixed(1)}%` : '0%' },
               { label: 'Activities', value: activities.length },
               { label: 'Completed', value: statusCounts.completed },
@@ -188,6 +198,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
               }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>{kpi.label}</span>
                 <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>{kpi.value}</span>
+                {kpi.sub && <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>{kpi.sub}</span>}
               </div>
             ))}
           </div>
@@ -201,7 +212,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
               <BarChart data={quarterBudgetData} barCategoryGap="30%">
                 <XAxis dataKey="quarter" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v) => `$${Number(v).toLocaleString()}`} />
+                <Tooltip formatter={(v) => `$${Number(v).toLocaleString()} (${fmtVuv(Number(v))})`} />
                 <Bar dataKey="budgeted" name="Budgeted" fill="#bfdbfe" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="actual" name="Actual" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -246,7 +257,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  {['Code', 'Description', 'Output', 'Fund', 'Budget (USD)', `${selectedQuarter} Budget`, 'Status', 'Actual (USD)', '% Done', 'Actions'].map(h => (
+                  {['Code', 'Description', 'Output', 'Fund', 'Budget (USD / VUV)', `${selectedQuarter} Budget`, 'Status', 'Actual (USD / VUV)', '% Done', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '0.6rem 0.75rem', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', color: '#475569' }}>{h}</th>
                   ))}
                 </tr>
@@ -264,8 +275,14 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
                       <td style={{ padding: '0.5rem 0.75rem', maxWidth: 280 }}>{act.description}</td>
                       <td style={{ padding: '0.5rem 0.75rem', whiteSpace: 'nowrap' }}>{act.output}</td>
                       <td style={{ padding: '0.5rem 0.75rem', whiteSpace: 'nowrap' }}>{act.fund}</td>
-                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>${act.budgetUsd.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>${qBudget.toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        ${act.budgetUsd.toLocaleString()}
+                        <br /><span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{fmtVuv(act.budgetUsd)}</span>
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        ${qBudget.toLocaleString()}
+                        <br /><span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{fmtVuv(qBudget)}</span>
+                      </td>
                       <td style={{ padding: '0.5rem 0.75rem' }}>
                         {prog ? (
                           <span style={{
@@ -281,7 +298,12 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
                         )}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        {prog ? `$${prog.actualUsd.toLocaleString()}` : '—'}
+                        {prog ? (
+                          <>
+                            ${prog.actualUsd.toLocaleString()}
+                            <br /><span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{fmtVuv(prog.actualUsd)}</span>
+                          </>
+                        ) : '—'}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right' }}>
                         {prog ? `${prog.percentDone}%` : '—'}
