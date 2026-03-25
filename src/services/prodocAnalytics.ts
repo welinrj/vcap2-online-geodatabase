@@ -1,6 +1,29 @@
 import type { ProDocEntry } from '../data/prodocTrackerData'
 import { PRODOC_TARGETS } from '../data/prodocTrackerData'
 
+/**
+ * Authoritative values for new MPA entries confirmed from project documentation
+ * (March 2026). These override whatever Firestore holds, so stale data in the
+ * database can never affect indicator totals.
+ */
+const AUTHORITATIVE_NEW_AREA_OVERRIDES: Record<string, Partial<Pick<ProDocEntry, 'hectaresMarine' | 'registrationStatus'>>> = {
+  'MTPA2403': { hectaresMarine: 50.327, registrationStatus: 'Registered' }, // Wusi — survey revision
+  'MTPA2402': { registrationStatus: 'Registered' }, // Linduri
+  'MTPA2404': { registrationStatus: 'Registered' }, // Vasalea
+  'MTPA2405': { registrationStatus: 'Registered' }, // Lonwolwol
+  'MPA2511': { registrationStatus: 'Registered' }, // Narovrovo
+  'MPA2512': { registrationStatus: 'Registered' }, // Naviso
+  'MPA2513': { registrationStatus: 'Registered' }, // Navenvene
+  'MPA2514': { registrationStatus: 'Registered' }, // Avanbatai
+  'MPA2515': { registrationStatus: 'Registered' }, // Nasawa
+}
+
+/** Apply authoritative overrides to a new-area entry before computing indicators */
+function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
+  const overrides = AUTHORITATIVE_NEW_AREA_OVERRIDES[entry.id]
+  return overrides ? { ...entry, ...overrides } : entry
+}
+
 /** Map area councils to their province */
 const AREA_COUNCIL_TO_PROVINCE: Record<string, string> = {
   'South Epi': 'Shefa',
@@ -80,6 +103,8 @@ export function computeIndicatorTracking(
   existingAreas: ProDocEntry[],
 ): IndicatorTracking[] {
   const analytics = computeProDocAnalytics(newAreas, existingAreas)
+  // Use corrected new areas for registration/mapping counts so they match the ha totals
+  const correctedNewAreas = newAreas.map(enforceAuthoritativeValues)
 
   const indicators: Array<{
     key: string
@@ -92,7 +117,7 @@ export function computeIndicatorTracking(
   }> = [
     {
       key: '1.1', mappedHa: analytics.newCcaHa, progressPct: analytics.newCcaProgress,
-      areas: newAreas, filterFn: isCCA, sumFn: sumTerrestrial, isExisting: false,
+      areas: correctedNewAreas, filterFn: isCCA, sumFn: sumTerrestrial, isExisting: false,
     },
     {
       key: '1.2', mappedHa: analytics.existCcaHa, progressPct: analytics.existCcaProgress,
@@ -100,7 +125,7 @@ export function computeIndicatorTracking(
     },
     {
       key: '2.1', mappedHa: analytics.newMpaHa, progressPct: analytics.newMpaProgress,
-      areas: newAreas, filterFn: isMPA, sumFn: sumMarine, isExisting: false,
+      areas: correctedNewAreas, filterFn: isMPA, sumFn: sumMarine, isExisting: false,
     },
     {
       key: '2.2', mappedHa: analytics.existMpaHa, progressPct: analytics.existMpaProgress,
@@ -236,11 +261,14 @@ export function computeProDocAnalytics(
   newAreas: ProDocEntry[],
   existingAreas: ProDocEntry[],
 ): ProDocAnalytics {
-  const allAreas = [...newAreas, ...existingAreas]
+  // Enforce authoritative values before computing indicator totals — prevents
+  // stale Firestore data from affecting indicator 2.1 (new MPA ha)
+  const correctedNewAreas = newAreas.map(enforceAuthoritativeValues)
+  const allAreas = [...correctedNewAreas, ...existingAreas]
 
   // Indicator hectares — only count registered entries as "achieved"
   const isRegistered = (e: ProDocEntry) => e.registrationStatus === 'Registered'
-  const newRegistered = newAreas.filter(isRegistered)
+  const newRegistered = correctedNewAreas.filter(isRegistered)
   // Existing/strengthened areas require both registration AND completed mapping
   const isMappingComplete = (e: ProDocEntry) => e.mappingStatus === 'Completed'
   const existQualified = existingAreas.filter((e) => isRegistered(e) && isMappingComplete(e))
