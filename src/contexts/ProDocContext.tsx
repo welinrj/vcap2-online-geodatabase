@@ -164,6 +164,23 @@ export const ProDocProvider: FC<{ children: ReactNode }> = ({ children }) => {
           setExistingAreas(migrated.existingAreas)
           setColumns(saved.columns)
           if (saved.coreIndicator5) setCoreIndicator5(saved.coreIndicator5)
+
+          // If any values were patched, write corrected data back to Firestore
+          // so future loads don't depend on runtime patching
+          const hasStaleWusi = saved.newAreas.some(
+            (e) => e.id === 'MTPA2403' && e.hectaresMarine !== 50.327,
+          )
+          const hasStaleRegistration = saved.newAreas.some(
+            (e) => NEW_MPA_REGISTERED_IDS.has(e.id) && e.registrationStatus !== 'Registered',
+          )
+          if (hasStaleWusi || hasStaleRegistration) {
+            saveProDocData(
+              migrated.newAreas,
+              migrated.existingAreas,
+              saved.columns,
+              saved.coreIndicator5,
+            ).catch(() => { /* silent: best-effort patch persistence */ })
+          }
         }
       })
       .catch(() => {
