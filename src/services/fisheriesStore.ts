@@ -46,35 +46,59 @@ const SEED_INDICATORS: Omit<FisheriesIndicator, 'id'>[] = [
   { code: '5.1',  name: 'Local species action plans developed & implemented', baselineValue: 0, targetValue: 2,   unit: 'plans' },
 ]
 
+// ── LOCAL SEED DATA (used as fallback when Firestore is unavailable) ─────────
+
+function buildLocalActivities(): FisheriesActivity[] {
+  return SEED_ACTIVITIES.map((act, i) => ({
+    id: `act_${String(i + 1).padStart(3, '0')}`,
+    ...act,
+  }))
+}
+
+function buildLocalIndicators(): FisheriesIndicator[] {
+  return SEED_INDICATORS.map((ind, i) => ({
+    id: `ind_${String(i + 1).padStart(3, '0')}`,
+    ...ind,
+  }))
+}
+
 // ── SEED FUNCTION ─────────────────────────────────────────────────────────────
 
 export async function seedFisheriesData(): Promise<void> {
-  // Check if already seeded
-  const snapshot = await getDocs(collection(db, ACTIVITIES_COL))
-  if (snapshot.size > 0) return
+  try {
+    const snapshot = await getDocs(collection(db, ACTIVITIES_COL))
+    if (snapshot.size > 0) return
 
-  const batch = writeBatch(db)
+    const batch = writeBatch(db)
 
-  SEED_ACTIVITIES.forEach((act, i) => {
-    const id = `act_${String(i + 1).padStart(3, '0')}`
-    const ref = doc(db, ACTIVITIES_COL, id)
-    batch.set(ref, { id, ...act })
-  })
+    SEED_ACTIVITIES.forEach((act, i) => {
+      const id = `act_${String(i + 1).padStart(3, '0')}`
+      const ref = doc(db, ACTIVITIES_COL, id)
+      batch.set(ref, { id, ...act })
+    })
 
-  SEED_INDICATORS.forEach((ind, i) => {
-    const id = `ind_${String(i + 1).padStart(3, '0')}`
-    const ref = doc(db, INDICATORS_COL, id)
-    batch.set(ref, { id, ...ind })
-  })
+    SEED_INDICATORS.forEach((ind, i) => {
+      const id = `ind_${String(i + 1).padStart(3, '0')}`
+      const ref = doc(db, INDICATORS_COL, id)
+      batch.set(ref, { id, ...ind })
+    })
 
-  await batch.commit()
+    await batch.commit()
+  } catch (err) {
+    console.warn('seedFisheriesData: Firestore unavailable, using local data', err)
+  }
 }
 
 // ── ACTIVITIES ────────────────────────────────────────────────────────────────
 
 export async function listActivities(): Promise<FisheriesActivity[]> {
-  const snap = await getDocs(collection(db, ACTIVITIES_COL))
-  return snap.docs.map(d => d.data() as FisheriesActivity)
+  try {
+    const snap = await getDocs(collection(db, ACTIVITIES_COL))
+    if (snap.size > 0) return snap.docs.map(d => d.data() as FisheriesActivity)
+  } catch (err) {
+    console.warn('listActivities: Firestore unavailable, using local data', err)
+  }
+  return buildLocalActivities()
 }
 
 // ── ACTIVITY PROGRESS ─────────────────────────────────────────────────────────
@@ -87,8 +111,13 @@ export async function listProgress(activityId: string): Promise<ActivityProgress
 }
 
 export async function listAllProgress(): Promise<ActivityProgress[]> {
-  const snap = await getDocs(collection(db, PROGRESS_COL))
-  return snap.docs.map(d => d.data() as ActivityProgress)
+  try {
+    const snap = await getDocs(collection(db, PROGRESS_COL))
+    return snap.docs.map(d => d.data() as ActivityProgress)
+  } catch (err) {
+    console.warn('listAllProgress: Firestore unavailable', err)
+    return []
+  }
 }
 
 export async function upsertProgress(
@@ -115,13 +144,23 @@ export async function upsertProgress(
 // ── INDICATORS ────────────────────────────────────────────────────────────────
 
 export async function listIndicators(): Promise<FisheriesIndicator[]> {
-  const snap = await getDocs(collection(db, INDICATORS_COL))
-  return snap.docs.map(d => d.data() as FisheriesIndicator)
+  try {
+    const snap = await getDocs(collection(db, INDICATORS_COL))
+    if (snap.size > 0) return snap.docs.map(d => d.data() as FisheriesIndicator)
+  } catch (err) {
+    console.warn('listIndicators: Firestore unavailable, using local data', err)
+  }
+  return buildLocalIndicators()
 }
 
 export async function listAllIndicatorProgress(): Promise<IndicatorProgress[]> {
-  const snap = await getDocs(collection(db, IND_PROGRESS_COL))
-  return snap.docs.map(d => d.data() as IndicatorProgress)
+  try {
+    const snap = await getDocs(collection(db, IND_PROGRESS_COL))
+    return snap.docs.map(d => d.data() as IndicatorProgress)
+  } catch (err) {
+    console.warn('listAllIndicatorProgress: Firestore unavailable', err)
+    return []
+  }
 }
 
 export async function addIndicatorProgress(

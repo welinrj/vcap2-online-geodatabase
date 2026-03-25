@@ -1,3 +1,4 @@
+// VCAP II Fisheries Dashboard
 import { useState, useEffect, type FC } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -37,6 +38,8 @@ const STATUS_LABELS: Record<ActivityStatus, string> = {
   delayed: 'Delayed',
 }
 
+const DEFAULT_RATE = 119.25
+
 const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
   const [activities, setActivities] = useState<FisheriesActivity[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, ActivityProgress>>({})
@@ -44,6 +47,24 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
   const [indProgressMap, setIndProgressMap] = useState<Record<string, IndicatorProgress[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'activities' | 'indicators'>('overview')
+  const [exchangeRate, setExchangeRate] = useState(() => {
+    const stored = localStorage.getItem('vcap2_vuv_rate')
+    return stored ? Number(stored) : DEFAULT_RATE
+  })
+
+  function updateRate(rate: number) {
+    const r = rate > 0 ? rate : DEFAULT_RATE
+    setExchangeRate(r)
+    localStorage.setItem('vcap2_vuv_rate', String(r))
+  }
+
+  function toVuv(usd: number): number {
+    return Math.round(usd * exchangeRate)
+  }
+
+  function fmtVuv(usd: number): string {
+    return `VT ${toVuv(usd).toLocaleString()}`
+  }
   const [selectedQuarter, setSelectedQuarter] = useState<Quarter>('Q1')
   const [editingProgress, setEditingProgress] = useState<{
     activityId: string
@@ -83,7 +104,10 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
 
       setLoading(false)
     }
-    load().catch(console.error)
+    load().catch(err => {
+      console.error('FisheriesDashboard load error:', err)
+      setLoading(false)
+    })
   }, [])
 
   function getProgress(activityId: string, quarter: Quarter): ActivityProgress | undefined {
@@ -147,21 +171,43 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
 
   return (
     <div className="data-portal">
-      <div className="portal-toolbar">
+      <div className="portal-toolbar" style={{ flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>
           VCAP II Fisheries Dashboard
         </h2>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {(['overview', 'activities', 'indicators'] as const).map(tab => (
-            <button
-              key={tab}
-              className={`btn ${activeTab === tab ? 'btn-primary' : ''}`}
-              style={activeTab !== tab ? { background: 'transparent', border: '1px solid #e2e8f0' } : undefined}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '0.3rem 0.6rem',
+            fontSize: '0.8rem', color: '#15803d',
+          }}>
+            <span style={{ fontWeight: 600 }}>1 USD =</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={exchangeRate}
+              onChange={e => updateRate(Number(e.target.value))}
+              style={{
+                width: 70, padding: '0.2rem 0.35rem', borderRadius: 4,
+                border: '1px solid #86efac', fontSize: '0.8rem', fontWeight: 600,
+                textAlign: 'right', background: '#fff', color: '#15803d',
+              }}
+            />
+            <span style={{ fontWeight: 600 }}>VUV</span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {(['overview', 'activities', 'indicators'] as const).map(tab => (
+              <button
+                key={tab}
+                className={`btn ${activeTab === tab ? 'btn-primary' : ''}`}
+                style={activeTab !== tab ? { background: 'transparent', border: '1px solid #e2e8f0' } : undefined}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -171,8 +217,8 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
           {/* KPI cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
             {[
-              { label: 'Total Budget', value: `$${totalBudget.toLocaleString()}` },
-              { label: 'Total Spent', value: `$${totalActual.toLocaleString()}` },
+              { label: 'Total Budget', value: `$${totalBudget.toLocaleString()}`, sub: fmtVuv(totalBudget) },
+              { label: 'Total Spent', value: `$${totalActual.toLocaleString()}`, sub: fmtVuv(totalActual) },
               { label: 'Budget Used', value: totalBudget ? `${((totalActual / totalBudget) * 100).toFixed(1)}%` : '0%' },
               { label: 'Activities', value: activities.length },
               { label: 'Completed', value: statusCounts.completed },
@@ -184,6 +230,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
               }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>{kpi.label}</span>
                 <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>{kpi.value}</span>
+                {kpi.sub && <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>{kpi.sub}</span>}
               </div>
             ))}
           </div>
@@ -197,7 +244,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
               <BarChart data={quarterBudgetData} barCategoryGap="30%">
                 <XAxis dataKey="quarter" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v) => `$${Number(v).toLocaleString()}`} />
+                <Tooltip formatter={(v) => `$${Number(v).toLocaleString()} (${fmtVuv(Number(v))})`} />
                 <Bar dataKey="budgeted" name="Budgeted" fill="#bfdbfe" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="actual" name="Actual" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -242,7 +289,7 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  {['Code', 'Description', 'Output', 'Fund', 'Budget (USD)', `${selectedQuarter} Budget`, 'Status', 'Actual (USD)', '% Done', 'Actions'].map(h => (
+                  {['Code', 'Description', 'Output', 'Fund', 'Budget (USD / VUV)', `${selectedQuarter} Budget`, 'Status', 'Actual (USD / VUV)', '% Done', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '0.6rem 0.75rem', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', color: '#475569' }}>{h}</th>
                   ))}
                 </tr>
@@ -260,8 +307,14 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
                       <td style={{ padding: '0.5rem 0.75rem', maxWidth: 280 }}>{act.description}</td>
                       <td style={{ padding: '0.5rem 0.75rem', whiteSpace: 'nowrap' }}>{act.output}</td>
                       <td style={{ padding: '0.5rem 0.75rem', whiteSpace: 'nowrap' }}>{act.fund}</td>
-                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>${act.budgetUsd.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>${qBudget.toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        ${act.budgetUsd.toLocaleString()}
+                        <br /><span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{fmtVuv(act.budgetUsd)}</span>
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        ${qBudget.toLocaleString()}
+                        <br /><span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{fmtVuv(qBudget)}</span>
+                      </td>
                       <td style={{ padding: '0.5rem 0.75rem' }}>
                         {prog ? (
                           <span style={{
@@ -277,7 +330,12 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
                         )}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        {prog ? `$${prog.actualUsd.toLocaleString()}` : '—'}
+                        {prog ? (
+                          <>
+                            ${prog.actualUsd.toLocaleString()}
+                            <br /><span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{fmtVuv(prog.actualUsd)}</span>
+                          </>
+                        ) : '—'}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', textAlign: 'right' }}>
                         {prog ? `${prog.percentDone}%` : '—'}
