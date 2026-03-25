@@ -105,13 +105,23 @@ function patchEntry(e: ProDocEntry): ProDocEntry {
   return patched
 }
 
+/** Normalize an entry loaded from Firestore — trims whitespace from the ID
+ *  to defend against accidental edits that add leading/trailing spaces */
+function normalizeEntry(e: ProDocEntry): ProDocEntry {
+  const trimmedId = e.id.trim()
+  return trimmedId !== e.id ? { ...e, id: trimmedId } : e
+}
+
 /** Apply migration: move reclassified entries from existing → new, patch stale values,
  *  and inject missing existing MPA entries */
 function applyMigration(
   newAreas: ProDocEntry[],
   existingAreas: ProDocEntry[],
 ): { newAreas: ProDocEntry[]; existingAreas: ProDocEntry[] } {
-  const { toMigrate, prunedExisting } = existingAreas.reduce(
+  // Normalize IDs first — guards against Firestore entries with stray whitespace
+  const normalizedNew = newAreas.map(normalizeEntry)
+  const normalizedExisting = existingAreas.map(normalizeEntry)
+  const { toMigrate, prunedExisting } = normalizedExisting.reduce(
     (acc, e) => {
       if (RECLASSIFIED_TO_NEW.has(e.id)) acc.toMigrate.push({ ...e, status: 'New' as const })
       else acc.prunedExisting.push(e)
@@ -119,7 +129,7 @@ function applyMigration(
     },
     { toMigrate: [] as ProDocEntry[], prunedExisting: [] as ProDocEntry[] },
   )
-  const alreadyInNew = new Set(newAreas.map((e) => e.id))
+  const alreadyInNew = new Set(normalizedNew.map((e) => e.id))
   const toAppend = toMigrate.filter((e) => !alreadyInNew.has(e.id))
 
   // Inject default existing MPA entries if not already present
@@ -127,7 +137,7 @@ function applyMigration(
   const missingMpas = DEFAULT_EXISTING_MPAS.filter((e) => !existingIds.has(e.id))
 
   return {
-    newAreas: [...newAreas, ...toAppend].map(patchEntry),
+    newAreas: [...normalizedNew, ...toAppend].map(patchEntry),
     existingAreas: [...prunedExisting, ...missingMpas],
   }
 }

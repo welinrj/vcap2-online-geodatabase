@@ -18,10 +18,11 @@ const AUTHORITATIVE_NEW_AREA_OVERRIDES: Record<string, Partial<Pick<ProDocEntry,
   'MPA2515': { registrationStatus: 'Registered' }, // Nasawa
 }
 
-/** Apply authoritative overrides to a new-area entry before computing indicators */
+/** Apply authoritative overrides to a new-area entry before computing indicators.
+ *  Trims the ID to handle any whitespace variation stored in Firestore. */
 function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
-  const overrides = AUTHORITATIVE_NEW_AREA_OVERRIDES[entry.id]
-  return overrides ? { ...entry, ...overrides } : entry
+  const overrides = AUTHORITATIVE_NEW_AREA_OVERRIDES[entry.id.trim()]
+  return overrides ? { ...entry, id: entry.id.trim(), ...overrides } : entry
 }
 
 /** Map area councils to their province */
