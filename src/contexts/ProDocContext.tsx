@@ -96,8 +96,9 @@ function patchEntry(e: ProDocEntry): ProDocEntry {
   if (e.id === 'MTPA2403' && e.hectaresMarine === 111.959) {
     patched = { ...patched, hectaresMarine: 50.327 }
   }
-  // Register confirmed new MPA entries (only if not yet explicitly set)
-  if (NEW_MPA_REGISTERED_IDS.has(e.id) && e.registrationStatus === '') {
+  // Always enforce Registered for confirmed new MPA entries — prevents Firestore
+  // stale values (e.g. 'Not Yet Registered') from reverting the 243.69 ha total
+  if (NEW_MPA_REGISTERED_IDS.has(e.id) && e.registrationStatus !== 'Registered') {
     patched = { ...patched, registrationStatus: 'Registered' as const }
   }
   return patched
