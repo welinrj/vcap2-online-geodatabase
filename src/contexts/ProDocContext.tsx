@@ -92,8 +92,9 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
 /** Patch individual entry fields — corrects stale data values on load */
 function patchEntry(e: ProDocEntry): ProDocEntry {
   let patched = e
-  // Correct Wusi marine ha (survey revision, March 2026)
-  if (e.id === 'MTPA2403' && e.hectaresMarine === 111.959) {
+  // Correct Wusi marine ha (survey revision, March 2026) — enforce regardless of
+  // which stale value Firestore holds (was 111.959, also seen as 36.516)
+  if (e.id === 'MTPA2403' && e.hectaresMarine !== 50.327) {
     patched = { ...patched, hectaresMarine: 50.327 }
   }
   // Always enforce Registered for confirmed new MPA entries — prevents Firestore
