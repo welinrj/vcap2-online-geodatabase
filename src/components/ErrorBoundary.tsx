@@ -10,9 +10,25 @@ interface State {
   error: Error | null
 }
 
+const CHUNK_ERROR_PATTERNS = [
+  'importing a module script failed',
+  'unable to preload',
+  'failed to fetch dynamically imported module',
+  'error loading chunk',
+  'loading chunk',
+  'loading css chunk',
+]
+
+function isChunkLoadError(error: Error): boolean {
+  const msg = error.message.toLowerCase()
+  return CHUNK_ERROR_PATTERNS.some(p => msg.includes(p))
+}
+
 /**
  * Catches rendering errors in child components and shows a recovery UI
  * instead of crashing the entire application.
+ * For stale-cache chunk load errors (common after a new deploy), it
+ * automatically reloads the page once to pick up the fresh assets.
  */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null }
@@ -23,9 +39,18 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: { componentStack?: string | null }) {
     console.error('ErrorBoundary caught:', error, info.componentStack)
+
+    if (isChunkLoadError(error)) {
+      const key = 'vcap2_chunk_reload'
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1')
+        window.location.reload()
+      }
+    }
   }
 
   handleReset = () => {
+    sessionStorage.removeItem('vcap2_chunk_reload')
     this.setState({ hasError: false, error: null })
   }
 
