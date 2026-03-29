@@ -56,6 +56,37 @@ export async function findUserByName(name: string): Promise<UserProfile | null> 
   return users.find((u) => u.name.toLowerCase() === name.toLowerCase()) ?? null
 }
 
+export async function findUserByEmail(email: string): Promise<UserProfile | null> {
+  if (!email) return null
+  const users = await listUsers()
+  return users.find((u) => u.email?.toLowerCase() === email.toLowerCase()) ?? null
+}
+
+/**
+ * Deduplicate users by name — keeps the entry with the most recent login
+ * or the one with an email, so duplicate "VCAP2 Staff" entries collapse to one.
+ */
+export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
+  const byName = new Map<string, UserProfile>()
+  for (const u of users) {
+    const key = u.name.toLowerCase().trim()
+    const existing = byName.get(key)
+    if (!existing) {
+      byName.set(key, u)
+      continue
+    }
+    // Prefer the entry that has an email, more recent login, or a role set
+    const score = (p: UserProfile) =>
+      (p.email ? 4 : 0) +
+      (p.lastLogin ? 2 : 0) +
+      (p.role ? 1 : 0)
+    if (score(u) > score(existing)) {
+      byName.set(key, u)
+    }
+  }
+  return Array.from(byName.values())
+}
+
 export async function deleteUserProfile(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTION, id))
 }

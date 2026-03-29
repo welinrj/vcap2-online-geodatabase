@@ -8,7 +8,7 @@ import {
   PRIORITY_LABELS,
   type Activity,
 } from '../../services/activityStore'
-import { listUsers } from '../../services/userStore'
+import { listUsers, deduplicateUsers } from '../../services/userStore'
 import Icons8Icon from '../Icons8Icon'
 import './ActivityCalendar.css'
 
@@ -70,7 +70,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
       try {
         const [acts, users] = await Promise.all([listAllActivities(), listUsers()])
         setActivities(acts)
-        setAllUsers(users)
+        setAllUsers(deduplicateUsers(users))
       } finally {
         setLoading(false)
       }

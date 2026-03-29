@@ -1,7 +1,7 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react'
 import Icons8Icon from '../Icons8Icon'
 import type { UserProfile, UserRole } from '../../types/user'
-import { listUsers, updateUser, deleteUserProfile } from '../../services/userStore'
+import { listUsers, updateUser, deleteUserProfile, findUserByName, findUserByEmail } from '../../services/userStore'
 import './UserManagement.css'
 
 interface UserManagementProps {
@@ -73,6 +73,22 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
     setCreating(true)
     setCreateError('')
     try {
+      // Check for duplicate name or email before creating
+      const [existingByName, existingByEmail] = await Promise.all([
+        findUserByName(newName.trim()),
+        newEmail ? findUserByEmail(newEmail) : Promise.resolve(null),
+      ])
+      if (existingByName) {
+        setCreateError(`A user named "${existingByName.name}" already exists`)
+        setCreating(false)
+        return
+      }
+      if (existingByEmail) {
+        setCreateError(`A user with email "${newEmail}" already exists`)
+        setCreating(false)
+        return
+      }
+
       // Try Firebase auth creation first
       try {
         const { createUser: firebaseCreateUser } = await import('../../services/firebaseAuth')
