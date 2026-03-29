@@ -123,8 +123,6 @@ const Dashboard: FC = () => {
     allTerrestrialHa, allMarineHa,
     ccaProgress, mpaProgress, ccaLandPercent, mpaEezPercent,
     ccaRemainingHa, mpaRemainingHa,
-    newCcaCount, newMpaCount, improvedCcaCount, improvedMpaCount,
-    ccaMappedComplete, ccaMappedLeft, mpaMappedComplete, mpaMappedLeft,
     mappingCompleted, mappingInProgress, mappingNotStarted, totalSites,
     provinceBarData,
   } = analytics
@@ -133,13 +131,6 @@ const Dashboard: FC = () => {
   const indicatorTracking = useMemo(
     () => computeIndicatorTracking(newAreas, existingAreas),
     [newAreas, existingAreas],
-  )
-
-  const ccaAreas = [...newAreas, ...existingAreas].filter(
-    (e) => e.ccaType === 'Terrestrial' || e.ccaType === 'Marine & Terrestrial',
-  )
-  const mpaAreas = [...newAreas, ...existingAreas].filter(
-    (e) => e.ccaType === 'Marine' || e.ccaType === 'Marine & Terrestrial',
   )
 
   // ProDoc indicator donut data
@@ -601,88 +592,6 @@ const Dashboard: FC = () => {
           </div>
         </div>
       )}
-
-      {/* KPI Overview Cards */}
-      <div className="dash-kpi-row">
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">New CCAs</span>
-            <span className="dash-kpi-badge dash-kpi-badge-green">
-              <Icons8Icon name="sprout" size={14} />
-              Terrestrial
-            </span>
-          </div>
-          <span className="dash-kpi-value">{newCcaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (newCcaCount / ccaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">New MPAs</span>
-            <span className="dash-kpi-badge dash-kpi-badge-blue">
-              <Icons8Icon name="fish" size={14} />
-              Marine
-            </span>
-          </div>
-          <span className="dash-kpi-value">{newMpaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (newMpaCount / mpaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">CCAs Improved</span>
-            <span className="dash-kpi-badge dash-kpi-badge-green">
-              <Icons8Icon name="deciduous-tree" size={14} />
-              Strengthened
-            </span>
-          </div>
-          <span className="dash-kpi-value">{improvedCcaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-green" style={{ width: `${ccaAreas.length ? (improvedCcaCount / ccaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">MPAs Improved</span>
-            <span className="dash-kpi-badge dash-kpi-badge-blue">
-              <Icons8Icon name="anchor" size={14} />
-              Strengthened
-            </span>
-          </div>
-          <span className="dash-kpi-value">{improvedMpaCount}</span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-blue" style={{ width: `${mpaAreas.length ? (improvedMpaCount / mpaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">CCA Mapped</span>
-            <span className="dash-kpi-badge dash-kpi-badge-purple">
-              <Icons8Icon name="geography" size={14} />
-              {ccaMappedLeft} left
-            </span>
-          </div>
-          <span className="dash-kpi-value">{ccaMappedComplete}<span className="dash-kpi-of">/{ccaAreas.length}</span></span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-purple" style={{ width: `${ccaAreas.length ? (ccaMappedComplete / ccaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-        <div className="dash-kpi-card">
-          <div className="dash-kpi-top">
-            <span className="dash-kpi-label">MPA Mapped</span>
-            <span className="dash-kpi-badge dash-kpi-badge-amber">
-              <Icons8Icon name="compass" size={14} />
-              {mpaMappedLeft} left
-            </span>
-          </div>
-          <span className="dash-kpi-value">{mpaMappedComplete}<span className="dash-kpi-of">/{mpaAreas.length}</span></span>
-          <div className="dash-kpi-bar">
-            <div className="dash-kpi-bar-fill dash-kpi-fill-amber" style={{ width: `${mpaAreas.length ? (mpaMappedComplete / mpaAreas.length) * 100 : 0}%` }} />
-          </div>
-        </div>
-      </div>
 
       {/* Core Indicator 5 — Area of land restored */}
       <div className="dash-targets">
