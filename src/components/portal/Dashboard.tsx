@@ -536,6 +536,40 @@ const Dashboard: FC = () => {
         </div>
       </div>
 
+      {/* 30x30 Explanatory Notes */}
+      <div className="dash-30x30-notes">
+        <div className="dash-30x30-notes-grid">
+          <div className="dash-30x30-note">
+            <span className="dash-30x30-note-icon">🌍</span>
+            <div>
+              <strong>What is 30x30?</strong>
+              <p>The 30x30 initiative is a global commitment under the Kunming-Montreal Global Biodiversity Framework (GBF) to protect at least 30% of the world's land and ocean areas by 2030. Vanuatu is a signatory and is working towards this target through the designation of Community Conservation Areas (CCAs) and Marine Protected Areas (MPAs).</p>
+            </div>
+          </div>
+          <div className="dash-30x30-note">
+            <span className="dash-30x30-note-icon">🌿</span>
+            <div>
+              <strong>Terrestrial (CCA) Progress</strong>
+              <p>Calculated as the total mapped hectares of all CCAs (new and existing) divided by 30% of Vanuatu's total land area (1,226,905 ha). The 30% target is <strong>368,071.5 ha</strong>. All CCA entries are included regardless of registration status.</p>
+            </div>
+          </div>
+          <div className="dash-30x30-note">
+            <span className="dash-30x30-note-icon">🐠</span>
+            <div>
+              <strong>Marine (MPA) Progress</strong>
+              <p>Calculated as the total mapped hectares of all MPAs (new and existing) divided by 30% of Vanuatu's Exclusive Economic Zone (68,400,000 ha). The 30% target is <strong>20,520,000 ha</strong>. All MPA entries are included regardless of registration status.</p>
+            </div>
+          </div>
+          <div className="dash-30x30-note">
+            <span className="dash-30x30-note-icon">📊</span>
+            <div>
+              <strong>How results are calculated</strong>
+              <p>Hectare figures are drawn from the VCAP2 ProDoc Tracker database. The percentage shown reflects current mapped coverage against the 30% national target. Progress is updated in real time as new sites are added or existing data is revised.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Coverage by Province */}
       {provinceBarData.length > 0 && (
         <div className="dash-targets">
