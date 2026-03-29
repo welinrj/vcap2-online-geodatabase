@@ -110,7 +110,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 9.733,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA2511',
@@ -126,7 +126,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 3.053,
     hectaresMarine: 19.566,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA2512',
@@ -142,7 +142,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 10.076,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA2513',
@@ -158,7 +158,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 68.924,
     hectaresMarine: 19.566,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA2515',
@@ -174,7 +174,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 4.078,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA2516',
@@ -254,7 +254,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 16.564,
     hectaresMarine: 77.484,
     remarks: 'Areas to be reconfirmed with proper mapping methodology. (MPA was mapped without involvement of Community and/or Land owner)',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MTPA2402',
@@ -302,7 +302,7 @@ export const newAreas: ProDocEntry[] = [
     hectaresTerrestrial: 3559.76,
     hectaresMarine: 43.521,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA250302',
