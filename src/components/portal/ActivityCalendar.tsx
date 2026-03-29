@@ -62,6 +62,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [filterUserId, setFilterUserId] = useState<string>('')
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -138,7 +139,7 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
     return getActivitiesForDate(filteredActivities, selectedDate)
   }, [selectedDate, filteredActivities])
 
-  // User availability for current month
+  // User availability for current month — includes ALL users
   const userAvailability = useMemo(() => {
     const daysInMonth = getDaysInMonth(year, month)
     const monthStart = toDateStr(year, month, 1)
@@ -162,9 +163,11 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
         }
       }
       return { user, busyDays: busyDays.size, totalDays: daysInMonth, activities: userActs }
-    }).filter((u) => u.activities.length > 0)
-      .sort((a, b) => b.busyDays - a.busyDays)
+    }).sort((a, b) => b.busyDays - a.busyDays)
   }, [allUsers, activities, year, month])
+
+  const freeCount = userAvailability.filter((u) => u.busyDays === 0).length
+  const busyCount = userAvailability.length - freeCount
 
   function prevMonth() {
     if (month === 0) { setYear(year - 1); setMonth(11) }
@@ -286,10 +289,10 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
             </div>
           </div>
 
-          {/* Side panel */}
+          {/* Side panel — always shows availability; date detail shown above when selected */}
           <div className="ac-side-panel">
             {/* Selected date activities */}
-            {selectedDate ? (
+            {selectedDate && (
               <div className="ac-date-detail">
                 <div className="ac-detail-header">
                   <h4>
@@ -329,20 +332,46 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                   </div>
                 )}
               </div>
-            ) : (
-              /* Team availability */
-              <div className="ac-availability">
-                <h4 className="ac-avail-title">
-                  <Icons8Icon name="group" size={16} /> Team Availability — {MONTHS[month]}
-                </h4>
-                {userAvailability.length === 0 ? (
-                  <p className="ac-no-activities">No scheduled activities this month</p>
-                ) : (
-                  <div className="ac-avail-list">
-                    {userAvailability.map(({ user, busyDays, totalDays, activities: userActs }) => {
-                      const pct = Math.round((busyDays / totalDays) * 100)
-                      return (
-                        <div key={user.id} className="ac-avail-user">
+            )}
+
+            {/* Team availability — always visible */}
+            <div className={`ac-availability ${selectedDate ? 'ac-avail-below-date' : ''}`}>
+              <h4 className="ac-avail-title">
+                <Icons8Icon name="group" size={16} /> Officer Availability — {MONTHS[month]}
+              </h4>
+
+              {/* Summary counts */}
+              {userAvailability.length > 0 && (
+                <div className="ac-avail-summary">
+                  <div className="ac-avail-summary-item ac-avail-summary-busy">
+                    <span className="ac-avail-summary-count">{busyCount}</span>
+                    <span className="ac-avail-summary-label">Assigned</span>
+                  </div>
+                  <div className="ac-avail-summary-item ac-avail-summary-free">
+                    <span className="ac-avail-summary-count">{freeCount}</span>
+                    <span className="ac-avail-summary-label">Free</span>
+                  </div>
+                  <div className="ac-avail-summary-item ac-avail-summary-total">
+                    <span className="ac-avail-summary-count">{userAvailability.length}</span>
+                    <span className="ac-avail-summary-label">Total</span>
+                  </div>
+                </div>
+              )}
+
+              {userAvailability.length === 0 ? (
+                <p className="ac-no-activities">No officers registered</p>
+              ) : (
+                <div className="ac-avail-list">
+                  {userAvailability.map(({ user, busyDays, totalDays, activities: userActs }) => {
+                    const pct = Math.round((busyDays / totalDays) * 100)
+                    const isFree = busyDays === 0
+                    const isExpanded = expandedUserId === user.id
+                    return (
+                      <div key={user.id} className={`ac-avail-user ${isFree ? 'ac-avail-user-free' : ''}`}>
+                        <button
+                          className="ac-avail-user-toggle"
+                          onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
+                        >
                           <div className="ac-avail-user-header">
                             <div className="ac-avail-user-info">
                               {user.avatar ? (
@@ -354,30 +383,72 @@ const ActivityCalendar: FC<ActivityCalendarProps> = ({ currentUser }) => {
                               )}
                               <div>
                                 <span className="ac-avail-name">{user.name}</span>
-                                <span className="ac-avail-role">{user.role ?? 'Member'}</span>
+                                <span className="ac-avail-role">{user.position || user.role || 'Officer'}</span>
                               </div>
                             </div>
-                            <span className={`ac-avail-badge ${pct > 70 ? 'ac-avail-busy' : pct > 30 ? 'ac-avail-moderate' : 'ac-avail-free'}`}>
-                              {pct > 70 ? 'Busy' : pct > 30 ? 'Moderate' : 'Available'}
+                            <span className={`ac-avail-badge ${isFree ? 'ac-avail-free' : pct > 70 ? 'ac-avail-busy' : pct > 30 ? 'ac-avail-moderate' : 'ac-avail-light'}`}>
+                              {isFree ? 'Free' : pct > 70 ? 'Busy' : pct > 30 ? 'Moderate' : 'Light'}
                             </span>
                           </div>
-                          <div className="ac-avail-bar-track">
-                            <div
-                              className={`ac-avail-bar-fill ${pct > 70 ? 'ac-bar-busy' : pct > 30 ? 'ac-bar-moderate' : 'ac-bar-free'}`}
-                              style={{ width: `${pct}%` }}
-                            />
+                          {!isFree && (
+                            <>
+                              <div className="ac-avail-bar-track">
+                                <div
+                                  className={`ac-avail-bar-fill ${pct > 70 ? 'ac-bar-busy' : pct > 30 ? 'ac-bar-moderate' : 'ac-bar-free'}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <div className="ac-avail-stats">
+                                <span>{busyDays} busy day{busyDays !== 1 ? 's' : ''}</span>
+                                <span>{userActs.length} activit{userActs.length !== 1 ? 'ies' : 'y'}</span>
+                              </div>
+                            </>
+                          )}
+                          {isFree && (
+                            <div className="ac-avail-stats">
+                              <span>No activities this month</span>
+                            </div>
+                          )}
+                        </button>
+
+                        {/* Expanded: officer's activities for this month */}
+                        {isExpanded && userActs.length > 0 && (
+                          <div className="ac-avail-activities">
+                            {userActs
+                              .sort((a, b) => a.startDate.localeCompare(b.startDate))
+                              .map((a) => (
+                                <button
+                                  key={a.id}
+                                  className={`ac-activity-item ac-activity-${a.priority}`}
+                                  onClick={() => setSelectedActivity(a)}
+                                >
+                                  <div className="ac-activity-top">
+                                    <Icons8Icon name={STATUS_ICONS[a.status]} size={14} className={`ac-status-icon ac-status-${a.status}`} />
+                                    <span className="ac-activity-title">{a.title}</span>
+                                  </div>
+                                  <div className="ac-activity-meta">
+                                    <span>
+                                      <Icons8Icon name="calendar" size={12} />
+                                      {a.startDate.slice(5)}
+                                      {a.endDate && a.endDate !== a.startDate ? ` — ${a.endDate.slice(5)}` : ''}
+                                    </span>
+                                    <span className="badge badge-format">{ACTIVITY_TYPES[a.type]}</span>
+                                  </div>
+                                </button>
+                              ))}
                           </div>
-                          <div className="ac-avail-stats">
-                            <span>{busyDays} busy day{busyDays !== 1 ? 's' : ''}</span>
-                            <span>{userActs.length} activit{userActs.length !== 1 ? 'ies' : 'y'}</span>
+                        )}
+                        {isExpanded && userActs.length === 0 && (
+                          <div className="ac-avail-activities">
+                            <p className="ac-avail-empty">Available for assignment</p>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
