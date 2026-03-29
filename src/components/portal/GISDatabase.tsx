@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useRef, type FC } from 'react'
+import { useState, useCallback, useEffect, useRef, type FC, type KeyboardEvent } from 'react'
 import type { DatasetSummary, GeoDataset } from '../../types/geospatial'
+import type { UserProfile } from '../../types/user'
 import {
   listDatasets,
   getDataset,
@@ -13,6 +14,7 @@ import {
   formatBytes,
   migrateFromLocalStorage,
   onDatasetsChanged,
+  updateDatasetMetadata,
 } from '../../services/datasetStore'
 import { exportFullBackup } from '../../services/backupService'
 import {
@@ -29,11 +31,13 @@ import './GISDatabase.css'
 
 interface GISDatabaseProps {
   onNavigate?: (section: string) => void
+  currentUser?: UserProfile | null
 }
 
 type DbView = 'browse' | 'upload' | 'edit-features'
 
-const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
+const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate, currentUser }) => {
+  const isAdmin = currentUser?.role === 'admin'
   const [view, setView] = useState<DbView>('browse')
   const [editingDataset, setEditingDataset] = useState<GeoDataset | null>(null)
   const [datasets, setDatasets] = useState<DatasetSummary[]>([])
@@ -49,6 +53,12 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
   const [syncing, setSyncing] = useState(false)
   const [syncStatus, setSyncStatus] = useState('')
   const [lastSync, setLastSync] = useState<string | null>(null)
+
+  // Inline rename state
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [renameDesc, setRenameDesc] = useState('')
+  const renameInputRef = useRef<HTMLInputElement>(null)
 
   // Trash state
   const [showTrash, setShowTrash] = useState(false)
@@ -261,6 +271,41 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
     if (!window.confirm(`Permanently delete "${ds?.metadata.name}"? This CANNOT be undone.`)) return
     await purgeDataset(id)
     setTrashedDatasets((prev) => prev.filter((d) => d.id !== id))
+  }
+
+  function startRename(ds: DatasetSummary) {
+    setRenamingId(ds.id)
+    setRenameValue(ds.metadata.name)
+    setRenameDesc(ds.metadata.description ?? '')
+    setTimeout(() => renameInputRef.current?.focus(), 0)
+  }
+
+  function cancelRename() {
+    setRenamingId(null)
+    setRenameValue('')
+    setRenameDesc('')
+  }
+
+  async function saveRename() {
+    if (!renamingId || !renameValue.trim()) { cancelRename(); return }
+    await updateDatasetMetadata(renamingId, {
+      name: renameValue.trim(),
+      description: renameDesc.trim(),
+    })
+    // Update preview header if this dataset is currently previewed
+    if (preview?.id === renamingId) {
+      setPreview((prev) => prev ? {
+        ...prev,
+        metadata: { ...prev.metadata, name: renameValue.trim(), description: renameDesc.trim() },
+      } : prev)
+    }
+    cancelRename()
+    backgroundSync()
+  }
+
+  function handleRenameKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') saveRename()
+    if (e.key === 'Escape') cancelRename()
   }
 
   async function handleFullBackup() {
@@ -478,11 +523,49 @@ const GISDatabase: FC<GISDatabaseProps> = ({ onNavigate }) => {
               {datasets.map((ds) => (
                 <tr key={ds.id} className={selectedId === ds.id ? 'db-row-selected' : ''}>
                   <td>
-                    <button className="link-button" onClick={() => handlePreview(ds.id)}>
-                      {ds.metadata.name}
-                    </button>
-                    {ds.metadata.description && (
-                      <span className="dataset-description">{ds.metadata.description}</span>
+                    {renamingId === ds.id ? (
+                      <div className="db-rename-cell">
+                        <input
+                          ref={renameInputRef}
+                          className="db-rename-input"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={handleRenameKey}
+                          placeholder="Dataset name"
+                          aria-label="Dataset name"
+                        />
+                        <input
+                          className="db-rename-input db-rename-desc"
+                          value={renameDesc}
+                          onChange={(e) => setRenameDesc(e.target.value)}
+                          onKeyDown={handleRenameKey}
+                          placeholder="Description (optional)"
+                          aria-label="Description"
+                        />
+                        <div className="db-rename-actions">
+                          <button className="btn btn-sm btn-primary" onClick={saveRename}>Save</button>
+                          <button className="btn btn-sm" onClick={cancelRename}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="db-name-cell">
+                        <button className="link-button" onClick={() => handlePreview(ds.id)}>
+                          {ds.metadata.name}
+                        </button>
+                        {ds.metadata.description && (
+                          <span className="dataset-description">{ds.metadata.description}</span>
+                        )}
+                        {isAdmin && (
+                          <button
+                            className="db-rename-btn"
+                            onClick={() => startRename(ds)}
+                            title="Rename dataset"
+                            aria-label="Rename dataset"
+                          >
+                            ✎
+                          </button>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td>

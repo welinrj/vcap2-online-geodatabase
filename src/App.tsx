@@ -165,7 +165,7 @@ function App() {
           <ErrorBoundary>
           <Suspense fallback={<PortalLoader squareCount={10} speed={0.5} />}>
           {activeSection === 'dashboard' && <Dashboard />}
-          {activeSection === 'gis-database' && isAuthenticated && <GISDatabase />}
+          {activeSection === 'gis-database' && isAuthenticated && <GISDatabase currentUser={currentUser} />}
           {activeSection === 'protected-areas' && isAuthenticated && <ProtectedAreas />}
           {activeSection === 'prodoc-tracker' && <ProDocTracker readOnly={!isAuthenticated} />}
           {activeSection === 'activity-planner' && isAuthenticated && <ActivityPlanner currentUser={currentUser} />}
