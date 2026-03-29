@@ -2,6 +2,76 @@
    GIS Database — Dark Theme
    ═══════════════════════════════════════════════════ */
 
+/* ─── Inline Rename ──────────────────────────────── */
+
+.db-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  position: relative;
+}
+
+.db-name-cell:hover .db-rename-btn {
+  opacity: 1;
+}
+
+.db-rename-btn {
+  position: absolute;
+  right: -4px;
+  top: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  padding: 0 0.2rem;
+  line-height: 1;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.db-rename-btn:hover {
+  color: var(--color-primary);
+}
+
+.db-rename-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.db-rename-input {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-primary);
+  border-radius: 5px;
+  color: var(--color-text);
+  outline: none;
+  width: 100%;
+  min-width: 160px;
+}
+
+.db-rename-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+}
+
+.db-rename-desc {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  border-color: var(--color-border);
+}
+
+.db-rename-desc:focus {
+  border-color: var(--color-primary);
+}
+
+.db-rename-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
 /* Stats grid */
 .db-stats-grid {
   display: grid;
