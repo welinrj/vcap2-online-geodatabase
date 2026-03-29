@@ -6,6 +6,9 @@ import { PRODOC_TARGETS } from '../data/prodocTrackerData'
  * (March 2026). These override whatever Firestore holds, so stale data in the
  * database can never affect indicator totals.
  */
+/** Authoritative total mapped ha for indicator 2.1 (New MPA), confirmed March 2026. */
+const AUTHORITATIVE_NEW_MPA_HA = 243.69
+
 const AUTHORITATIVE_NEW_AREA_OVERRIDES: Record<string, Partial<Pick<ProDocEntry, 'hectaresMarine' | 'registrationStatus'>>> = {
   'MTPA2403': { hectaresMarine: 50.327, registrationStatus: 'Registered' }, // Wusi — survey revision
   'MTPA2402': { registrationStatus: 'Registered' }, // Linduri
@@ -275,7 +278,7 @@ export function computeProDocAnalytics(
   const existQualified = existingAreas.filter((e) => isRegistered(e) && isMappingComplete(e))
   const newCcaHa = sumTerrestrial(newRegistered)
   const existCcaHa = sumTerrestrial(existQualified)
-  const newMpaHa = sumMarine(newRegistered)
+  const newMpaHa = AUTHORITATIVE_NEW_MPA_HA
   const existMpaHa = sumMarine(existQualified)
 
   // Indicator progress
