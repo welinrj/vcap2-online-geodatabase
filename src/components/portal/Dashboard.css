@@ -860,10 +860,9 @@
 }
 
 .dash-30x30-note-icon {
-  font-size: 1.25rem;
-  line-height: 1;
   flex-shrink: 0;
-  margin-top: 0.05rem;
+  margin-top: 0.1rem;
+  color: var(--color-text-secondary);
 }
 
 .dash-30x30-note strong {
