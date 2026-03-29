@@ -30,19 +30,36 @@ function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
 
 /** Map area councils to their province */
 const AREA_COUNCIL_TO_PROVINCE: Record<string, string> = {
-  'South Epi': 'Shefa',
-  'South Maewo': 'Penama',
-  'Toga Island (Torres)': 'Torba',
-  'West Ambrym': 'Malampa',
-  'West Coast Santo': 'Sanma',
-  'East Vanualava': 'Torba',
-  'Hiu Island (Torres)': 'Torba',
-  'South East Tanna': 'Tafea',
+  // Torba
   'Torba': 'Torba',
+  'Torres': 'Torba',
+  'Toga Island (Torres)': 'Torba',
+  'Hiu Island (Torres)': 'Torba',
+  'East Vanualava': 'Torba',
+  // Sanma
   'Sanma': 'Sanma',
+  'West Coast Santo': 'Sanma',
+  // Penama
+  'Penama': 'Penama',
+  'South Maewo': 'Penama',
+  // Malampa
   'Malampa': 'Malampa',
+  'West Ambrym': 'Malampa',
+  // Shefa
   'Shefa': 'Shefa',
+  'South Epi': 'Shefa',
+  // Tafea
   'Tafea': 'Tafea',
+  'South East Tanna': 'Tafea',
+  'Tanna': 'Tafea',
+  'North Tanna': 'Tafea',
+  'West Tanna': 'Tafea',
+  'Middle Bush Tanna': 'Tafea',
+  'Erromango': 'Tafea',
+  'Aneityum': 'Tafea',
+  'Anatom': 'Tafea',
+  'Futuna': 'Tafea',
+  'Aniwa': 'Tafea',
 }
 
 export function getProvince(areaCouncil: string): string {
