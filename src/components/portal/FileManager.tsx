@@ -19,7 +19,7 @@ import {
   type FileEntry,
   type FileShare,
 } from '../../services/fileManagerStore'
-import { setupDefaultFolders } from '../../services/fileManagerSetup'
+import { setupDefaultFolders, deduplicateFolders } from '../../services/fileManagerSetup'
 import { listUsers } from '../../services/userStore'
 import Icons8Icon from '../Icons8Icon'
 import './FileManager.css'
@@ -108,6 +108,8 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     ;(async () => {
       try {
         setSettingUp(true)
+        // Remove any duplicate folders created by concurrent setup sessions
+        await deduplicateFolders()
         const created = await setupDefaultFolders(currentUser.id, currentUser.name)
         if (!cancelled && created > 0) {
           showAlert('success', `VCAP2 folder structure created (${created} folders)`)
