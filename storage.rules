@@ -3,29 +3,8 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
-    }
-
-    function isEditor() {
-      return isAuthenticated() &&
-             (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'editor' ||
-              firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin');
-    }
-
-    function isAdmin() {
-      return isAuthenticated() &&
-             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    function isValidGeoJSON() {
-      return request.resource.contentType == 'application/geo+json' ||
-             request.resource.contentType == 'application/json';
-    }
-
-    function isValidImage() {
-      return request.resource.contentType.matches('image/.*');
     }
 
     function isReasonableSize() {
@@ -34,69 +13,36 @@ service firebase.storage {
 
     // GeoJSON datasets - public read, authenticated write
     match /geojson-datasets/{datasetId} {
-      // Public read access
       allow read: if true;
-
-      // Editors can upload/update/delete datasets
-      allow create, update: if isEditor() && isValidGeoJSON() && isReasonableSize();
-      allow delete: if isEditor() || isAdmin();
+      allow create, update: if isAuthenticated() && isReasonableSize();
+      allow delete: if isAuthenticated();
     }
 
-    // Field data observations - authenticated access
-    match /field-data/{observationId} {
-      // Public read for verified observations
+    // Field data - public read, authenticated write
+    match /field-data/{allPaths=**} {
       allow read: if true;
-
-      // Authenticated users can upload field data
-      allow create: if isAuthenticated() && isValidGeoJSON() && isReasonableSize();
-
-      // Editors can update/delete
-      allow update, delete: if isEditor() || isAdmin();
-    }
-
-    // Field observation images
-    match /field-data/images/{imageId} {
-      // Public read
-      allow read: if true;
-
-      // Authenticated users can upload images
-      allow create: if isAuthenticated() && isValidImage() &&
-                      request.resource.size < 10 * 1024 * 1024; // 10MB for images
-
-      // Editors can delete
-      allow delete: if isEditor() || isAdmin();
+      allow create, update: if isAuthenticated() && isReasonableSize();
+      allow delete: if isAuthenticated();
     }
 
     // User profile pictures
-    match /user-avatars/{userId}/{allPaths=**} {
-      // Anyone can read avatars
+    match /user-avatars/{allPaths=**} {
       allow read: if true;
-
-      // Users can upload their own avatar
-      allow create, update: if request.auth.uid == userId &&
-                              isValidImage() &&
-                              request.resource.size < 5 * 1024 * 1024; // 5MB for avatars
-
-      // Users can delete their own avatar
-      allow delete: if request.auth.uid == userId || isAdmin();
+      allow create, update: if isAuthenticated() && isReasonableSize();
+      allow delete: if isAuthenticated();
     }
 
-    // File Manager uploads - authenticated users manage their own files
-    match /fm-files/{userId}/{allPaths=**} {
-      // Authenticated users can read any file (needed for shared files)
+    // File Manager uploads — any authenticated user can read/write
+    match /fm-files/{allPaths=**} {
       allow read: if isAuthenticated();
-
-      // Users can upload/update their own files (50MB limit)
-      allow create, update: if request.auth.uid == userId && isReasonableSize();
-
-      // Users can delete their own files; admins can delete any
-      allow delete: if request.auth.uid == userId || isAdmin();
+      allow create, update: if isAuthenticated() && isReasonableSize();
+      allow delete: if isAuthenticated();
     }
 
-    // System files (admin only)
+    // System files
     match /system/{allPaths=**} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow write: if isAuthenticated();
     }
   }
 }
