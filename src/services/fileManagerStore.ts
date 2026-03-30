@@ -18,6 +18,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from 'firebase/storage'
+import { signInAnonymously } from 'firebase/auth'
 import { logAudit } from './auditLog'
 
 // ─── Types ─────────────────────────────────────────
@@ -156,12 +157,16 @@ export async function uploadFile(
 ): Promise<FileEntry> {
   if (!db || !storage) throw new Error('Firebase not configured')
 
-  // Use the current Firebase Auth UID for the storage path
-  // Storage rules require request.auth.uid == userId in the path
-  const authUid = auth.currentUser?.uid
-  if (!authUid) {
-    throw new Error('You must be signed in to upload files. Please log out and log back in.')
+  // Ensure we have a Firebase Auth session (portal uses custom auth, not Firebase Auth).
+  // Sign in anonymously so Storage rules can verify request.auth != null.
+  if (!auth.currentUser) {
+    try {
+      await signInAnonymously(auth)
+    } catch {
+      throw new Error('Could not authenticate with file storage. Please check your internet connection and try again.')
+    }
   }
+  const authUid = auth.currentUser!.uid
 
   const id = generateId('file')
   const now = new Date().toISOString()
