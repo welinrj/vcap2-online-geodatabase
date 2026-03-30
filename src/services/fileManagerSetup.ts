@@ -4,16 +4,21 @@
  * Creates a well-organised folder hierarchy for CCA and MPA documents
  * the first time a user accesses the File Manager.
  */
-import { db } from '../config/firebase'
+import { db, auth } from '../config/firebase'
+import { signInAnonymously } from 'firebase/auth'
 import {
   collection,
   doc,
   setDoc,
   getDocs,
-  query,
-  where,
   serverTimestamp,
 } from 'firebase/firestore'
+
+async function ensureAuth(): Promise<void> {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth)
+  }
+}
 
 const FOLDERS_COL = 'fm_folders'
 
@@ -117,19 +122,14 @@ export const VCAP2_DEFAULT_FOLDERS: FolderNode[] = [
 // ─── Setup logic ─────────────────────────────────────────────
 
 /**
- * Check whether the default folder structure has already been created
- * for a given user (by looking for any root-level folders they own).
+ * Check whether the shared default folder structure already exists.
+ * Looks for any non-deleted root-level folder — shared across all users.
  */
-export async function hasDefaultFolders(ownerId: string): Promise<boolean> {
+export async function hasDefaultFolders(): Promise<boolean> {
   if (!db) return false
-  // Single-field query to avoid composite index requirement
-  const q = query(
-    collection(db, FOLDERS_COL),
-    where('ownerId', '==', ownerId),
-  )
-  const snap = await getDocs(q)
-  // Consider setup done if user already has any root folder
-  return snap.docs.filter((d) => !d.data()._deleted && d.data().parentId === null).length >= 1
+  await ensureAuth()
+  const snap = await getDocs(collection(db, FOLDERS_COL))
+  return snap.docs.some((d) => !d.data()._deleted && d.data().parentId === null)
 }
 
 /**
@@ -144,13 +144,8 @@ async function createFolderTree(
 ): Promise<number> {
   if (!db) return 0
 
-  // Load existing siblings to avoid duplicates (single-field query to avoid composite index)
-  const existingQ = query(
-    collection(db, FOLDERS_COL),
-    where('ownerId', '==', ownerId),
-  )
-  const existingAllSnap = await getDocs(existingQ)
-  // Filter to matching parentId client-side
+  // Load all existing siblings at this level to avoid duplicates
+  const existingAllSnap = await getDocs(collection(db, FOLDERS_COL))
   const existingDocs = existingAllSnap.docs.filter((d) => d.data().parentId === parentId)
   const existingNames = new Map<string, string>()
   for (const d of existingDocs) {
@@ -194,7 +189,8 @@ export async function setupDefaultFolders(
   ownerId: string,
   ownerName: string,
 ): Promise<number> {
-  const alreadyDone = await hasDefaultFolders(ownerId)
+  await ensureAuth()
+  const alreadyDone = await hasDefaultFolders()
   if (alreadyDone) return 0
   return createFolderTree(VCAP2_DEFAULT_FOLDERS, null, ownerId, ownerName)
 }
