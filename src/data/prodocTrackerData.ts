@@ -658,7 +658,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 69.299,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA-E02',
@@ -674,7 +674,7 @@ export const existingAreas: ProDocEntry[] = [
     hectaresTerrestrial: null,
     hectaresMarine: 214.391,
     remarks: '',
-    registrationStatus: 'Registered',
+    registrationStatus: 'Not Yet Registered',
   },
   {
     id: 'MPA-E03',
