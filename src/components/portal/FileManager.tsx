@@ -58,6 +58,7 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
   const [newFolderName, setNewFolderName] = useState('')
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 
   // Share modal
   const [shareModal, setShareModal] = useState<{ type: 'folder' | 'file'; id: string; name: string } | null>(null)
@@ -195,19 +196,27 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       showAlert('error', 'Please open a folder before uploading files')
       return
     }
+    const files = Array.from(e.target.files)
     setUploading(true)
+    setUploadProgress(0)
     try {
-      const uploadPromises = Array.from(e.target.files).map((file) =>
-        uploadFile(file, currentFolderId, currentUser.id, currentUser.name),
-      )
-      const uploaded = await Promise.all(uploadPromises)
-      showAlert('success', `${uploaded.length} file${uploaded.length > 1 ? 's' : ''} uploaded`)
+      let completed = 0
+      for (const file of files) {
+        await uploadFile(file, currentFolderId, currentUser.id, currentUser.name, (pct) => {
+          // overall progress: prior files 100% + current file progress
+          setUploadProgress(Math.round(((completed * 100) + pct) / files.length))
+        })
+        completed++
+        setUploadProgress(Math.round((completed / files.length) * 100))
+      }
+      showAlert('success', `${files.length} file${files.length > 1 ? 's' : ''} uploaded`)
       await loadContents()
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to upload file(s)'
       showAlert('error', msg)
     } finally {
       setUploading(false)
+      setUploadProgress(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
@@ -352,7 +361,8 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
               }}
               disabled={uploading}
             >
-              <Icons8Icon name="upload" size={16} /> {uploading ? 'Uploading...' : 'Upload Files'}
+              <Icons8Icon name="upload" size={16} />{' '}
+              {uploading ? `Uploading${uploadProgress !== null ? ` ${uploadProgress}%` : '...'}` : 'Upload Files'}
             </button>
             <input
               ref={fileInputRef}
