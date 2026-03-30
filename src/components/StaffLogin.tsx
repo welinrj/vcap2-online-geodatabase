@@ -36,61 +36,58 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     try {
       let user: UserProfile | null = null
 
-      // Try anonymous Firebase Auth to get Firestore write access
+      // Sign in anonymously for Firebase Auth session (Storage/Firestore rules).
+      // IMPORTANT: do NOT use the anonymous UID as the portal user ID — it changes
+      // every session. Instead look up the user by name for a stable ID.
       try {
         const { signInAnonymously } = await import('firebase/auth')
-        const { auth, db } = await import('../config/firebase')
-        const cred = await signInAnonymously(auth)
-        const uid = cred.user.uid
+        const { auth } = await import('../config/firebase')
+        await signInAnonymously(auth)
+      } catch {
+        // Non-fatal: auth will be retried by ensureAuth() in store functions
+      }
 
-        // Check if staff user already exists in Firestore
-        const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore')
-        const docRef = doc(db, 'users', uid)
-        const docSnap = await getDoc(docRef)
-
-        if (docSnap.exists()) {
-          const data = docSnap.data()
+      // Look up existing user by name to get a stable, persistent portal ID
+      try {
+        const { db } = await import('../config/firebase')
+        const { collection, query, where, getDocs, doc, setDoc, serverTimestamp } = await import('firebase/firestore')
+        const q = query(collection(db, 'users'), where('name', '==', STAFF_USER_NAME))
+        const snap = await getDocs(q)
+        const existing = snap.docs.find((d) => !d.data()._deleted)
+        if (existing) {
+          const data = existing.data()
           user = {
-            id: uid,
+            id: existing.id,
             name: data.name ?? STAFF_USER_NAME,
             role: 'admin',
             email: data.email,
             organization: data.organization,
+            avatar: data.avatar,
             createdAt: data.createdAt?.toDate?.().toISOString() ?? new Date().toISOString(),
           }
-          // Ensure admin role
           if (data.role !== 'admin') {
-            await setDoc(docRef, { role: 'admin' }, { merge: true })
+            await setDoc(doc(db, 'users', existing.id), { role: 'admin' }, { merge: true })
           }
         } else {
-          // Create staff admin profile in Firestore
+          // First-ever staff login — create with a stable fixed ID
+          const stableId = 'vcap2_staff_admin'
           user = {
-            id: uid,
+            id: stableId,
             name: STAFF_USER_NAME,
             role: 'admin',
             createdAt: new Date().toISOString(),
           }
-          await setDoc(docRef, {
+          await setDoc(doc(db, 'users', stableId), {
             ...user,
             createdAt: serverTimestamp(),
             lastLogin: serverTimestamp(),
           })
         }
       } catch {
-        // Anonymous auth or Firestore unavailable — use local profile
-        try {
-          user = await findUserByName(STAFF_USER_NAME)
-        } catch {
-          // Firestore read also failed
-        }
-
+        // Firestore unavailable — fall back to local profile
+        try { user = await findUserByName(STAFF_USER_NAME) } catch { /* ignore */ }
         if (!user) {
-          user = {
-            id: 'vcap2_staff',
-            name: STAFF_USER_NAME,
-            role: 'admin',
-            createdAt: new Date().toISOString(),
-          }
+          user = { id: 'vcap2_staff', name: STAFF_USER_NAME, role: 'admin', createdAt: new Date().toISOString() }
         } else if (user.role !== 'admin') {
           user = { ...user, role: 'admin' }
         }
