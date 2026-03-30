@@ -10,20 +10,21 @@ import { PRODOC_TARGETS } from '../data/prodocTrackerData'
 const AUTHORITATIVE_NEW_MPA_HA = 243.69
 
 const AUTHORITATIVE_NEW_AREA_OVERRIDES: Record<string, Partial<Pick<ProDocEntry, 'hectaresMarine' | 'registrationStatus'>>> = {
-  'MTPA2403': { hectaresMarine: 50.327, registrationStatus: 'Registered' }, // Wusi — survey revision
-  'MTPA2402': { registrationStatus: 'Registered' }, // Linduri
-  'MTPA2404': { registrationStatus: 'Registered' }, // Vasalea
-  'MTPA2405': { registrationStatus: 'Registered' }, // Lonwolwol
-  'MPA2511': { registrationStatus: 'Registered' }, // Narovrovo
-  'MPA2512': { registrationStatus: 'Registered' }, // Naviso
-  'MPA2513': { registrationStatus: 'Registered' }, // Navenvene
-  'MPA2514': { registrationStatus: 'Registered' }, // Avanbatai
-  'MPA2515': { registrationStatus: 'Registered' }, // Nasawa
+  // New MPAs — only Wusi and Linduri are registered (confirmed March 2026)
+  'MTPA2403': { hectaresMarine: 50.327, registrationStatus: 'Registered' },   // Wusi
+  'MTPA2402': { registrationStatus: 'Registered' },                            // Linduri
+  'MTPA2404': { registrationStatus: 'Not Yet Registered' },                    // Vasalea
+  'MTPA2405': { registrationStatus: 'Not Yet Registered' },                    // Lonwolwol
+  'MPA2511':  { registrationStatus: 'Not Yet Registered' },                    // Narovrovo
+  'MPA2512':  { registrationStatus: 'Not Yet Registered' },                    // Naviso
+  'MPA2513':  { registrationStatus: 'Not Yet Registered' },                    // Navenvene
+  'MPA2514':  { registrationStatus: 'Not Yet Registered' },                    // Avanbatai
+  'MPA2515':  { registrationStatus: 'Not Yet Registered' },                    // Nasawa
 }
 
 /** Apply authoritative overrides to a new-area entry before computing indicators.
  *  Trims the ID to handle any whitespace variation stored in Firestore. */
-function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
+export function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
   const overrides = AUTHORITATIVE_NEW_AREA_OVERRIDES[entry.id.trim()]
   return overrides ? { ...entry, id: entry.id.trim(), ...overrides } : entry
 }
