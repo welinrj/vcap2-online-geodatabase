@@ -9,6 +9,8 @@ import ChatPopup from './components/ChatPopup'
 import { getUser } from './services/userStore'
 import { onIncomingCalls } from './services/callService'
 import { ProDocProvider } from './contexts/ProDocContext'
+import { auth } from './config/firebase'
+import { signInAnonymously } from 'firebase/auth'
 import type { UserProfile } from './types/user'
 import type { CallSignal } from './types/messaging'
 import './App.css'
@@ -65,6 +67,10 @@ function App() {
   useEffect(() => {
     const userId = sessionStorage.getItem('vcap2_user_id')
     if (staffAuth && userId) {
+      // Ensure Firebase Auth session exists for Storage/Firestore rules
+      if (!auth.currentUser) {
+        signInAnonymously(auth).catch(() => { /* non-fatal */ })
+      }
       const restoreFromSession = () => {
         const stored = sessionStorage.getItem('vcap2_user_profile')
         if (stored) {
@@ -125,6 +131,10 @@ function App() {
           setStaffAuth(true)
           setCurrentUser(user)
           setShowLogin(false)
+          // Bridge custom portal auth to Firebase Auth so Storage/Firestore rules pass
+          if (!auth.currentUser) {
+            signInAnonymously(auth).catch(() => { /* non-fatal */ })
+          }
         }}
         onCancel={() => {
           setShowLogin(false)

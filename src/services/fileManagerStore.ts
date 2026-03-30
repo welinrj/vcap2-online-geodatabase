@@ -157,13 +157,13 @@ export async function uploadFile(
 ): Promise<FileEntry> {
   if (!db || !storage) throw new Error('Firebase not configured')
 
-  // Ensure we have a Firebase Auth session (portal uses custom auth, not Firebase Auth).
-  // Sign in anonymously so Storage rules can verify request.auth != null.
+  // auth.currentUser is set at login time via signInAnonymously in App.tsx
+  // If it's somehow missing (e.g. token expired), re-authenticate now
   if (!auth.currentUser) {
     try {
       await signInAnonymously(auth)
     } catch {
-      throw new Error('Could not authenticate with file storage. Please check your internet connection and try again.')
+      throw new Error('Could not authenticate with file storage. Please refresh the page and try again.')
     }
   }
   const authUid = auth.currentUser!.uid
