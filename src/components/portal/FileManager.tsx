@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef, useCallback, type FC } from 'react'
+import { useState, useEffect, useRef, type FC } from 'react'
 import type { UserProfile } from '../../types/user'
 import {
   createFolder,
-  listFolders,
   deleteFolder,
   renameFolder,
   uploadFile,
-  listFiles,
   deleteFile,
   getFile,
   shareItem,
@@ -15,6 +13,8 @@ import {
   deleteShare,
   formatFileSize,
   downloadFile,
+  onFoldersChanged,
+  onFilesChanged,
   type FileFolder,
   type FileEntry,
   type FileShare,
@@ -121,29 +121,22 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     return () => { cancelled = true }
   }, [currentUser])
 
-  const loadContents = useCallback(async () => {
-    if (!currentUser) return
-    setLoading(true)
-    try {
-      const [f, fi] = await Promise.all([
-        listFolders(currentFolderId),
-        currentFolderId ? listFiles(currentFolderId) : Promise.resolve([]),
-      ])
-      setFolders(f)
-      setFiles(fi)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      showAlert('error', `Failed to load folders: ${msg}`)
-    } finally {
-      setLoading(false)
-    }
-  }, [currentUser, currentFolderId])
-
-  // Load folder contents (also reload after setup completes)
+  // Real-time sync: subscribe to folders and files whenever the current folder changes
   useEffect(() => {
     if (!currentUser || tab !== 'my-files' || settingUp) return
-    loadContents()
-  }, [currentUser, currentFolderId, tab, loadContents, settingUp])
+    setLoading(true)
+    const unsubFolders = onFoldersChanged(currentFolderId, (f) => {
+      setFolders(f)
+      setLoading(false)
+    })
+    const unsubFiles = currentFolderId
+      ? onFilesChanged(currentFolderId, (fi) => setFiles(fi))
+      : (() => { setFiles([]); return () => {} })()
+    return () => {
+      unsubFolders()
+      unsubFiles()
+    }
+  }, [currentUser, currentFolderId, tab, settingUp])
 
   // Load shares
   useEffect(() => {
@@ -169,7 +162,6 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       setNewFolderName('')
       setShowNewFolder(false)
       showAlert('success', `Folder "${newFolderName.trim()}" created`)
-      await loadContents()
     } catch {
       showAlert('error', 'Failed to create folder')
     }
@@ -180,7 +172,6 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     try {
       await deleteFolder(folder.id)
       showAlert('success', `Folder "${folder.name}" deleted`)
-      await loadContents()
     } catch {
       showAlert('error', 'Failed to delete folder')
     }
@@ -191,7 +182,6 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     try {
       await renameFolder(folderId, renameValue.trim())
       setRenamingId(null)
-      await loadContents()
     } catch {
       showAlert('error', 'Failed to rename folder')
     }
@@ -227,7 +217,6 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
         setUploadProgress(Math.round((completed / files.length) * 100))
       }
       showAlert('success', `${files.length} file${files.length > 1 ? 's' : ''} uploaded`)
-      await loadContents()
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to upload file(s)'
       showAlert('error', msg)
@@ -243,7 +232,6 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     try {
       await deleteFile(file.id)
       showAlert('success', `"${file.name}" deleted`)
-      await loadContents()
     } catch {
       showAlert('error', 'Failed to delete file')
     }
