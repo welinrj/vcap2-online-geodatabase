@@ -24,7 +24,12 @@ import { logAudit } from './auditLog'
 /** Ensure a Firebase Auth session exists (required by Firestore/Storage rules). */
 async function ensureAuth(): Promise<void> {
   if (!auth.currentUser) {
-    await signInAnonymously(auth)
+    try {
+      await signInAnonymously(auth)
+    } catch (e) {
+      // Non-fatal: Firestore catch-all allows public reads even without auth
+      console.warn('[FileManager] Anonymous sign-in failed:', e)
+    }
   }
 }
 
