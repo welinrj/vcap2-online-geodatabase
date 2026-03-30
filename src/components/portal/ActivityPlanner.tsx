@@ -23,8 +23,6 @@ interface ActivityPlannerProps {
   currentUser?: UserProfile | null
 }
 
-const VUV_RATE = 119.25 // default VUV per USD
-
 function fmtVUV(v: number | null | undefined): string {
   if (v == null) return '—'
   return `VT ${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
