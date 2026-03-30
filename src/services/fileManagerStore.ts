@@ -21,6 +21,13 @@ import {
 import { signInAnonymously } from 'firebase/auth'
 import { logAudit } from './auditLog'
 
+/** Ensure a Firebase Auth session exists (required by Firestore/Storage rules). */
+async function ensureAuth(): Promise<void> {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth)
+  }
+}
+
 // ─── Types ─────────────────────────────────────────
 
 export interface FileFolder {
@@ -85,6 +92,7 @@ export async function createFolder(
   ownerName: string,
 ): Promise<FileFolder> {
   if (!db) throw new Error('Firestore not configured')
+  await ensureAuth()
   const id = generateId('folder')
   const now = new Date().toISOString()
   const folder: FileFolder = { id, name, parentId, ownerId, ownerName, createdAt: now, updatedAt: now }
@@ -94,6 +102,7 @@ export async function createFolder(
 
 export async function listFolders(ownerId: string, parentId: string | null): Promise<FileFolder[]> {
   if (!db) return []
+  await ensureAuth()
   // Single-field query to avoid composite index requirement
   const q = query(
     collection(db, FOLDERS_COL),
@@ -117,6 +126,7 @@ export async function listFolders(ownerId: string, parentId: string | null): Pro
  */
 export async function deleteFolder(folderId: string): Promise<void> {
   if (!db) return
+  await ensureAuth()
   const folderSnap = await getDoc(doc(db, FOLDERS_COL, folderId))
   const folderName = folderSnap.exists() ? (folderSnap.data().name as string) : folderId
 
@@ -141,6 +151,7 @@ export async function deleteFolder(folderId: string): Promise<void> {
 
 export async function renameFolder(folderId: string, newName: string): Promise<void> {
   if (!db) return
+  await ensureAuth()
   const ref = doc(db, FOLDERS_COL, folderId)
   const snap = await getDoc(ref)
   if (!snap.exists()) return
@@ -156,16 +167,7 @@ export async function uploadFile(
   ownerName: string,
 ): Promise<FileEntry> {
   if (!db || !storage) throw new Error('Firebase not configured')
-
-  // Ensure we have a Firebase Auth session (portal uses custom auth, not Firebase Auth).
-  // Sign in anonymously so Storage rules can verify request.auth != null.
-  if (!auth.currentUser) {
-    try {
-      await signInAnonymously(auth)
-    } catch {
-      throw new Error('Could not authenticate with file storage. Please check your internet connection and try again.')
-    }
-  }
+  await ensureAuth()
   const authUid = auth.currentUser!.uid
 
   const id = generateId('file')
@@ -199,6 +201,7 @@ export async function uploadFile(
 
 export async function listFiles(folderId: string, ownerId: string): Promise<FileEntry[]> {
   if (!db) return []
+  await ensureAuth()
   // Single-field query to avoid composite index requirement
   const q = query(
     collection(db, FILES_COL),
@@ -221,6 +224,7 @@ export async function listFiles(folderId: string, ownerId: string): Promise<File
  */
 export async function deleteFile(fileId: string): Promise<void> {
   if (!db) return
+  await ensureAuth()
   const fileSnap = await getDoc(doc(db, FILES_COL, fileId))
   const fileName = fileSnap.exists() ? (fileSnap.data().name as string) : fileId
 
@@ -307,6 +311,7 @@ export async function listTrash(ownerId: string): Promise<{ files: FileEntry[]; 
 
 export async function getFile(fileId: string): Promise<FileEntry | null> {
   if (!db) return null
+  await ensureAuth()
   const snap = await getDoc(doc(db, FILES_COL, fileId))
   if (!snap.exists()) return null
   const data = snap.data()
@@ -325,6 +330,7 @@ export async function shareItem(
   toUserName: string,
 ): Promise<FileShare> {
   if (!db) throw new Error('Firestore not configured')
+  await ensureAuth()
   const id = generateId('share')
   const now = new Date().toISOString()
   const share: FileShare = { id, itemType, itemId, itemName, fromUserId, fromUserName, toUserId, toUserName, createdAt: now }
@@ -334,6 +340,7 @@ export async function shareItem(
 
 export async function listSharedWithMe(userId: string): Promise<FileShare[]> {
   if (!db) return []
+  await ensureAuth()
   const q = query(collection(db, SHARES_COL), where('toUserId', '==', userId))
   const snap = await getDocs(q)
   return snap.docs.map((d) => {
@@ -344,6 +351,7 @@ export async function listSharedWithMe(userId: string): Promise<FileShare[]> {
 
 export async function listMyShares(userId: string): Promise<FileShare[]> {
   if (!db) return []
+  await ensureAuth()
   const q = query(collection(db, SHARES_COL), where('fromUserId', '==', userId))
   const snap = await getDocs(q)
   return snap.docs.map((d) => {
@@ -354,6 +362,7 @@ export async function listMyShares(userId: string): Promise<FileShare[]> {
 
 export async function deleteShare(shareId: string): Promise<void> {
   if (!db) return
+  await ensureAuth()
   await deleteDoc(doc(db, SHARES_COL, shareId))
 }
 
