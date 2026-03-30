@@ -9,6 +9,7 @@ import {
   deleteDoc,
   query,
   where,
+  onSnapshot,
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore'
@@ -258,6 +259,52 @@ export async function listFiles(folderId: string): Promise<FileEntry[]> {
       const data = d.data()
       return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
     })
+}
+
+/**
+ * Real-time listener for folders at a given parent level.
+ * Fires immediately with current data and again on every change.
+ * Returns an unsubscribe function.
+ */
+export function onFoldersChanged(
+  parentId: string | null,
+  callback: (folders: FileFolder[]) => void,
+): () => void {
+  if (!db) return () => {}
+  return onSnapshot(collection(db, FOLDERS_COL), (snap) => {
+    const folders = snap.docs
+      .filter((d) => {
+        const data = d.data()
+        return !data._deleted && data.parentId === parentId
+      })
+      .map((d) => {
+        const data = d.data()
+        return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
+      })
+    callback(folders)
+  })
+}
+
+/**
+ * Real-time listener for files inside a folder.
+ * Fires immediately with current data and again on every change.
+ * Returns an unsubscribe function.
+ */
+export function onFilesChanged(
+  folderId: string,
+  callback: (files: FileEntry[]) => void,
+): () => void {
+  if (!db) return () => {}
+  const q = query(collection(db, FILES_COL), where('folderId', '==', folderId))
+  return onSnapshot(q, (snap) => {
+    const files = snap.docs
+      .filter((d) => !d.data()._deleted)
+      .map((d) => {
+        const data = d.data()
+        return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
+      })
+    callback(files)
+  })
 }
 
 /**
