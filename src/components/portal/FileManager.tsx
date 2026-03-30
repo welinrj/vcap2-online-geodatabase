@@ -30,21 +30,34 @@ interface FileManagerProps {
 
 type Tab = 'my-files' | 'shared-with-me' | 'sent'
 
-/** Map MIME prefix to Icons8 icon name (null = use Lucide fallback) */
-const FILE_ICON_NAME_MAP: [string, string | null][] = [
-  ['image/', 'image-file'],
-  ['text/', 'pdf'],
-  ['application/pdf', 'pdf'],
-  ['application/vnd.', 'xls'],
-  ['application/zip', null],
-  ['application/x-zip', null],
-]
+/** Return Icons8 icon name based on file extension then MIME type */
+function getFileIcon(name: string, mimeType: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  if (ext === 'pdf') return 'pdf'
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico'].includes(ext)) return 'image-file'
+  if (['xls', 'xlsx', 'xlsm', 'xlsb', 'ods'].includes(ext)) return 'xls'
+  if (ext === 'csv') return 'csv'
+  if (ext === 'json') return 'json'
+  if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(ext)) return 'archive'
+  // MIME-type fallback
+  if (mimeType.startsWith('image/')) return 'image-file'
+  if (mimeType === 'application/pdf') return 'pdf'
+  if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return 'xls'
+  if (mimeType === 'text/csv') return 'csv'
+  if (mimeType === 'application/json') return 'json'
+  if (mimeType.includes('zip') || mimeType.includes('archive')) return 'archive'
+  return 'file'
+}
 
-function getFileIcons8Name(mimeType: string): string | null {
-  for (const [prefix, name] of FILE_ICON_NAME_MAP) {
-    if (mimeType.startsWith(prefix)) return name
-  }
-  return null
+type PreviewKind = 'image' | 'pdf' | 'office' | 'none'
+
+/** Determine how to preview a file */
+function getPreviewKind(name: string, mimeType: string): PreviewKind {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext) || mimeType.startsWith('image/')) return 'image'
+  if (ext === 'pdf' || mimeType === 'application/pdf') return 'pdf'
+  if (['doc', 'docx', 'xls', 'xlsx', 'xlsm', 'ppt', 'pptx', 'odt', 'ods', 'odp'].includes(ext)) return 'office'
+  return 'none'
 }
 
 const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
@@ -76,6 +89,9 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
 
   // Alert
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+
+  // Preview
+  const [previewFile, setPreviewFile] = useState<FileEntry | null>(null)
 
   // Default folder setup
   const [settingUp, setSettingUp] = useState(false)
@@ -467,17 +483,35 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
 
               {/* Files */}
               {files.map((file) => {
-                const iconName = getFileIcons8Name(file.mimeType) ?? 'file'
+                const iconName = getFileIcon(file.name, file.mimeType)
+                const canPreview = getPreviewKind(file.name, file.mimeType) !== 'none'
                 return (
                   <div key={file.id} className="fm-item fm-item-file">
-                    <div className="fm-item-icon">
-                      <Icons8Icon name={iconName} size={32} />
+                    <div
+                      className="fm-item-icon"
+                      style={{ cursor: canPreview ? 'pointer' : 'default' }}
+                      title={canPreview ? 'Click to preview' : undefined}
+                      onClick={() => canPreview && setPreviewFile(file)}
+                    >
+                      <Icons8Icon name={iconName} size={36} />
                     </div>
                     <div className="fm-item-info">
-                      <span className="fm-item-name">{file.name}</span>
+                      <span
+                        className="fm-item-name"
+                        style={{ cursor: canPreview ? 'pointer' : 'default' }}
+                        onClick={() => canPreview && setPreviewFile(file)}
+                        title={canPreview ? 'Click to preview' : file.name}
+                      >
+                        {file.name}
+                      </span>
                       <span className="fm-item-meta">{formatFileSize(file.sizeBytes)}</span>
                     </div>
                     <div className="fm-item-actions">
+                      {canPreview && (
+                        <button className="fm-icon-btn" title="Preview" onClick={() => setPreviewFile(file)}>
+                          <Icons8Icon name="expand" size={14} />
+                        </button>
+                      )}
                       <button className="fm-icon-btn" title="Download" onClick={() => handleDownloadFile(file)}>
                         <Icons8Icon name="download" size={14} />
                       </button>
@@ -628,6 +662,54 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
               <button className="fm-btn fm-btn-primary" onClick={handleShare} disabled={!shareTargetId}>
                 <Icons8Icon name="send" size={14} /> Send
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Preview Modal ═══ */}
+      {previewFile && (
+        <div className="fm-modal-overlay" onClick={() => setPreviewFile(null)}>
+          <div className="fm-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="fm-modal-header">
+              <h3>
+                <Icons8Icon name={getFileIcon(previewFile.name, previewFile.mimeType)} size={18} />
+                {previewFile.name}
+              </h3>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  className="fm-btn fm-btn-secondary fm-btn-sm"
+                  onClick={() => handleDownloadFile(previewFile)}
+                >
+                  <Icons8Icon name="download" size={14} /> Download
+                </button>
+                <button className="fm-icon-btn" onClick={() => setPreviewFile(null)}>
+                  <Icons8Icon name="cancel" size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="fm-preview-body">
+              {getPreviewKind(previewFile.name, previewFile.mimeType) === 'image' && (
+                <img
+                  src={previewFile.storageUrl}
+                  alt={previewFile.name}
+                  className="fm-preview-image"
+                />
+              )}
+              {getPreviewKind(previewFile.name, previewFile.mimeType) === 'pdf' && (
+                <iframe
+                  src={previewFile.storageUrl}
+                  title={previewFile.name}
+                  className="fm-preview-frame"
+                />
+              )}
+              {getPreviewKind(previewFile.name, previewFile.mimeType) === 'office' && (
+                <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(previewFile.storageUrl)}&embedded=true`}
+                  title={previewFile.name}
+                  className="fm-preview-frame"
+                />
+              )}
             </div>
           </div>
         </div>
