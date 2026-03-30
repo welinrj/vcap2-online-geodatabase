@@ -45,9 +45,24 @@ const authNavItems = [
     icon: 'fish',
   },
   {
+    id: 'me-dashboard',
+    label: 'M&E Dashboard',
+    icon: 'activity',
+  },
+  {
     id: 'activity-planner',
     label: 'Activity Planner',
     icon: 'calendar',
+  },
+  {
+    id: 'quarterly-log',
+    label: 'Quarterly Log',
+    icon: 'statistics',
+  },
+  {
+    id: 'risk-register',
+    label: 'Risk Register',
+    icon: 'error',
   },
   {
     id: 'file-manager',

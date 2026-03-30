@@ -26,6 +26,10 @@ export interface Activity {
   priority: ActivityPriority
   startDate: string
   endDate: string
+  /** Hard deadline — triggers overdue alert when passed and status ≠ completed */
+  dueDate: string
+  /** Whether this activity is a project milestone */
+  isMilestone: boolean
   createdAt: string
   /** User who created the activity */
   createdBy: string
@@ -33,6 +37,12 @@ export interface Activity {
   /** User assigned to the activity (for availability tracking) */
   assignedTo: string
   assignedToName: string
+  /** ProDoc indicator this activity contributes to (1.1 / 1.2 / 2.1 / 2.2 / CI5) */
+  prodocIndicator: string
+  /** Planned budget in Vatu (VUV) */
+  budgetVUV: number | null
+  /** Actual expenditure in Vatu (VUV) */
+  actualVUV: number | null
 }
 
 export const ACTIVITY_TYPES: Record<ActivityType, string> = {
@@ -83,6 +93,11 @@ export async function listAllActivities(): Promise<Activity[]> {
       createdByName: data.createdByName ?? '',
       assignedTo: data.assignedTo ?? data.createdBy ?? '',
       assignedToName: data.assignedToName ?? data.createdByName ?? '',
+      dueDate: data.dueDate ?? '',
+      isMilestone: data.isMilestone ?? false,
+      prodocIndicator: data.prodocIndicator ?? '',
+      budgetVUV: data.budgetVUV ?? null,
+      actualVUV: data.actualVUV ?? null,
     } as Activity
   })
 }

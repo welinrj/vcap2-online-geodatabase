@@ -144,3 +144,75 @@
   font-weight: 600;
   color: var(--color-primary);
 }
+
+/* New stat colours */
+.ap-count-red    { color: var(--color-negative); }
+.ap-count-purple { color: #7c3aed; }
+
+/* Overdue / milestone card variants */
+.ap-card-overdue  { border-left-color: var(--color-negative) !important; background: rgba(220,38,38,0.03); }
+.ap-card-milestone { border-left-color: #7c3aed !important; }
+
+/* Milestone & indicator badges */
+.ap-milestone-badge {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 0.12rem 0.45rem;
+  border-radius: 100px; background: rgba(124,58,237,0.1); color: #7c3aed;
+}
+.ap-ind-badge {
+  font-size: 0.62rem; font-weight: 700; padding: 0.12rem 0.45rem;
+  border-radius: 100px; background: rgba(20,184,166,0.12); color: #0d9488;
+}
+.ap-overdue-badge {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  font-size: 0.62rem; font-weight: 700; padding: 0.12rem 0.45rem;
+  border-radius: 100px; background: var(--color-negative-bg); color: var(--color-negative);
+}
+
+/* Budget bar */
+.ap-budget-bar {
+  background: var(--color-surface);
+  border: 1px solid rgba(226,232,240,0.5);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+.ap-budget-bar-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.78rem; margin-bottom: 0.5rem;
+}
+.ap-budget-label { display: flex; align-items: center; gap: 0.35rem; color: var(--color-text-secondary); font-weight: 600; }
+.ap-budget-figures { display: flex; align-items: center; gap: 0.6rem; color: var(--color-text-secondary); }
+.ap-budget-pct { font-weight: 700; font-size: 0.85rem; }
+.ap-budget-track { height: 6px; background: rgba(226,232,240,0.6); border-radius: 100px; overflow: hidden; }
+.ap-budget-fill  { height: 100%; border-radius: 100px; transition: width 0.3s; }
+.ap-budget-ok    { color: var(--color-positive); }
+.ap-budget-warn  { color: var(--color-accent-amber); }
+.ap-budget-over  { color: var(--color-negative); }
+.ap-budget-fill-ok   { background: var(--color-positive); }
+.ap-budget-fill-warn { background: var(--color-accent-amber); }
+.ap-budget-fill-over { background: var(--color-negative); }
+
+/* Card budget row */
+.ap-card-budget {
+  display: flex; gap: 1rem; font-size: 0.72rem;
+  color: var(--color-text-tertiary); margin-top: 0.4rem;
+  padding-top: 0.4rem; border-top: 1px solid rgba(226,232,240,0.4);
+}
+
+/* Overdue meta text */
+.ap-meta-overdue { color: var(--color-negative) !important; font-weight: 600; }
+
+/* Milestone checkbox in form */
+.ap-milestone-check {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.82rem; cursor: pointer; color: var(--color-text-secondary);
+}
+
+/* Filter checkbox */
+.pa-filter-check {
+  display: flex; align-items: center; gap: 0.3rem;
+  font-size: 0.78rem; cursor: pointer; color: var(--color-text-secondary);
+  align-self: flex-end; padding-bottom: 0.2rem;
+}

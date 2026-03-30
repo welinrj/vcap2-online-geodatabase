@@ -25,6 +25,9 @@ const Messaging = lazy(() => import('./components/portal/Messaging'))
 const VideoCall = lazy(() => import('./components/portal/VideoCall'))
 const Account = lazy(() => import('./components/portal/Account'))
 const FisheriesDashboard = lazy(() => import('./components/portal/FisheriesDashboard'))
+const MEDashboard = lazy(() => import('./components/portal/MEDashboard'))
+const QuarterlyLog = lazy(() => import('./components/portal/QuarterlyLog'))
+const RiskRegister = lazy(() => import('./components/portal/RiskRegister'))
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   'gis-database': 'GIS Database',
@@ -37,6 +40,9 @@ const sectionTitles: Record<string, string> = {
   messaging: 'Messages',
   account: 'Account Settings',
   'fisheries-dashboard': 'Fisheries Dashboard',
+  'me-dashboard': 'M&E Dashboard',
+  'quarterly-log': 'Quarterly Progress Log',
+  'risk-register': 'Risk Register',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -173,6 +179,9 @@ function App() {
           {activeSection === 'file-manager' && isAuthenticated && <FileManager currentUser={currentUser} />}
           {activeSection === 'activity-calendar' && isAuthenticated && <ActivityCalendar currentUser={currentUser} />}
           {activeSection === 'fisheries-dashboard' && isAuthenticated && <FisheriesDashboard currentUser={currentUser} />}
+          {activeSection === 'me-dashboard' && isAuthenticated && <MEDashboard />}
+          {activeSection === 'quarterly-log' && isAuthenticated && <QuarterlyLog currentUser={currentUser} />}
+          {activeSection === 'risk-register' && isAuthenticated && <RiskRegister currentUser={currentUser} />}
           {activeSection === 'messaging' && isAuthenticated && (
             <Messaging currentUser={currentUser} onStartCall={handleStartCall} />
           )}
