@@ -20,6 +20,8 @@ import {
 } from 'firebase/storage'
 import { signInAnonymously } from 'firebase/auth'
 import { logAudit } from './auditLog'
+import { createNotification } from './messagingStore'
+import { listUsers } from './userStore'
 
 /** Ensure a Firebase Auth session exists (required by Firestore/Storage rules). */
 async function ensureAuth(): Promise<void> {
@@ -213,6 +215,31 @@ export async function uploadFile(
   }
   // Store metadata only in Firestore (no file content)
   await setDoc(doc(db, FILES_COL, id), { ...entry, _ts: serverTimestamp() })
+
+  // Notify all other users about the new upload
+  try {
+    const folderSnap = await getDoc(doc(db, FOLDERS_COL, folderId))
+    const folderName = folderSnap.exists() ? (folderSnap.data().name as string) : 'Unknown Folder'
+    const users = await listUsers()
+    await Promise.all(
+      users
+        .filter((u) => u.id !== ownerId)
+        .map((u) =>
+          createNotification({
+            userId: u.id,
+            type: 'file_upload',
+            title: 'New file uploaded',
+            body: `${ownerName} uploaded "${file.name}" to ${folderName}`,
+            fromUserId: ownerId,
+            fromUserName: ownerName,
+          }),
+        ),
+    )
+  } catch (e) {
+    // Notifications are non-fatal
+    console.warn('[FileManager] Failed to send upload notifications:', e)
+  }
+
   return entry
 }
 

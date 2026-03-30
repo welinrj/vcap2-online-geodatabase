@@ -24,6 +24,7 @@ function notifTypeToTheme(type: AppNotification['type']): ToastTheme {
     case 'videocall': return 'videocall'
     case 'attachment': return 'attachment'
     case 'group_invite': return 'group'
+    case 'file_upload': return 'attachment'
     default: return 'info'
   }
 }
@@ -99,6 +100,7 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
       case 'videocall': return <Icons8Icon name="video-call" size={14} />
       case 'attachment': return <Icons8Icon name="paperclip" size={14} />
       case 'group_invite': return <Icons8Icon name="group" size={14} />
+      case 'file_upload': return <Icons8Icon name="upload" size={14} />
     }
   }
 
