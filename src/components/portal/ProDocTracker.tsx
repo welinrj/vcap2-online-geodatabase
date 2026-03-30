@@ -336,6 +336,87 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
       </div>
 
 
+      {/* ProDoc target progress with radial + bar chart */}
+      <div className="pdt-targets">
+        <h3 className="pdt-section-title">ProDoc Indicator Targets</h3>
+        <p className="pdt-section-desc">
+          Progress towards end-of-project targets for community conservation and marine protected areas.
+        </p>
+
+        <div className="pdt-targets-layout">
+          {/* Radial gauge */}
+          <div className="pdt-radial-chart">
+            <ResponsiveContainer width="100%" height={200}>
+              <RadialBarChart
+                cx="50%"
+                cy="50%"
+                innerRadius="30%"
+                outerRadius="90%"
+                data={radialData}
+                startAngle={180}
+                endAngle={0}
+              >
+                <RadialBar
+                  dataKey="value"
+                  cornerRadius={6}
+                  background={{ fill: '#f1f5f9' }}
+                >
+                  {radialData.map((entry, index) => (
+                    <Cell key={index} fill={entry.fill} />
+                  ))}
+                </RadialBar>
+                <Tooltip
+                  formatter={(value) => `${Number(value).toFixed(1)}%`}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="pdt-radial-legend">
+              {radialData.map((d) => (
+                <span key={d.name} className="pdt-radial-legend-item">
+                  <span className="pdt-radial-dot" style={{ background: d.fill }} />
+                  {d.name}: {d.rawPct > 100 ? `>${100}` : d.rawPct.toFixed(1)}%
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Target cards */}
+          <div className="pdt-target-grid">
+            {prodocProgress.map(({ key, actual }) => {
+              const target = PRODOC_TARGETS[key]
+              const rawPct = target.targetHa > 0 ? (actual / target.targetHa) * 100 : 0
+              const exceeded = rawPct > 100
+              const indColor = INDICATOR_COLORS[key]
+              return (
+                <div key={key} className="pdt-target-card">
+                  <div className="pdt-target-header">
+                    <span
+                      className="pdt-target-badge"
+                      style={{ background: INDICATOR_BG[key], color: indColor, border: `1px solid ${INDICATOR_BORDER[key]}` }}
+                    >
+                      {key}
+                    </span>
+                    <span className="pdt-target-pct" style={{ color: indColor }}>{exceeded ? '>100' : rawPct.toFixed(1)}%</span>
+                  </div>
+                  <div className="pdt-target-label">{target.label}</div>
+                  <div className="pdt-progress-bar">
+                    <div
+                      className="pdt-progress-fill"
+                      style={{ width: `${Math.min(rawPct, 100)}%`, background: indColor }}
+                    />
+                  </div>
+                  <div className="pdt-target-nums">
+                    <span>{actual.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha</span>
+                    <span>/ {target.targetHa.toLocaleString()} ha</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Registration Status */}
       <div className="pdt-registration-section">
         <h3 className="pdt-section-title">
@@ -455,87 +536,6 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
               </div>
             )
           })}
-        </div>
-      </div>
-
-      {/* ProDoc target progress with radial + bar chart */}
-      <div className="pdt-targets">
-        <h3 className="pdt-section-title">ProDoc Indicator Targets</h3>
-        <p className="pdt-section-desc">
-          Progress towards end-of-project targets for community conservation and marine protected areas.
-        </p>
-
-        <div className="pdt-targets-layout">
-          {/* Radial gauge */}
-          <div className="pdt-radial-chart">
-            <ResponsiveContainer width="100%" height={200}>
-              <RadialBarChart
-                cx="50%"
-                cy="50%"
-                innerRadius="30%"
-                outerRadius="90%"
-                data={radialData}
-                startAngle={180}
-                endAngle={0}
-              >
-                <RadialBar
-                  dataKey="value"
-                  cornerRadius={6}
-                  background={{ fill: '#f1f5f9' }}
-                >
-                  {radialData.map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
-                  ))}
-                </RadialBar>
-                <Tooltip
-                  formatter={(value) => `${Number(value).toFixed(1)}%`}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}
-                />
-              </RadialBarChart>
-            </ResponsiveContainer>
-            <div className="pdt-radial-legend">
-              {radialData.map((d) => (
-                <span key={d.name} className="pdt-radial-legend-item">
-                  <span className="pdt-radial-dot" style={{ background: d.fill }} />
-                  {d.name}: {d.rawPct > 100 ? `>${100}` : d.rawPct.toFixed(1)}%
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Target cards */}
-          <div className="pdt-target-grid">
-            {prodocProgress.map(({ key, actual }) => {
-              const target = PRODOC_TARGETS[key]
-              const rawPct = target.targetHa > 0 ? (actual / target.targetHa) * 100 : 0
-              const exceeded = rawPct > 100
-              const indColor = INDICATOR_COLORS[key]
-              return (
-                <div key={key} className="pdt-target-card">
-                  <div className="pdt-target-header">
-                    <span
-                      className="pdt-target-badge"
-                      style={{ background: INDICATOR_BG[key], color: indColor, border: `1px solid ${INDICATOR_BORDER[key]}` }}
-                    >
-                      {key}
-                    </span>
-                    <span className="pdt-target-pct" style={{ color: indColor }}>{exceeded ? '>100' : rawPct.toFixed(1)}%</span>
-                  </div>
-                  <div className="pdt-target-label">{target.label}</div>
-                  <div className="pdt-progress-bar">
-                    <div
-                      className="pdt-progress-fill"
-                      style={{ width: `${Math.min(rawPct, 100)}%`, background: indColor }}
-                    />
-                  </div>
-                  <div className="pdt-target-nums">
-                    <span>{actual.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha</span>
-                    <span>/ {target.targetHa.toLocaleString()} ha</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
         </div>
       </div>
 
