@@ -115,8 +115,9 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
       ])
       setFolders(f)
       setFiles(fi)
-    } catch {
-      showAlert('error', 'Failed to load folder contents')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      showAlert('error', `Failed to load folders: ${msg}`)
     } finally {
       setLoading(false)
     }

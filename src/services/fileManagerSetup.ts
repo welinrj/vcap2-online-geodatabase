@@ -14,13 +14,13 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 
+const FOLDERS_COL = 'fm_folders'
+
 async function ensureAuth(): Promise<void> {
   if (!auth.currentUser) {
     await signInAnonymously(auth)
   }
 }
-
-const FOLDERS_COL = 'fm_folders'
 
 function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
@@ -122,8 +122,7 @@ export const VCAP2_DEFAULT_FOLDERS: FolderNode[] = [
 // ─── Setup logic ─────────────────────────────────────────────
 
 /**
- * Check whether the shared default folder structure already exists.
- * Looks for any non-deleted root-level folder — shared across all users.
+ * Check whether any shared folders already exist.
  */
 export async function hasDefaultFolders(): Promise<boolean> {
   if (!db) return false
@@ -144,7 +143,7 @@ async function createFolderTree(
 ): Promise<number> {
   if (!db) return 0
 
-  // Load all existing siblings at this level to avoid duplicates
+  // Load existing siblings to avoid duplicates (single-field query to avoid composite index)
   const existingAllSnap = await getDocs(collection(db, FOLDERS_COL))
   const existingDocs = existingAllSnap.docs.filter((d) => d.data().parentId === parentId)
   const existingNames = new Map<string, string>()

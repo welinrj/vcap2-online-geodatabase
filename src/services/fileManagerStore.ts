@@ -24,7 +24,12 @@ import { logAudit } from './auditLog'
 /** Ensure a Firebase Auth session exists (required by Firestore/Storage rules). */
 async function ensureAuth(): Promise<void> {
   if (!auth.currentUser) {
-    await signInAnonymously(auth)
+    try {
+      await signInAnonymously(auth)
+    } catch (e) {
+      // Non-fatal: Firestore catch-all allows public reads even without auth
+      console.warn('[FileManager] Anonymous sign-in failed:', e)
+    }
   }
 }
 
@@ -102,8 +107,7 @@ export async function createFolder(
 
 /**
  * List all folders at a given parent level.
- * This is a SHARED team repository — all authenticated users see all folders.
- * ownerId is kept for audit display only, not used for filtering.
+ * Shared team repository — all authenticated users see all folders.
  */
 export async function listFolders(parentId: string | null): Promise<FileFolder[]> {
   if (!db) return []
@@ -122,6 +126,7 @@ export async function listFolders(parentId: string | null): Promise<FileFolder[]
 
 /**
  * Soft-delete a folder and all its contents.
+ * Files and subfolders are marked as deleted but preserved.
  */
 export async function deleteFolder(folderId: string): Promise<void> {
   if (!db) return
@@ -151,10 +156,10 @@ export async function deleteFolder(folderId: string): Promise<void> {
 export async function renameFolder(folderId: string, newName: string): Promise<void> {
   if (!db) return
   await ensureAuth()
-  const docRef = doc(db, FOLDERS_COL, folderId)
-  const snap = await getDoc(docRef)
+  const ref = doc(db, FOLDERS_COL, folderId)
+  const snap = await getDoc(ref)
   if (!snap.exists()) return
-  await setDoc(docRef, { ...snap.data(), name: newName, updatedAt: new Date().toISOString() })
+  await setDoc(ref, { ...snap.data(), name: newName, updatedAt: new Date().toISOString() })
 }
 
 // ─── Files ─────────────────────────────────────────
@@ -173,7 +178,7 @@ export async function uploadFile(
   const id = generateId('file')
   const now = new Date().toISOString()
 
-  // Upload to Firebase Cloud Storage
+  // Upload file to Firebase Cloud Storage using auth UID in path
   const storagePath = `fm-files/${authUid}/${id}/${file.name}`
   const storageRef = ref(storage, storagePath)
   await new Promise<void>((resolve, reject) => {
@@ -206,6 +211,7 @@ export async function uploadFile(
     createdAt: now,
     updatedAt: now,
   }
+  // Store metadata only in Firestore (no file content)
   await setDoc(doc(db, FILES_COL, id), { ...entry, _ts: serverTimestamp() })
   return entry
 }
@@ -228,7 +234,7 @@ export async function listFiles(folderId: string): Promise<FileEntry[]> {
 }
 
 /**
- * Soft-delete a file.
+ * Soft-delete a file. Metadata is preserved; storage file is kept until hard-delete.
  */
 export async function deleteFile(fileId: string): Promise<void> {
   if (!db) return
@@ -252,6 +258,7 @@ export async function hardDeleteFile(fileId: string): Promise<void> {
   const fileSnap = await getDoc(doc(db, FILES_COL, fileId))
   if (fileSnap.exists()) {
     const data = fileSnap.data()
+    // Delete from Cloud Storage if path exists
     if (data.storagePath && storage) {
       try {
         await deleteObject(ref(storage, data.storagePath))
@@ -261,6 +268,59 @@ export async function hardDeleteFile(fileId: string): Promise<void> {
     }
   }
   await deleteDoc(doc(db, FILES_COL, fileId))
+}
+
+/** Restore a soft-deleted file */
+export async function restoreFile(fileId: string): Promise<void> {
+  if (!db) return
+  await updateDoc(doc(db, FILES_COL, fileId), {
+    _deleted: false,
+    _deletedAt: '',
+  })
+  await logAudit('restore', 'file', fileId, fileId)
+}
+
+/** Restore a soft-deleted folder and its contents */
+export async function restoreFolder(folderId: string): Promise<void> {
+  if (!db) return
+  // Restore files in folder (single-field query + client-side filter)
+  const filesQ = query(collection(db, FILES_COL), where('folderId', '==', folderId))
+  const filesSnap = await getDocs(filesQ)
+  for (const d of filesSnap.docs) {
+    if (d.data()._deleted) await updateDoc(d.ref, { _deleted: false, _deletedAt: '' })
+  }
+  // Restore child folders recursively (single-field query + client-side filter)
+  const childQ = query(collection(db, FOLDERS_COL), where('parentId', '==', folderId))
+  const childSnap = await getDocs(childQ)
+  for (const d of childSnap.docs) {
+    if (d.data()._deleted) await restoreFolder(d.id)
+  }
+  // Restore the folder itself
+  await updateDoc(doc(db, FOLDERS_COL, folderId), { _deleted: false, _deletedAt: '' })
+  await logAudit('restore', 'folder', folderId, folderId)
+}
+
+/** List all soft-deleted files and folders (trash) */
+export async function listTrash(ownerId: string): Promise<{ files: FileEntry[]; folders: FileFolder[] }> {
+  if (!db) return { files: [], folders: [] }
+  // Single-field queries + client-side filter to avoid composite index requirement
+  const filesQ = query(collection(db, FILES_COL), where('ownerId', '==', ownerId))
+  const foldersQ = query(collection(db, FOLDERS_COL), where('ownerId', '==', ownerId))
+  const [filesSnap, foldersSnap] = await Promise.all([getDocs(filesQ), getDocs(foldersQ)])
+  return {
+    files: filesSnap.docs
+      .filter((d) => d.data()._deleted)
+      .map((d) => {
+        const data = d.data()
+        return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
+      }),
+    folders: foldersSnap.docs
+      .filter((d) => d.data()._deleted)
+      .map((d) => {
+        const data = d.data()
+        return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileFolder
+      }),
+  }
 }
 
 export async function getFile(fileId: string): Promise<FileEntry | null> {
@@ -335,6 +395,7 @@ export function formatFileSize(bytes: number): string {
  * Falls back to opening in a new tab if fetch fails (CORS).
  */
 export async function downloadFile(entry: FileEntry): Promise<void> {
+  // Support legacy base64 entries (data field) and new storage URL entries
   const url = entry.storageUrl || (entry as unknown as Record<string, unknown>).data as string | undefined
   if (!url) return
 
@@ -350,6 +411,7 @@ export async function downloadFile(entry: FileEntry): Promise<void> {
     document.body.removeChild(link)
     URL.revokeObjectURL(blobUrl)
   } catch {
+    // Fallback: open in new tab
     window.open(url, '_blank')
   }
 }
