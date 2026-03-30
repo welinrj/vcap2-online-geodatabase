@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore'
 import {
   ref,
-  uploadBytes,
+  uploadBytesResumable,
   getDownloadURL,
   deleteObject,
 } from 'firebase/storage'
@@ -165,6 +165,7 @@ export async function uploadFile(
   folderId: string,
   ownerId: string,
   ownerName: string,
+  onProgress?: (pct: number) => void,
 ): Promise<FileEntry> {
   if (!db || !storage) throw new Error('Firebase not configured')
   await ensureAuth()
@@ -176,8 +177,20 @@ export async function uploadFile(
   // Upload file to Firebase Cloud Storage using auth UID in path
   const storagePath = `fm-files/${authUid}/${id}/${file.name}`
   const storageRef = ref(storage, storagePath)
-  await uploadBytes(storageRef, file, {
-    contentType: file.type || 'application/octet-stream',
+  await new Promise<void>((resolve, reject) => {
+    const task = uploadBytesResumable(storageRef, file, {
+      contentType: file.type || 'application/octet-stream',
+    })
+    task.on(
+      'state_changed',
+      (snapshot) => {
+        if (onProgress) {
+          onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100))
+        }
+      },
+      reject,
+      resolve,
+    )
   })
   const storageUrl = await getDownloadURL(storageRef)
 
