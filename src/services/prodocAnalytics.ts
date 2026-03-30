@@ -24,7 +24,7 @@ const AUTHORITATIVE_NEW_AREA_OVERRIDES: Record<string, Partial<Pick<ProDocEntry,
 
 /** Apply authoritative overrides to a new-area entry before computing indicators.
  *  Trims the ID to handle any whitespace variation stored in Firestore. */
-function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
+export function enforceAuthoritativeValues(entry: ProDocEntry): ProDocEntry {
   const overrides = AUTHORITATIVE_NEW_AREA_OVERRIDES[entry.id.trim()]
   return overrides ? { ...entry, id: entry.id.trim(), ...overrides } : entry
 }

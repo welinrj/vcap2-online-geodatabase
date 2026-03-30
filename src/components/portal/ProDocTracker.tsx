@@ -7,7 +7,7 @@ import {
 } from '../../data/prodocTrackerData'
 import { type ColumnDef } from '../../services/prodocStore'
 import { useProDoc } from '../../contexts/useProDoc'
-import { sumTerrestrial, sumMarine, isCCA, isMPA, computeProDocAnalytics, computeIndicatorTracking } from '../../services/prodocAnalytics'
+import { sumTerrestrial, sumMarine, isCCA, isMPA, computeProDocAnalytics, computeIndicatorTracking, enforceAuthoritativeValues } from '../../services/prodocAnalytics'
 import { INDICATOR_COLORS, INDICATOR_BG, INDICATOR_BORDER } from '../../constants/indicatorColors'
 import Icons8Icon from '../Icons8Icon'
 import {
@@ -195,9 +195,10 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
     [markDirty, setColumns, setNewAreas, setExistingAreas]
   )
 
-  // Summary stats
-  const allEntries = [...newAreas, ...existingAreas]
-
+  // Summary stats — apply authoritative overrides to new areas so registration
+  // status counts reflect confirmed field data, not stale Firestore values
+  const correctedNewAreas = newAreas.map(enforceAuthoritativeValues)
+  const allEntries = [...correctedNewAreas, ...existingAreas]
 
   // Registration status counts for CCA and MPA
   const ccaEntries = allEntries.filter(isCCA)
@@ -821,7 +822,7 @@ const ProDocTracker: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
               filtered.map((entry, i) => (
                 <EditableTableRow
                   key={`${entry.name}-${i}`}
-                  entry={entry}
+                  entry={tab === 'new' ? enforceAuthoritativeValues(entry) : entry}
                   columns={columns}
                   onChange={(field, value) => updateEntry(i, field, value)}
                   onDelete={() =>
