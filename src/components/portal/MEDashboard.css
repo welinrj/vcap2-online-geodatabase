@@ -1,0 +1,151 @@
+.me-dashboard { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* KPI strip */
+.me-kpi-strip {
+  display: flex; gap: 0.75rem; flex-wrap: wrap;
+}
+.me-kpi {
+  flex: 1; min-width: 120px;
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid rgba(226,232,240,0.5);
+  border-radius: var(--radius-lg);
+  padding: 0.9rem 1.1rem;
+}
+.me-kpi-icon { color: var(--color-text-tertiary); flex-shrink: 0; }
+.me-kpi-value { font-size: 1.45rem; font-weight: 700; color: var(--color-text); line-height: 1.1; }
+.me-kpi-label { font-size: 0.68rem; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+.me-kpi-green { color: var(--color-positive) !important; }
+.me-kpi-blue  { color: var(--color-accent-blue) !important; }
+.me-kpi-amber { color: var(--color-accent-amber) !important; }
+.me-kpi-red   { color: var(--color-negative) !important; }
+.me-kpi-teal  { color: #0d9488 !important; }
+
+/* Sections */
+.me-section {
+  background: var(--color-surface);
+  border: 1px solid rgba(226,232,240,0.5);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.4rem;
+}
+.me-section-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.88rem; font-weight: 700; color: var(--color-text);
+  margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.me-generated { font-size: 0.72rem; color: var(--color-text-tertiary); }
+
+/* Traffic light grid */
+.me-traffic-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.75rem;
+}
+.me-traffic-card {
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(226,232,240,0.5);
+  border-left: 4px solid var(--color-border);
+  background: var(--color-bg);
+}
+.me-traffic-green { border-left-color: var(--color-positive); }
+.me-traffic-amber { border-left-color: var(--color-accent-amber); }
+.me-traffic-red   { border-left-color: var(--color-negative); }
+
+.me-traffic-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
+.me-traffic-key { font-size: 0.72rem; font-weight: 700; }
+.me-traffic-light { display: flex; align-items: center; gap: 0.25rem; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.me-light-green { color: var(--color-positive); }
+.me-light-amber { color: var(--color-accent-amber); }
+.me-light-red   { color: var(--color-negative); }
+
+.me-traffic-label { font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.4rem; }
+.me-traffic-pct   { font-size: 1.5rem; font-weight: 700; line-height: 1.1; margin-bottom: 0.4rem; }
+.me-traffic-bar-track { height: 5px; background: rgba(226,232,240,0.6); border-radius: 100px; overflow: hidden; margin-bottom: 0.5rem; }
+.me-traffic-bar-fill  { height: 100%; border-radius: 100px; transition: width 0.3s; }
+.me-traffic-stats { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.68rem; color: var(--color-text-tertiary); }
+.me-traffic-issues { margin-top: 0.5rem; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.2rem; }
+.me-traffic-issues li { display: flex; align-items: flex-start; gap: 0.3rem; font-size: 0.68rem; line-height: 1.4; }
+.me-issue-high { color: var(--color-negative); }
+.me-issue-medium { color: var(--color-accent-amber); }
+
+/* Two-column layout */
+.me-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 680px) { .me-two-col { grid-template-columns: 1fr; } }
+
+/* Activity summary bars */
+.me-summary-list { display: flex; flex-direction: column; gap: 0.55rem; }
+.me-summary-row { display: flex; align-items: center; gap: 0.6rem; }
+.me-summary-label { font-size: 0.75rem; color: var(--color-text-secondary); min-width: 80px; }
+.me-summary-bar-track { flex: 1; height: 8px; background: rgba(226,232,240,0.6); border-radius: 100px; overflow: hidden; }
+.me-summary-bar-fill { height: 100%; border-radius: 100px; transition: width 0.3s; }
+.me-summary-count { font-size: 0.78rem; font-weight: 700; min-width: 24px; text-align: right; }
+
+.me-bar-green { background: var(--color-positive); }
+.me-bar-blue  { background: var(--color-accent-blue); }
+.me-bar-amber { background: var(--color-accent-amber); }
+.me-bar-red   { background: var(--color-negative); }
+.me-bar-grey  { background: var(--color-text-tertiary); }
+
+.me-color-green { color: var(--color-positive); }
+.me-color-blue  { color: var(--color-accent-blue); }
+.me-color-amber { color: var(--color-accent-amber); }
+.me-color-red   { color: var(--color-negative); }
+.me-color-grey  { color: var(--color-text-tertiary); }
+
+/* Budget overview */
+.me-budget-overview { display: flex; flex-direction: column; gap: 0.5rem; }
+.me-budget-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--color-text-secondary); }
+.me-budget-track { height: 8px; background: rgba(226,232,240,0.6); border-radius: 100px; overflow: hidden; }
+.me-budget-fill  { height: 100%; border-radius: 100px; transition: width 0.3s; }
+.me-budget-pct-label { font-size: 0.72rem; color: var(--color-text-tertiary); text-align: right; margin-top: 0.2rem; }
+
+/* Recommendations */
+.me-rec-counts { display: flex; gap: 0.4rem; margin-left: 0.5rem; }
+.me-rec-badge { font-size: 0.62rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 100px; text-transform: uppercase; }
+.me-rec-critical { background: var(--color-negative-bg); color: var(--color-negative); }
+.me-rec-warning  { background: var(--color-accent-amber-bg); color: var(--color-accent-amber); }
+
+.me-rec-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.me-rec-card {
+  border: 1px solid rgba(226,232,240,0.5);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border-left: 3px solid var(--color-border);
+}
+.me-rec-sev-critical { border-left-color: var(--color-negative); }
+.me-rec-sev-warning  { border-left-color: var(--color-accent-amber); }
+.me-rec-sev-info     { border-left-color: var(--color-accent-blue); }
+
+.me-rec-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.75rem 1rem; cursor: pointer; background: var(--color-bg);
+  transition: background 0.15s;
+}
+.me-rec-header:hover { background: rgba(226,232,240,0.2); }
+
+.me-rec-left  { display: flex; align-items: flex-start; gap: 0.65rem; }
+.me-rec-icon  { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 0.1rem; }
+.me-rec-sev-icon-critical { background: var(--color-negative-bg); color: var(--color-negative); }
+.me-rec-sev-icon-warning  { background: var(--color-accent-amber-bg); color: var(--color-accent-amber); }
+.me-rec-sev-icon-info     { background: rgba(59,130,246,0.1); color: var(--color-accent-blue); }
+
+.me-rec-title { font-size: 0.82rem; font-weight: 600; color: var(--color-text); }
+.me-rec-cat   { font-size: 0.68rem; color: var(--color-text-tertiary); text-transform: capitalize; margin-top: 0.1rem; }
+.me-rec-chevron { color: var(--color-text-tertiary); flex-shrink: 0; }
+
+.me-rec-body { padding: 0.75rem 1rem 0.9rem; border-top: 1px solid rgba(226,232,240,0.4); background: var(--color-surface); }
+.me-rec-detail { font-size: 0.78rem; color: var(--color-text-secondary); line-height: 1.55; margin-bottom: 0.5rem; }
+.me-rec-areas { margin: 0 0 0.65rem 0; padding-left: 1.2rem; }
+.me-rec-areas li { font-size: 0.75rem; color: var(--color-text-tertiary); line-height: 1.6; }
+.me-rec-action {
+  display: flex; align-items: flex-start; gap: 0.4rem;
+  font-size: 0.78rem; color: var(--color-text);
+  background: rgba(20,184,166,0.06); padding: 0.55rem 0.75rem;
+  border-radius: var(--radius); border-left: 2px solid #0d9488;
+}
+
+.me-all-good {
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+  padding: 2rem; color: var(--color-positive); text-align: center;
+}
+.me-all-good p { font-size: 0.88rem; color: var(--color-text-secondary); }
+.me-empty { font-size: 0.78rem; color: var(--color-text-tertiary); }
