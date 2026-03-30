@@ -100,15 +100,14 @@ export async function createFolder(
   return folder
 }
 
-export async function listFolders(ownerId: string, parentId: string | null): Promise<FileFolder[]> {
+/**
+ * List all folders at a given parent level.
+ * Shared team repository — all authenticated users see all folders.
+ */
+export async function listFolders(parentId: string | null): Promise<FileFolder[]> {
   if (!db) return []
   await ensureAuth()
-  // Single-field query to avoid composite index requirement
-  const q = query(
-    collection(db, FOLDERS_COL),
-    where('ownerId', '==', ownerId),
-  )
-  const snap = await getDocs(q)
+  const snap = await getDocs(collection(db, FOLDERS_COL))
   return snap.docs
     .filter((d) => {
       const data = d.data()
@@ -212,20 +211,17 @@ export async function uploadFile(
   return entry
 }
 
-export async function listFiles(folderId: string, ownerId: string): Promise<FileEntry[]> {
+/**
+ * List all files in a folder.
+ * Shared team repository — all authenticated users see all files.
+ */
+export async function listFiles(folderId: string): Promise<FileEntry[]> {
   if (!db) return []
   await ensureAuth()
-  // Single-field query to avoid composite index requirement
-  const q = query(
-    collection(db, FILES_COL),
-    where('folderId', '==', folderId),
-  )
+  const q = query(collection(db, FILES_COL), where('folderId', '==', folderId))
   const snap = await getDocs(q)
   return snap.docs
-    .filter((d) => {
-      const data = d.data()
-      return !data._deleted && data.ownerId === ownerId
-    })
+    .filter((d) => !d.data()._deleted)
     .map((d) => {
       const data = d.data()
       return { ...data, createdAt: tsToString(data.createdAt), updatedAt: tsToString(data.updatedAt) } as FileEntry
