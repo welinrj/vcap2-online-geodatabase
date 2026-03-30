@@ -110,8 +110,8 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     setLoading(true)
     try {
       const [f, fi] = await Promise.all([
-        listFolders(currentUser.id, currentFolderId),
-        currentFolderId ? listFiles(currentFolderId, currentUser.id) : Promise.resolve([]),
+        listFolders(currentFolderId),
+        currentFolderId ? listFiles(currentFolderId) : Promise.resolve([]),
       ])
       setFolders(f)
       setFiles(fi)

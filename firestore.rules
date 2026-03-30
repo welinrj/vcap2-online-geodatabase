@@ -185,9 +185,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Deny all other access by default
+    // Allow public read for any unlisted collections (e.g. NBSAP portal collections)
+    // Write requires authentication to prevent anonymous abuse
     match /{document=**} {
-      allow read, write: if false;
+      allow read: if true;
+      allow write: if isAuthenticated();
     }
   }
 }
