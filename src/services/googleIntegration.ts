@@ -297,25 +297,44 @@ export async function uploadFileToDrive(
   return data.id as string
 }
 
-// ─── Firestore Persistence ────────────────────────────────────────────────────
+// ─── Local Storage Persistence ───────────────────────────────────────────────
+// localStorage is used as primary storage — no auth required, works instantly.
+// Firestore sync is attempted in the background for cross-device sharing.
+
+const LS_CLIENT_ID = 'vcap2_google_client_id'
+const LS_USER_PREFS = 'vcap2_google_prefs'
 
 const FM_CONFIG_COL = 'fm_config'
 const USER_GOOGLE_PREFS_COL = 'user_google_prefs'
 
-/** Save the Google Client ID to Firestore fm_config/google */
+/** Save the Google Client ID — localStorage first, Firestore in background */
 export async function saveClientId(clientId: string): Promise<void> {
-  if (!db) throw new Error('Firestore not configured')
-  await ensureAuth()
-  await setDoc(doc(db, FM_CONFIG_COL, 'google'), { clientId }, { merge: true })
+  localStorage.setItem(LS_CLIENT_ID, clientId)
+  // Background sync to Firestore (non-fatal if it fails)
+  if (db) {
+    ensureAuth().then(() =>
+      setDoc(doc(db!, FM_CONFIG_COL, 'google'), { clientId }, { merge: true })
+    ).catch(() => {})
+  }
 }
 
-/** Load the Google Client ID from Firestore fm_config/google */
+/** Load the Google Client ID — localStorage first, fall back to Firestore */
 export async function loadClientId(): Promise<string> {
-  if (!db) return ''
-  await ensureAuth()
-  const snap = await getDoc(doc(db, FM_CONFIG_COL, 'google'))
-  if (!snap.exists()) return ''
-  return (snap.data()?.clientId as string) ?? ''
+  const local = localStorage.getItem(LS_CLIENT_ID)
+  if (local) return local
+  // Try Firestore as fallback (e.g. first time on a new device)
+  if (db) {
+    try {
+      await ensureAuth()
+      const snap = await getDoc(doc(db, FM_CONFIG_COL, 'google'))
+      if (snap.exists()) {
+        const id = (snap.data()?.clientId as string) ?? ''
+        if (id) localStorage.setItem(LS_CLIENT_ID, id)
+        return id
+      }
+    } catch { /* non-fatal */ }
+  }
+  return ''
 }
 
 export interface UserGooglePrefs {
@@ -323,22 +342,31 @@ export interface UserGooglePrefs {
   driveEnabled: boolean
 }
 
-/** Save user Google preferences to Firestore */
+/** Save user Google preferences — localStorage first, Firestore in background */
 export async function saveUserPref(userId: string, prefs: UserGooglePrefs): Promise<void> {
-  if (!db) throw new Error('Firestore not configured')
-  await ensureAuth()
-  await setDoc(doc(db, USER_GOOGLE_PREFS_COL, userId), prefs, { merge: true })
+  localStorage.setItem(`${LS_USER_PREFS}_${userId}`, JSON.stringify(prefs))
+  if (db) {
+    ensureAuth().then(() =>
+      setDoc(doc(db!, USER_GOOGLE_PREFS_COL, userId), prefs, { merge: true })
+    ).catch(() => {})
+  }
 }
 
-/** Load user Google preferences from Firestore */
+/** Load user Google preferences — localStorage first, fall back to Firestore */
 export async function loadUserPref(userId: string): Promise<UserGooglePrefs> {
-  if (!db) return { gmailEnabled: false, driveEnabled: false }
-  await ensureAuth()
-  const snap = await getDoc(doc(db, USER_GOOGLE_PREFS_COL, userId))
-  if (!snap.exists()) return { gmailEnabled: false, driveEnabled: false }
-  const data = snap.data()
-  return {
-    gmailEnabled: Boolean(data?.gmailEnabled),
-    driveEnabled: Boolean(data?.driveEnabled),
+  const local = localStorage.getItem(`${LS_USER_PREFS}_${userId}`)
+  if (local) {
+    try { return JSON.parse(local) as UserGooglePrefs } catch { /* ignore */ }
   }
+  if (db) {
+    try {
+      await ensureAuth()
+      const snap = await getDoc(doc(db, USER_GOOGLE_PREFS_COL, userId))
+      if (snap.exists()) {
+        const data = snap.data()
+        return { gmailEnabled: Boolean(data?.gmailEnabled), driveEnabled: Boolean(data?.driveEnabled) }
+      }
+    } catch { /* non-fatal */ }
+  }
+  return { gmailEnabled: false, driveEnabled: false }
 }
