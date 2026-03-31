@@ -85,7 +85,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   // Inbox
   const [inboxEmails, setInboxEmails] = useState<InboxEmail[]>([])
   const [loadingInbox, setLoadingInbox] = useState(false)
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => getDismissedEmails())
 
   // Email detail modal
   const [openEmail, setOpenEmail] = useState<InboxEmail | null>(null)
@@ -167,8 +166,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   function handleCloseEmail() {
     if (openEmail) {
       dismissPortalEmail(openEmail.id)
-      const newDismissed = getDismissedEmails()
-      setDismissedIds(newDismissed)
       setInboxEmails((prev) => prev.filter((e) => e.id !== openEmail.id))
     }
     setOpenEmail(null)
@@ -178,7 +175,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   function handleDismissEmail(id: string, e: React.MouseEvent) {
     e.stopPropagation()
     dismissPortalEmail(id)
-    setDismissedIds(getDismissedEmails())
     setInboxEmails((prev) => prev.filter((email) => email.id !== id))
   }
 
