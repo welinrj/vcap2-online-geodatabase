@@ -4,8 +4,20 @@
  * Loads the GIS script dynamically.
  */
 
-import { db } from '../config/firebase'
+import { db, auth } from '../config/firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { signInAnonymously } from 'firebase/auth'
+
+/** Ensure Firebase anonymous auth session exists before any Firestore write */
+async function ensureAuth(): Promise<void> {
+  if (!auth.currentUser) {
+    try {
+      await signInAnonymously(auth)
+    } catch {
+      // Non-fatal — catch-all rules allow reads; writes may still fail
+    }
+  }
+}
 
 // ─── Window type declarations ─────────────────────────────────────────────────
 
@@ -293,12 +305,14 @@ const USER_GOOGLE_PREFS_COL = 'user_google_prefs'
 /** Save the Google Client ID to Firestore fm_config/google */
 export async function saveClientId(clientId: string): Promise<void> {
   if (!db) throw new Error('Firestore not configured')
+  await ensureAuth()
   await setDoc(doc(db, FM_CONFIG_COL, 'google'), { clientId }, { merge: true })
 }
 
 /** Load the Google Client ID from Firestore fm_config/google */
 export async function loadClientId(): Promise<string> {
   if (!db) return ''
+  await ensureAuth()
   const snap = await getDoc(doc(db, FM_CONFIG_COL, 'google'))
   if (!snap.exists()) return ''
   return (snap.data()?.clientId as string) ?? ''
@@ -312,12 +326,14 @@ export interface UserGooglePrefs {
 /** Save user Google preferences to Firestore */
 export async function saveUserPref(userId: string, prefs: UserGooglePrefs): Promise<void> {
   if (!db) throw new Error('Firestore not configured')
+  await ensureAuth()
   await setDoc(doc(db, USER_GOOGLE_PREFS_COL, userId), prefs, { merge: true })
 }
 
 /** Load user Google preferences from Firestore */
 export async function loadUserPref(userId: string): Promise<UserGooglePrefs> {
   if (!db) return { gmailEnabled: false, driveEnabled: false }
+  await ensureAuth()
   const snap = await getDoc(doc(db, USER_GOOGLE_PREFS_COL, userId))
   if (!snap.exists()) return { gmailEnabled: false, driveEnabled: false }
   const data = snap.data()
