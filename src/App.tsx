@@ -230,7 +230,7 @@ function App() {
           {activeSection === 'account' && isAuthenticated && (
             <Account currentUser={currentUser} onUserUpdated={setCurrentUser} />
           )}
-          {activeSection === 'google-integration' && isAuthenticated && (
+          {activeSection === 'google-integration' && isAuthenticated && currentUser?.role === 'admin' && (
             <GoogleIntegration
               currentUser={currentUser}
               onGmailReady={handleGmailReady}
