@@ -168,6 +168,137 @@ export interface EmailSummary {
   from: string
 }
 
+export interface InboxEmail {
+  id: string
+  subject: string
+  from: string
+  date: string
+}
+
+export interface EmailDetail extends InboxEmail {
+  body: string
+  isHtml: boolean
+}
+
+// ─── Inbox helpers ────────────────────────────────────────────────────────────
+
+/** Decode Base64url-encoded Gmail body data to a UTF-8 string */
+function decodeBase64Url(data: string): string {
+  const base64 = data.replace(/-/g, '+').replace(/_/g, '/')
+  try {
+    return decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join(''),
+    )
+  } catch {
+    return atob(base64)
+  }
+}
+
+function findPartByMimeType(parts: { mimeType: string; body?: { data?: string }; parts?: unknown[] }[], mimeType: string): { body?: { data?: string } } | null {
+  for (const part of parts) {
+    if (part.mimeType === mimeType) return part
+    if (part.parts) {
+      const found = findPartByMimeType(part.parts as typeof parts, mimeType)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+function extractBody(payload: { mimeType?: string; body?: { data?: string }; parts?: unknown[] }): { body: string; isHtml: boolean } {
+  if (!payload) return { body: '', isHtml: false }
+  // Simple (non-multipart) message
+  if (payload.body?.data) {
+    return { body: decodeBase64Url(payload.body.data), isHtml: payload.mimeType === 'text/html' }
+  }
+  // Multipart: prefer HTML, fall back to plain text
+  if (payload.parts) {
+    const parts = payload.parts as { mimeType: string; body?: { data?: string }; parts?: unknown[] }[]
+    const html = findPartByMimeType(parts, 'text/html')
+    if (html?.body?.data) return { body: decodeBase64Url(html.body.data), isHtml: true }
+    const plain = findPartByMimeType(parts, 'text/plain')
+    if (plain?.body?.data) return { body: decodeBase64Url(plain.body.data), isHtml: false }
+  }
+  return { body: '(No content)', isHtml: false }
+}
+
+/** Fetch all current unread emails for the inbox view (up to 50) */
+export async function fetchAllUnreadEmails(token: string, maxResults = 50): Promise<InboxEmail[]> {
+  const listRes = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent('is:unread')}&maxResults=${maxResults}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!listRes.ok) throw new Error(`Gmail list failed: ${listRes.status}`)
+  const listData = await listRes.json()
+  if (!listData.messages?.length) return []
+
+  const emails: InboxEmail[] = await Promise.all(
+    listData.messages.map(async (msg: { id: string }) => {
+      try {
+        const res = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+        if (!res.ok) return { id: msg.id, subject: '(no subject)', from: '', date: '' }
+        const data = await res.json()
+        const headers: { name: string; value: string }[] = data.payload?.headers ?? []
+        return {
+          id: msg.id,
+          subject: headers.find((h) => h.name === 'Subject')?.value ?? '(no subject)',
+          from: headers.find((h) => h.name === 'From')?.value ?? '',
+          date: headers.find((h) => h.name === 'Date')?.value ?? '',
+        }
+      } catch {
+        return { id: msg.id, subject: '(no subject)', from: '', date: '' }
+      }
+    }),
+  )
+  return emails
+}
+
+/** Fetch full email content (subject, from, date, body) */
+export async function fetchEmailDetail(token: string, id: string): Promise<EmailDetail> {
+  const res = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!res.ok) throw new Error(`Failed to fetch email: ${res.status}`)
+  const data = await res.json()
+  const headers: { name: string; value: string }[] = data.payload?.headers ?? []
+  const { body, isHtml } = extractBody(data.payload)
+  return {
+    id,
+    subject: headers.find((h) => h.name === 'Subject')?.value ?? '(no subject)',
+    from: headers.find((h) => h.name === 'From')?.value ?? '',
+    date: headers.find((h) => h.name === 'Date')?.value ?? '',
+    body,
+    isHtml,
+  }
+}
+
+// ─── Portal dismiss tracking ──────────────────────────────────────────────────
+// Tracks which emails the user has "read" in the portal.
+// Does NOT affect Gmail — emails remain unread there.
+
+const LS_DISMISSED = 'vcap2_gmail_portal_dismissed'
+
+export function getDismissedEmails(): Set<string> {
+  try {
+    const raw = localStorage.getItem(LS_DISMISSED)
+    if (raw) return new Set(JSON.parse(raw) as string[])
+  } catch { /* ignore */ }
+  return new Set()
+}
+
+export function dismissPortalEmail(id: string): void {
+  const set = getDismissedEmails()
+  set.add(id)
+  localStorage.setItem(LS_DISMISSED, JSON.stringify([...set]))
+}
+
 /** Fetch recent unread emails (up to 10) */
 export async function fetchNewEmails(token: string): Promise<EmailSummary[]> {
   const listRes = await fetch(

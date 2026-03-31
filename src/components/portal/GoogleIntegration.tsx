@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react'
+import { useState, useEffect, useCallback, type FC } from 'react'
 import type { UserProfile } from '../../types/user'
 import Icons8Icon from '../Icons8Icon'
 import {
@@ -6,6 +6,10 @@ import {
   requestAccess,
   revokeAccess,
   getGmailProfile,
+  fetchAllUnreadEmails,
+  fetchEmailDetail,
+  dismissPortalEmail,
+  getDismissedEmails,
   uploadFileToDrive,
   saveClientId,
   loadClientId,
@@ -14,6 +18,8 @@ import {
   getStoredToken,
   setStoredToken,
   type GmailProfile,
+  type InboxEmail,
+  type EmailDetail,
 } from '../../services/googleIntegration'
 import './GoogleIntegration.css'
 
@@ -32,6 +38,29 @@ const POLL_OPTIONS = [
   { label: '1 minute', value: 60000 },
   { label: '5 minutes', value: 300000 },
 ]
+
+function formatEmailDate(dateStr: string): string {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr)
+    const now = new Date()
+    const isToday =
+      d.getDate() === now.getDate() &&
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear()
+    if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+  } catch {
+    return dateStr
+  }
+}
+
+function parseSenderName(from: string): string {
+  // "John Doe <john@example.com>" → "John Doe"
+  const match = from.match(/^([^<]+)</)
+  if (match) return match[1].trim()
+  return from
+}
 
 const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   currentUser,
@@ -53,6 +82,16 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   const [pollInterval, setPollInterval] = useState(60000)
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
 
+  // Inbox
+  const [inboxEmails, setInboxEmails] = useState<InboxEmail[]>([])
+  const [loadingInbox, setLoadingInbox] = useState(false)
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => getDismissedEmails())
+
+  // Email detail modal
+  const [openEmail, setOpenEmail] = useState<InboxEmail | null>(null)
+  const [emailDetail, setEmailDetail] = useState<EmailDetail | null>(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
+
   // Drive tab
   const [driveEnabled, setDriveEnabled] = useState(false)
 
@@ -70,7 +109,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
         setDriveEnabled(prefs.driveEnabled)
       })
     }
-    // Restore token from module state
     const existing = getStoredToken()
     if (existing) {
       setToken(existing)
@@ -78,8 +116,15 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
     }
   }, [currentUser])
 
-  // Manage Gmail polling when token + enabled changes.
-  // App.tsx owns the polling loop (creates notifications); we just signal it.
+  // Load inbox when Gmail tab is opened and token is available
+  useEffect(() => {
+    if (tab === 'gmail' && token) {
+      loadInbox()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, token])
+
+  // Signal App.tsx to manage polling
   useEffect(() => {
     if (token && gmailEnabled) {
       onGmailReady?.(token, pollInterval)
@@ -89,6 +134,53 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, gmailEnabled, pollInterval])
+
+  const loadInbox = useCallback(async () => {
+    if (!token) return
+    setLoadingInbox(true)
+    try {
+      const emails = await fetchAllUnreadEmails(token)
+      const dismissed = getDismissedEmails()
+      setDismissedIds(dismissed)
+      setInboxEmails(emails.filter((e) => !dismissed.has(e.id)))
+    } catch {
+      // Non-fatal
+    } finally {
+      setLoadingInbox(false)
+    }
+  }, [token])
+
+  async function handleOpenEmail(email: InboxEmail) {
+    setOpenEmail(email)
+    setEmailDetail(null)
+    setLoadingDetail(true)
+    try {
+      const detail = await fetchEmailDetail(token!, email.id)
+      setEmailDetail(detail)
+    } catch {
+      setEmailDetail({ ...email, body: '(Failed to load email content)', isHtml: false })
+    } finally {
+      setLoadingDetail(false)
+    }
+  }
+
+  function handleCloseEmail() {
+    if (openEmail) {
+      dismissPortalEmail(openEmail.id)
+      const newDismissed = getDismissedEmails()
+      setDismissedIds(newDismissed)
+      setInboxEmails((prev) => prev.filter((e) => e.id !== openEmail.id))
+    }
+    setOpenEmail(null)
+    setEmailDetail(null)
+  }
+
+  function handleDismissEmail(id: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    dismissPortalEmail(id)
+    setDismissedIds(getDismissedEmails())
+    setInboxEmails((prev) => prev.filter((email) => email.id !== id))
+  }
 
   function showAlert(type: 'success' | 'error', msg: string) {
     setAlert({ type, msg })
@@ -102,7 +194,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
       await saveClientId(clientIdInput.trim())
       setClientId(clientIdInput.trim())
       showAlert('success', 'Client ID saved')
-      // Pre-load GIS so the connect button is faster
       await loadGIS()
     } catch (err) {
       showAlert('error', `Failed to save Client ID: ${err instanceof Error ? err.message : String(err)}`)
@@ -121,7 +212,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
       const accessToken = await requestAccess(clientId)
       setStoredToken(accessToken)
       setToken(accessToken)
-      // Gmail profile fetch is non-fatal — may fail if Gmail API not yet enabled
       try {
         const profile = await getGmailProfile(accessToken)
         setGmailProfile(profile)
@@ -141,6 +231,7 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
     setStoredToken(null)
     setToken(null)
     setGmailProfile(null)
+    setInboxEmails([])
     onGmailStop?.()
     showAlert('success', 'Google account disconnected')
   }
@@ -191,6 +282,9 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
           onClick={() => setTab('gmail')}
         >
           <Icons8Icon name="email" size={16} /> Gmail
+          {inboxEmails.length > 0 && (
+            <span className="gi-inbox-badge">{inboxEmails.length}</span>
+          )}
         </button>
         <button
           className={`gi-tab ${tab === 'drive' ? 'gi-tab-active' : ''}`}
@@ -249,7 +343,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
             </div>
           </div>
 
-          {/* Connection status */}
           {token && gmailProfile ? (
             <div className="gi-account-card">
               <div className="gi-account-avatar">
@@ -301,6 +394,7 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
             </div>
           ) : (
             <>
+              {/* Notification toggle */}
               <div className="gi-toggle-row">
                 <div className="gi-toggle-label">
                   <span className="gi-toggle-label-text">Email notifications</span>
@@ -319,36 +413,76 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
               </div>
 
               {gmailEnabled && (
-                <>
-                  <div className="gi-select-row">
-                    <span className="gi-select-label">Check every</span>
-                    <select
-                      className="gi-select"
-                      value={pollInterval}
-                      onChange={(e) => setPollInterval(Number(e.target.value))}
+                <div className="gi-select-row">
+                  <span className="gi-select-label">Check every</span>
+                  <select
+                    className="gi-select"
+                    value={pollInterval}
+                    onChange={(e) => setPollInterval(Number(e.target.value))}
+                  >
+                    {POLL_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <span className="gi-info-row-muted" style={{ fontSize: '0.8125rem' }}>
+                    Last checked: {lastChecked ? lastChecked.toLocaleTimeString() : 'Waiting…'}
+                  </span>
+                </div>
+              )}
+
+              {/* Inbox */}
+              <div className="gi-inbox-header">
+                <span className="gi-inbox-title">
+                  Unread inbox
+                  {inboxEmails.length > 0 && (
+                    <span className="gi-inbox-count">{inboxEmails.length}</span>
+                  )}
+                </span>
+                <button
+                  className="gi-btn gi-btn-secondary gi-btn-sm"
+                  onClick={loadInbox}
+                  disabled={loadingInbox}
+                >
+                  <Icons8Icon name="refresh" size={13} />
+                  {loadingInbox ? 'Loading…' : 'Refresh'}
+                </button>
+              </div>
+
+              {loadingInbox ? (
+                <div className="gi-inbox-loading">Loading emails…</div>
+              ) : inboxEmails.length === 0 ? (
+                <div className="gi-inbox-empty">
+                  <Icons8Icon name="email" size={32} />
+                  <span>No unread emails</span>
+                </div>
+              ) : (
+                <div className="gi-inbox-list">
+                  {inboxEmails.map((email) => (
+                    <button
+                      key={email.id}
+                      className="gi-inbox-row"
+                      onClick={() => handleOpenEmail(email)}
                     >
-                      {POLL_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="gi-info-row">
-                    <Icons8Icon name="email" size={16} />
-                    <span>Connected as <strong>{gmailProfile?.emailAddress}</strong></span>
-                    {gmailProfile && (
-                      <span className="gi-info-row-muted">
-                        · {gmailProfile.messagesTotal.toLocaleString()} total messages
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="gi-info-row gi-info-row-muted">
-                    <Icons8Icon name="clock" size={14} />
-                    Last checked:{' '}
-                    {lastChecked ? lastChecked.toLocaleTimeString() : 'Waiting for first check…'}
-                  </div>
-                </>
+                      <div className="gi-inbox-avatar">
+                        {parseSenderName(email.from).charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div className="gi-inbox-meta">
+                        <span className="gi-inbox-from">{parseSenderName(email.from)}</span>
+                        <span className="gi-inbox-subject">{email.subject}</span>
+                      </div>
+                      <div className="gi-inbox-right">
+                        <span className="gi-inbox-date">{formatEmailDate(email.date)}</span>
+                        <button
+                          className="gi-inbox-dismiss"
+                          title="Dismiss from portal"
+                          onClick={(e) => handleDismissEmail(email.id, e)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               )}
             </>
           )}
@@ -392,17 +526,59 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
                       ({gmailProfile?.emailAddress}).
                     </div>
                   </div>
-
-                  <button
-                    className="gi-btn gi-btn-secondary"
-                    onClick={handleTestDriveUpload}
-                  >
+                  <button className="gi-btn gi-btn-secondary" onClick={handleTestDriveUpload}>
                     <Icons8Icon name="upload" size={14} /> Test Drive Upload
                   </button>
                 </>
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* ══ Email Detail Modal ══ */}
+      {openEmail && (
+        <div className="gi-modal-overlay" onClick={handleCloseEmail}>
+          <div className="gi-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="gi-modal-header">
+              <div className="gi-modal-meta">
+                <span className="gi-modal-subject">{openEmail.subject}</span>
+                <span className="gi-modal-from">
+                  <strong>From:</strong> {openEmail.from}
+                </span>
+                {openEmail.date && (
+                  <span className="gi-modal-date">
+                    <strong>Date:</strong> {new Date(openEmail.date).toLocaleString()}
+                  </span>
+                )}
+              </div>
+              <button className="gi-modal-close" onClick={handleCloseEmail} title="Close (marks as read in portal)">
+                ×
+              </button>
+            </div>
+            <div className="gi-modal-body">
+              {loadingDetail ? (
+                <div className="gi-modal-loading">Loading email…</div>
+              ) : emailDetail?.isHtml ? (
+                <iframe
+                  className="gi-modal-iframe"
+                  sandbox="allow-same-origin"
+                  srcDoc={emailDetail.body}
+                  title="Email content"
+                />
+              ) : (
+                <pre className="gi-modal-text">{emailDetail?.body ?? ''}</pre>
+              )}
+            </div>
+            <div className="gi-modal-footer">
+              <span className="gi-modal-footer-note">
+                Closing this email removes it from the portal inbox. It stays unread in Gmail.
+              </span>
+              <button className="gi-btn gi-btn-primary" onClick={handleCloseEmail}>
+                Done
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
