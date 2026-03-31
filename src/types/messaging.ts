@@ -30,7 +30,7 @@ export interface Message {
   createdAt: string
 }
 
-export type NotificationType = 'message' | 'call' | 'videocall' | 'attachment' | 'group_invite' | 'file_upload'
+export type NotificationType = 'message' | 'call' | 'videocall' | 'attachment' | 'group_invite' | 'file_upload' | 'gmail'
 
 export interface AppNotification {
   id: string

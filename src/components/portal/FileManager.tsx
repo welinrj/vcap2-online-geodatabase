@@ -21,8 +21,10 @@ import {
 } from '../../services/fileManagerStore'
 import { setupDefaultFolders, deduplicateFolders } from '../../services/fileManagerSetup'
 import { listUsers } from '../../services/userStore'
+import { getStoredToken, uploadFileToDrive } from '../../services/googleIntegration'
 import Icons8Icon from '../Icons8Icon'
 import './FileManager.css'
+import './GoogleIntegration.css'
 
 interface FileManagerProps {
   currentUser: UserProfile | null
@@ -92,6 +94,9 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
 
   // Preview
   const [previewFile, setPreviewFile] = useState<FileEntry | null>(null)
+
+  // Google Drive
+  const [driveSavingId, setDriveSavingId] = useState<string | null>(null)
 
   // Default folder setup
   const [settingUp, setSettingUp] = useState(false)
@@ -300,7 +305,28 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
     }
   }
 
+  async function handleSaveToDrive(file: FileEntry) {
+    const token = getStoredToken()
+    if (!token) {
+      showAlert('error', 'Connect your Google account in Google Integration settings first')
+      return
+    }
+    setDriveSavingId(file.id)
+    try {
+      const res = await fetch(file.storageUrl)
+      const blob = await res.blob()
+      await uploadFileToDrive(token, blob, file.name, file.mimeType || 'application/octet-stream')
+      showAlert('success', `"${file.name}" saved to your Google Drive`)
+    } catch (err) {
+      showAlert('error', err instanceof Error ? err.message : 'Failed to save to Drive')
+    } finally {
+      setDriveSavingId(null)
+    }
+  }
+
   if (!currentUser) return null
+
+  const driveToken = getStoredToken()
 
   // ─── Render ─────────────────────────────────────
 
@@ -505,6 +531,17 @@ const FileManager: FC<FileManagerProps> = ({ currentUser }) => {
                       <button className="fm-icon-btn" title="Download" onClick={() => handleDownloadFile(file)}>
                         <Icons8Icon name="download" size={14} />
                       </button>
+                      {driveToken && (
+                        <button
+                          className="fm-drive-btn"
+                          title="Save to Google Drive"
+                          disabled={driveSavingId === file.id}
+                          onClick={() => handleSaveToDrive(file)}
+                        >
+                          <Icons8Icon name="google-drive" size={12} />
+                          {driveSavingId === file.id ? '…' : 'Drive'}
+                        </button>
+                      )}
                       <button
                         className="fm-icon-btn"
                         title="Share"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StaffLogin from './components/StaffLogin'
@@ -11,6 +11,9 @@ import { onIncomingCalls } from './services/callService'
 import { ProDocProvider } from './contexts/ProDocContext'
 import { auth } from './config/firebase'
 import { signInAnonymously } from 'firebase/auth'
+import { startGmailPolling } from './services/googleIntegration'
+import { createNotification } from './services/messagingStore'
+import { playNotificationSound } from './services/notificationSounds'
 import type { UserProfile } from './types/user'
 import type { CallSignal } from './types/messaging'
 import './App.css'
@@ -30,6 +33,7 @@ const FisheriesDashboard = lazy(() => import('./components/portal/FisheriesDashb
 const MEDashboard = lazy(() => import('./components/portal/MEDashboard'))
 const QuarterlyLog = lazy(() => import('./components/portal/QuarterlyLog'))
 const RiskRegister = lazy(() => import('./components/portal/RiskRegister'))
+const GoogleIntegration = lazy(() => import('./components/portal/GoogleIntegration'))
 const sectionTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   'gis-database': 'GIS Database',
@@ -45,6 +49,7 @@ const sectionTitles: Record<string, string> = {
   'me-dashboard': 'M&E Dashboard',
   'quarterly-log': 'Quarterly Progress Log',
   'risk-register': 'Risk Register',
+  'google-integration': 'Google Integration',
 }
 
 /** Sections visible to the public (unauthenticated visitors) */
@@ -63,6 +68,33 @@ function App() {
     calleeId: string; calleeName: string; type: 'video' | 'audio'
   } | null>(null)
   const [incomingCall, setIncomingCall] = useState<CallSignal | null>(null)
+
+  // Gmail polling — started when user connects Google account with Gmail enabled
+  const stopGmailPollRef = useRef<(() => void) | null>(null)
+
+  const handleGmailReady = useCallback((token: string, intervalMs: number) => {
+    stopGmailPollRef.current?.()
+    stopGmailPollRef.current = startGmailPolling(token, async (emails) => {
+      if (!currentUser) return
+      for (const email of emails) {
+        try {
+          await createNotification({
+            userId: currentUser.id,
+            type: 'gmail',
+            title: 'New email',
+            body: `${email.from}: ${email.subject}`,
+            fromUserName: email.from,
+          })
+          playNotificationSound()
+        } catch { /* non-fatal */ }
+      }
+    }, intervalMs)
+  }, [currentUser])
+
+  const handleGmailStop = useCallback(() => {
+    stopGmailPollRef.current?.()
+    stopGmailPollRef.current = null
+  }, [])
 
   useEffect(() => {
     const userId = sessionStorage.getItem('vcap2_user_id')
@@ -197,6 +229,13 @@ function App() {
           )}
           {activeSection === 'account' && isAuthenticated && (
             <Account currentUser={currentUser} onUserUpdated={setCurrentUser} />
+          )}
+          {activeSection === 'google-integration' && isAuthenticated && (
+            <GoogleIntegration
+              currentUser={currentUser}
+              onGmailReady={handleGmailReady}
+              onGmailStop={handleGmailStop}
+            />
           )}
           </Suspense>
           </ErrorBoundary>

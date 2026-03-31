@@ -25,6 +25,7 @@ function notifTypeToTheme(type: AppNotification['type']): ToastTheme {
     case 'attachment': return 'attachment'
     case 'group_invite': return 'group'
     case 'file_upload': return 'attachment'
+    case 'gmail': return 'info'
     default: return 'info'
   }
 }
@@ -101,6 +102,7 @@ export default function NotificationPanel({ currentUser, onNavigateToChat }: Not
       case 'attachment': return <Icons8Icon name="paperclip" size={14} />
       case 'group_invite': return <Icons8Icon name="group" size={14} />
       case 'file_upload': return <Icons8Icon name="upload" size={14} />
+      case 'gmail': return <Icons8Icon name="email" size={14} />
     }
   }
 
