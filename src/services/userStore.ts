@@ -7,12 +7,40 @@ import {
   getDoc,
   setDoc,
   deleteDoc,
+  type Timestamp,
 } from 'firebase/firestore'
 
 const COLLECTION = 'users'
 
 function generateId(): string {
   return `user_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+}
+
+/** Convert a Firestore Timestamp or raw string/number to an ISO string */
+function toISOString(val: unknown): string | undefined {
+  if (!val) return undefined
+  if (typeof val === 'string') return val
+  if (typeof (val as Timestamp).toDate === 'function') {
+    return (val as Timestamp).toDate().toISOString()
+  }
+  if (typeof val === 'number') return new Date(val).toISOString()
+  return undefined
+}
+
+/** Normalize raw Firestore doc data into a clean UserProfile */
+function normalizeUser(data: Record<string, unknown>, id: string): UserProfile {
+  return {
+    id,
+    name: (data.name as string) ?? '',
+    email: (data.email as string) ?? undefined,
+    role: (data.role as UserProfile['role']) ?? undefined,
+    organization: (data.organization as string) ?? undefined,
+    avatar: (data.avatar as string) ?? null,
+    phone: (data.phone as string) ?? undefined,
+    position: (data.position as string) ?? undefined,
+    createdAt: toISOString(data.createdAt) ?? new Date().toISOString(),
+    lastLogin: toISOString(data.lastLogin),
+  }
 }
 
 export async function createUser(name: string, avatar: string | null): Promise<UserProfile> {
@@ -22,7 +50,6 @@ export async function createUser(name: string, avatar: string | null): Promise<U
     avatar,
     createdAt: new Date().toISOString(),
   }
-
   await setDoc(doc(db, COLLECTION, user.id), user)
   return user
 }
@@ -31,7 +58,7 @@ export async function getUser(id: string): Promise<UserProfile | null> {
   const ref = doc(db, COLLECTION, id)
   const snapshot = await getDoc(ref)
   if (!snapshot.exists()) return null
-  return snapshot.data() as UserProfile
+  return normalizeUser(snapshot.data() as Record<string, unknown>, id)
 }
 
 export async function updateUser(
@@ -40,15 +67,17 @@ export async function updateUser(
 ): Promise<UserProfile | null> {
   const user = await getUser(id)
   if (!user) return null
-
-  Object.assign(user, updates)
-  await setDoc(doc(db, COLLECTION, id), user)
-  return user
+  const updated = { ...user, ...updates }
+  await setDoc(doc(db, COLLECTION, id), updated)
+  return updated
 }
 
 export async function listUsers(): Promise<UserProfile[]> {
   const snapshot = await getDocs(collection(db, COLLECTION))
-  return snapshot.docs.map((d) => d.data() as UserProfile)
+  const all = snapshot.docs
+    .filter((d) => !d.data()._deleted)
+    .map((d) => normalizeUser(d.data() as Record<string, unknown>, d.id))
+  return deduplicateUsers(all)
 }
 
 export async function findUserByName(name: string): Promise<UserProfile | null> {
@@ -64,7 +93,7 @@ export async function findUserByEmail(email: string): Promise<UserProfile | null
 
 /**
  * Deduplicate users by name — keeps the entry with the most recent login
- * or the one with an email, so duplicate "VCAP2 Staff" entries collapse to one.
+ * or the one with an email, so duplicate entries collapse to one.
  */
 export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
   const byName = new Map<string, UserProfile>()
@@ -75,7 +104,6 @@ export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
       byName.set(key, u)
       continue
     }
-    // Prefer the entry that has an email, more recent login, or a role set
     const score = (p: UserProfile) =>
       (p.email ? 4 : 0) +
       (p.lastLogin ? 2 : 0) +

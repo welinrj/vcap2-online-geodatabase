@@ -89,20 +89,18 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
         return
       }
 
-      // Try Firebase auth creation first
-      try {
-        const { createUser: firebaseCreateUser } = await import('../../services/firebaseAuth')
-        await firebaseCreateUser(newEmail, newPassword, {
-          name: newName.trim(),
-          role: newRole,
-          organization: '',
-        })
-      } catch {
-        // Fallback: create in userStore directly (no Firebase Auth)
-        const { createUser: storeCreateUser } = await import('../../services/userStore')
-        const user = await storeCreateUser(newName.trim(), null)
-        await updateUser(user.id, { role: newRole, email: newEmail || '' })
+      if (!newEmail.trim()) {
+        setCreateError('Email is required to create a login account')
+        setCreating(false)
+        return
       }
+
+      const { createUser: firebaseCreateUser } = await import('../../services/firebaseAuth')
+      await firebaseCreateUser(newEmail.trim(), newPassword, {
+        name: newName.trim(),
+        role: newRole,
+        organization: '',
+      })
 
       setShowCreateForm(false)
       setNewName('')
@@ -246,7 +244,7 @@ const UserManagement: FC<UserManagementProps> = ({ currentUser }) => {
                 />
               </div>
               <div className="um-form-group">
-                <label className="um-label">Email</label>
+                <label className="um-label">Email *</label>
                 <input
                   className="um-input"
                   type="email"
