@@ -117,6 +117,18 @@ service cloud.firestore {
       allow delete: if isAdmin(); // Hard-delete only by admin
     }
 
+    // File manager — shared config (Google Client ID etc.) — not sensitive
+    match /fm_config/{configId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Per-user Google integration preferences
+    match /user_google_prefs/{userId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
     // File manager — files
     match /fm_files/{fileId} {
       allow read: if isAuthenticated();
