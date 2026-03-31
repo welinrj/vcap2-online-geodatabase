@@ -2,15 +2,19 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import App from './App'
 
-// Helper: navigate to login screen and authenticate as staff
+// Helper: navigate to login screen and authenticate using the shared staff password
 async function loginAsStaff() {
-  // The app now shows a public portal by default; click "Staff Login" to open login form
+  // Open login form
   fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
-  // Staff login mode shows only a Password field (no Email)
+  // Default mode is email — switch to shared staff password mode
   await waitFor(() => {
-    expect(screen.getByLabelText('Password')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Use shared staff password instead/i })).toBeInTheDocument()
   })
-  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'VCAP2@2026' } })
+  fireEvent.click(screen.getByRole('button', { name: /Use shared staff password instead/i }))
+  await waitFor(() => {
+    expect(screen.getByLabelText('Staff Password')).toBeInTheDocument()
+  })
+  fireEvent.change(screen.getByLabelText('Staff Password'), { target: { value: 'VCAP2@2026' } })
   fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
   await waitFor(() => {
     expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
@@ -24,7 +28,6 @@ describe('App', () => {
 
   it('shows public portal with Dashboard by default', () => {
     render(<App />)
-    // Public portal renders sidebar with Dashboard button and a Staff Login button
     expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /Staff Login/i }).length).toBeGreaterThanOrEqual(1)
   })
@@ -32,21 +35,39 @@ describe('App', () => {
   it('shows login form when Staff Login is clicked', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
-    // Staff login mode shows only Password field
+    // Default mode shows Email and Password fields
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
   })
 
-  it('shows error when password is empty', async () => {
+  it('shows error when email is missing in email mode', async () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
     await waitFor(() => {
       expect(screen.getByLabelText('Password')).toBeInTheDocument()
     })
-    // Submit with wrong password
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong' } })
+    // Submit with password but no email
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'somepassword' } })
     fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Incorrect password')
+      expect(screen.getByRole('alert')).toHaveTextContent('Please enter your email')
+    })
+  })
+
+  it('shows error when staff password is wrong', async () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: /Staff Login/i })[0])
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Use shared staff password instead/i })).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Use shared staff password instead/i }))
+    await waitFor(() => {
+      expect(screen.getByLabelText('Staff Password')).toBeInTheDocument()
+    })
+    fireEvent.change(screen.getByLabelText('Staff Password'), { target: { value: 'wrong' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Log In' }))
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Incorrect staff password')
     })
   })
 
@@ -64,13 +85,8 @@ describe('App', () => {
   it('logs in again after logout', async () => {
     render(<App />)
     await loginAsStaff()
-
-    // Log out
     fireEvent.click(screen.getByRole('button', { name: 'Log Out' }))
-    // Should return to public portal
     expect(screen.getAllByRole('button', { name: /Staff Login/i }).length).toBeGreaterThanOrEqual(1)
-
-    // Log back in
     await loginAsStaff()
   })
 
@@ -97,7 +113,6 @@ describe('App', () => {
   it('restores staff auth from sessionStorage', () => {
     sessionStorage.setItem('vcap2_staff_auth', '1')
     render(<App />)
-    // Should go straight to staff Dashboard without login
     expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
   })
 

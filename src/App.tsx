@@ -144,6 +144,11 @@ function App() {
       setShowLogin(true)
       return
     }
+    // Admin-only sections: silently redirect non-admins to dashboard
+    if (section === 'google-integration' && currentUser?.role !== 'admin') {
+      setActiveSection('dashboard')
+      return
+    }
     setActiveSection(section)
   }
 
