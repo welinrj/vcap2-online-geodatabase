@@ -140,7 +140,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
     try {
       const emails = await fetchAllUnreadEmails(token)
       const dismissed = getDismissedEmails()
-      setDismissedIds(dismissed)
       setInboxEmails(emails.filter((e) => !dismissed.has(e.id)))
     } catch {
       // Non-fatal
