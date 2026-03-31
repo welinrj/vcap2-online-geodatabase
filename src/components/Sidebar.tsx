@@ -79,11 +79,6 @@ const authNavItems = [
     label: 'Messages',
     icon: 'chat',
   },
-  {
-    id: 'google-integration',
-    label: 'Google',
-    icon: 'google-logo',
-  },
 ]
 
 const adminNavItems = [
@@ -91,6 +86,12 @@ const adminNavItems = [
     id: 'user-management',
     label: 'User Management',
     icon: 'group',
+    adminOnly: true,
+  },
+  {
+    id: 'google-integration',
+    label: 'Google',
+    icon: 'google-logo',
     adminOnly: true,
   },
 ]
