@@ -139,9 +139,14 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
       const accessToken = await requestAccess(clientId)
       setStoredToken(accessToken)
       setToken(accessToken)
-      const profile = await getGmailProfile(accessToken)
-      setGmailProfile(profile)
-      showAlert('success', `Connected as ${profile.emailAddress}`)
+      // Gmail profile fetch is non-fatal — may fail if Gmail API not yet enabled
+      try {
+        const profile = await getGmailProfile(accessToken)
+        setGmailProfile(profile)
+        showAlert('success', `Connected as ${profile.emailAddress}`)
+      } catch {
+        showAlert('success', 'Google account connected. Enable Gmail API to see your email address.')
+      }
     } catch (err) {
       showAlert('error', err instanceof Error ? err.message : 'Failed to connect')
     } finally {
