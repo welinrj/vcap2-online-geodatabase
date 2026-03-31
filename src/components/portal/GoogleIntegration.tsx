@@ -122,8 +122,8 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
       showAlert('success', 'Client ID saved')
       // Pre-load GIS so the connect button is faster
       await loadGIS()
-    } catch {
-      showAlert('error', 'Failed to save Client ID')
+    } catch (err) {
+      showAlert('error', `Failed to save Client ID: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setSavingClientId(false)
     }
