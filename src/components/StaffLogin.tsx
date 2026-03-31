@@ -144,6 +144,7 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     setError('')
     setEmail('')
     setPassword('')
+    setLoading(false)
   }
 
   return (

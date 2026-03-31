@@ -149,11 +149,12 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   }, [token])
 
   async function handleOpenEmail(email: InboxEmail) {
+    if (!token) return
     setOpenEmail(email)
     setEmailDetail(null)
     setLoadingDetail(true)
     try {
-      const detail = await fetchEmailDetail(token!, email.id)
+      const detail = await fetchEmailDetail(token, email.id)
       setEmailDetail(detail)
     } catch {
       setEmailDetail({ ...email, body: '(Failed to load email content)', isHtml: false })
