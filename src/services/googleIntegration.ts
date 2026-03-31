@@ -168,16 +168,10 @@ export interface EmailSummary {
   from: string
 }
 
-/** Fetch recent unread emails (up to 5), optionally newer than sinceMessageId */
-export async function fetchNewEmails(
-  token: string,
-  sinceMessageId?: string,
-): Promise<EmailSummary[]> {
-  let query = 'is:unread'
-  if (sinceMessageId) query += ` after:${sinceMessageId}`
-
+/** Fetch recent unread emails (up to 10) */
+export async function fetchNewEmails(token: string): Promise<EmailSummary[]> {
   const listRes = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=5`,
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent('is:unread')}&maxResults=10`,
     { headers: { Authorization: `Bearer ${token}` } },
   )
   if (!listRes.ok) throw new Error(`Gmail list fetch failed: ${listRes.status}`)
@@ -207,34 +201,37 @@ export async function fetchNewEmails(
   return emails
 }
 
-/** Start polling Gmail for new emails. Returns a stop function. */
+/** Start polling Gmail for new emails. Returns a stop function.
+ *  Uses a Set of seen IDs: first poll establishes baseline (no notification),
+ *  subsequent polls only fire onNewEmails for IDs not previously seen. */
 export function startGmailPolling(
   token: string,
   onNewEmails: (emails: EmailSummary[]) => void,
   intervalMs: number = 60000,
 ): () => void {
-  let lastSeenId: string | undefined
+  const seenIds = new Set<string>()
+  let initialized = false
 
   const poll = async () => {
     try {
-      const emails = await fetchNewEmails(token, lastSeenId)
-      if (emails.length > 0) {
-        // Track the first (newest) ID to avoid re-reporting
-        if (!lastSeenId) {
-          lastSeenId = emails[0].id
-        } else {
-          onNewEmails(emails)
-          lastSeenId = emails[0].id
+      const emails = await fetchNewEmails(token)
+      if (!initialized) {
+        // First run: record current unread IDs as baseline — don't notify
+        emails.forEach((e) => seenIds.add(e.id))
+        initialized = true
+      } else {
+        const fresh = emails.filter((e) => !seenIds.has(e.id))
+        if (fresh.length > 0) {
+          onNewEmails(fresh)
+          fresh.forEach((e) => seenIds.add(e.id))
         }
       }
     } catch {
-      // Non-fatal: token might have expired
+      // Non-fatal: token may have expired
     }
   }
 
-  // Initial poll to set lastSeenId baseline (don't fire callback on first run)
   poll()
-
   const intervalId = setInterval(poll, intervalMs)
   return () => clearInterval(intervalId)
 }

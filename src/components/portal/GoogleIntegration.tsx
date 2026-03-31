@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FC } from 'react'
+import { useState, useEffect, type FC } from 'react'
 import type { UserProfile } from '../../types/user'
 import Icons8Icon from '../Icons8Icon'
 import {
@@ -6,7 +6,6 @@ import {
   requestAccess,
   revokeAccess,
   getGmailProfile,
-  startGmailPolling,
   uploadFileToDrive,
   saveClientId,
   loadClientId,
@@ -15,7 +14,6 @@ import {
   getStoredToken,
   setStoredToken,
   type GmailProfile,
-  type EmailSummary,
 } from '../../services/googleIntegration'
 import './GoogleIntegration.css'
 
@@ -59,7 +57,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
   const [driveEnabled, setDriveEnabled] = useState(false)
 
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
-  const stopPollingRef = useRef<(() => void) | null>(null)
 
   // Load saved client ID and user prefs on mount
   useEffect(() => {
@@ -81,32 +78,17 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
     }
   }, [currentUser])
 
-  // Manage Gmail polling when token + enabled changes
+  // Manage Gmail polling when token + enabled changes.
+  // App.tsx owns the polling loop (creates notifications); we just signal it.
   useEffect(() => {
-    stopPollingRef.current?.()
-    stopPollingRef.current = null
-
     if (token && gmailEnabled) {
-      const stop = startGmailPolling(token, handleNewEmails, pollInterval)
-      stopPollingRef.current = stop
       onGmailReady?.(token, pollInterval)
       setLastChecked(new Date())
     } else {
       onGmailStop?.()
     }
-
-    return () => {
-      stopPollingRef.current?.()
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, gmailEnabled, pollInterval])
-
-  function handleNewEmails(emails: EmailSummary[]) {
-    setLastChecked(new Date())
-    // Caller (App.tsx) handles creating notifications via onGmailReady callback
-    // This callback is primarily for updating the "last checked" timestamp
-    console.debug('[GoogleIntegration] New emails:', emails)
-  }
 
   function showAlert(type: 'success' | 'error', msg: string) {
     setAlert({ type, msg })
@@ -159,8 +141,6 @@ const GoogleIntegration: FC<GoogleIntegrationProps> = ({
     setStoredToken(null)
     setToken(null)
     setGmailProfile(null)
-    stopPollingRef.current?.()
-    stopPollingRef.current = null
     onGmailStop?.()
     showAlert('success', 'Google account disconnected')
   }
