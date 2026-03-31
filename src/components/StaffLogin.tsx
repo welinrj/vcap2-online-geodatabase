@@ -52,8 +52,12 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
         setError('Too many failed attempts. Please try again later.')
       } else if (code === 'auth/network-request-failed') {
         setError('Network error. Check your connection and try again.')
+      } else if (code === 'auth/operation-not-allowed') {
+        setError('Email/password sign-in is not enabled. Ask your admin to enable it in Firebase Console → Authentication → Sign-in method.')
+      } else if (code === 'auth/configuration-not-found') {
+        setError('Firebase is not configured correctly. Use the staff password instead.')
       } else {
-        setError('Login failed. Please try again.')
+        setError(`Login failed (${code ?? 'unknown'}). Use the staff password below if this persists.`)
       }
       setLoading(false)
     }
