@@ -91,11 +91,20 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     }
     setLoading(true)
     try {
-      // Sign in anonymously for Firebase session
+      // Sign in anonymously for Firebase session, then write a user doc at the
+      // anonymous Firebase UID so Firestore security rules can resolve the role.
       try {
         const { signInAnonymously } = await import('firebase/auth')
-        const { auth } = await import('../config/firebase')
-        await signInAnonymously(auth)
+        const { auth, db } = await import('../config/firebase')
+        const anonResult = await signInAnonymously(auth)
+        try {
+          const { doc: fsDoc, setDoc: fsSetDoc, serverTimestamp: fsST } = await import('firebase/firestore')
+          await fsSetDoc(fsDoc(db, 'users', anonResult.user.uid), {
+            role: 'admin',
+            name: STAFF_USER_NAME,
+            updatedAt: fsST(),
+          }, { merge: true })
+        } catch { /* non-fatal — Firestore may not be reachable yet */ }
       } catch { /* non-fatal */ }
 
       let user: UserProfile | null = null
