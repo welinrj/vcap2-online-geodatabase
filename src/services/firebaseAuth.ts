@@ -61,7 +61,10 @@ export async function signInWithEmail(email: string, password: string): Promise<
  */
 export async function signInWithGoogle(): Promise<UserProfile> {
   ensureFirebaseConfigured()
-  const result = await signInWithPopup(auth!, googleProvider!)
+  if (!googleProvider) {
+    throw new Error('Google sign-in is not available (Firebase not configured)')
+  }
+  const result = await signInWithPopup(auth!, googleProvider)
   const user = result.user
 
   // Check if user profile exists, create if not

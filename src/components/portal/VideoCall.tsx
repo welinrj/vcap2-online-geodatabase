@@ -55,6 +55,9 @@ export default function VideoCall({
   const cleanupRef = useRef<(() => void)[]>([])
 
   const cleanup = useCallback(() => {
+    // Guard against double-cleanup (e.g. screenTrack.onended firing after close)
+    if (!pcRef.current && cleanupRef.current.length === 0 &&
+        !localStreamRef.current && !screenStreamRef.current) return
     stopRingtone()
     cleanupRef.current.forEach((fn) => fn())
     cleanupRef.current = []

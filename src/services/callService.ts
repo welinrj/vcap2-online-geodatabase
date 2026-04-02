@@ -111,7 +111,7 @@ export function onIceCandidates(
   const path = ref(realtimeDb, `${ICE_CANDIDATES_PATH}/${callId}/${role}`)
   // Use onChildAdded instead of onValue to avoid replaying all candidates
   // on every update. onChildAdded fires once per new candidate only.
-  const unsub = onChildAdded(path, (snap) => {
+  const unsubscribe = onChildAdded(path, (snap) => {
     if (!snap.exists()) return
     try {
       callback(JSON.parse(snap.val() as string))
@@ -119,8 +119,12 @@ export function onIceCandidates(
       // Ignore parse errors
     }
   })
-  void unsub
-  return () => off(path)
+  // Return a cleanup that both calls the Firebase unsubscribe and removes
+  // the listener via off(), covering both Firebase SDK versions.
+  return () => {
+    unsubscribe()
+    off(path)
+  }
 }
 
 // ─── Call Listeners ───────────────────────────────

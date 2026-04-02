@@ -116,12 +116,11 @@ export const WavyBackground = ({
         containerClassName
       )}
     >
-      {/* Wrap the canvas in a div so the blur filter never sits on the canvas
-          element itself.  Applying CSS filter directly to <canvas> creates a
-          compositing layer that Safari renders on top of sibling z-index layers,
-          hiding the login form content. */}
+      {/* -z-10 ensures the canvas wrapper is always behind content.
+          Applying CSS filter directly to <canvas> creates a Safari compositing
+          layer that overrides z-index siblings; the wrapper div avoids this. */}
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 -z-10"
         style={isSafari ? { filter: `blur(${blur}px)` } : undefined}
       >
         <canvas
