@@ -76,6 +76,8 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
     percentDone: 0,
     notes: '',
   })
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -122,21 +124,33 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
       percentDone: existing?.percentDone ?? 0,
       notes: existing?.notes ?? '',
     })
+    setSaveError(null)
     setEditingProgress({ activityId, quarter })
   }
 
   async function saveEdit() {
     if (!editingProgress || !currentUser) return
-    const { activityId, quarter } = editingProgress
-    const updated = await upsertProgress(activityId, quarter, {
-      ...editForm,
-      updatedBy: currentUser.id,
-    })
-    setProgressMap(prev => ({
-      ...prev,
-      [`${activityId}_${quarter}`]: updated,
-    }))
-    setEditingProgress(null)
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const { activityId, quarter } = editingProgress
+      const updated = await upsertProgress(activityId, quarter, {
+        ...editForm,
+        updatedBy: currentUser.id,
+      })
+      setProgressMap(prev => ({
+        ...prev,
+        [`${activityId}_${quarter}`]: updated,
+      }))
+      setEditingProgress(null)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Save failed'
+      setSaveError(msg.includes('permission') || msg.includes('PERMISSION')
+        ? 'Permission denied. Please log out and log back in.'
+        : `Failed to save: ${msg}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   // ── Overview stats ──────────────────────────────────────────────────────────
@@ -450,15 +464,27 @@ const FisheriesDashboard: FC<FisheriesDashboardProps> = ({ currentUser }) => {
                 />
               </label>
             </div>
+            {saveError && (
+              <div style={{
+                marginTop: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 6,
+                background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
+                fontSize: '0.82rem',
+              }}>
+                {saveError}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', justifyContent: 'flex-end' }}>
               <button
                 className="btn"
                 style={{ background: 'transparent', border: '1px solid #e2e8f0' }}
-                onClick={() => setEditingProgress(null)}
+                onClick={() => { setEditingProgress(null); setSaveError(null) }}
+                disabled={saving}
               >
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={saveEdit}>Save</button>
+              <button className="btn btn-primary" onClick={saveEdit} disabled={saving}>
+                {saving ? 'Saving…' : 'Save'}
+              </button>
             </div>
           </div>
         </div>

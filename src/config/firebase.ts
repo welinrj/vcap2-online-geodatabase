@@ -31,6 +31,16 @@ const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const storage = getStorage(app)
-export const realtimeDb = getDatabase(app)
+
+// Realtime Database is optional — only used for video-call signalling.
+// If no databaseURL is configured the SDK may throw; catch so the rest of
+// the app continues to work.
+let realtimeDb: ReturnType<typeof getDatabase> | null = null
+try {
+  realtimeDb = getDatabase(app)
+} catch {
+  console.warn('Firebase Realtime Database not available (no databaseURL configured)')
+}
+export { realtimeDb }
 
 export default app
