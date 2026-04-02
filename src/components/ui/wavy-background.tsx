@@ -110,18 +110,26 @@ export const WavyBackground = ({
   return (
     <div
       className={cn(
-        "h-screen flex flex-col items-center justify-center",
+        // position:relative anchors the absolute canvas to THIS container,
+        // not to the viewport.  Without it Safari mis-stacks the canvas layer.
+        "relative h-screen flex flex-col items-center justify-center",
         containerClassName
       )}
     >
-      <canvas
+      {/* Wrap the canvas in a div so the blur filter never sits on the canvas
+          element itself.  Applying CSS filter directly to <canvas> creates a
+          compositing layer that Safari renders on top of sibling z-index layers,
+          hiding the login form content. */}
+      <div
         className="absolute inset-0 z-0"
-        ref={canvasRef}
-        id="canvas"
-        style={{
-          ...(isSafari ? { filter: `blur(${blur}px)` } : {}),
-        }}
-      ></canvas>
+        style={isSafari ? { filter: `blur(${blur}px)` } : undefined}
+      >
+        <canvas
+          ref={canvasRef}
+          id="canvas"
+          className="absolute inset-0 w-full h-full"
+        />
+      </div>
       <div className={cn("relative z-10", className)} {...props}>
         {children}
       </div>
