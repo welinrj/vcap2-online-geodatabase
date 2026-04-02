@@ -103,9 +103,27 @@ export const BackgroundGradientAnimation = ({
     };
   }, [interactive]);
 
+  // Apply CSS variables directly as inline style so they are present on the
+  // very first render — before useEffect fires.  Without this, Safari renders
+  // `linear-gradient(40deg, var(--undefined), var(--undefined))` as black and
+  // `mix-blend-mode: var(--undefined)` defaults to a value that covers the UI.
+  const cssVars = {
+    "--gradient-background-start": gradientBackgroundStart,
+    "--gradient-background-end": gradientBackgroundEnd,
+    "--first-color": firstColor,
+    "--second-color": secondColor,
+    "--third-color": thirdColor,
+    "--fourth-color": fourthColor,
+    "--fifth-color": fifthColor,
+    "--pointer-color": pointerColor,
+    "--size": size,
+    "--blending-value": blendingValue,
+  } as React.CSSProperties
+
   return (
     <div
       ref={containerRef}
+      style={cssVars}
       className={cn(
         "bga-container",
         containerClassName
