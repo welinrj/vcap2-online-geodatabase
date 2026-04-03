@@ -28,23 +28,28 @@ import type { UserProfile, UserRole } from '../types/user'
 
 /**
  * Ensure an anonymous Firebase Auth session exists and write a user doc at
- * the anonymous UID so Firestore role-based security rules resolve correctly.
- * No-ops if auth is absent or the user is already signed in. All errors are non-fatal.
+ * the current anonymous UID so Firestore role-based security rules resolve.
+ * Always writes the doc — even if already signed in — in case the doc was
+ * never persisted (network failure, first login after deploy, etc.).
  */
 export async function ensureAnonymousAuthWithUserDoc(
   role: UserRole,
   name: string,
 ): Promise<void> {
-  if (!auth || auth.currentUser) return
+  if (!auth) return
   try {
-    const result = await signInAnonymously(auth)
-    try {
-      await setDoc(doc(db!, 'users', result.user.uid), {
+    let uid = auth.currentUser?.uid
+    if (!uid) {
+      const result = await signInAnonymously(auth)
+      uid = result.user.uid
+    }
+    if (uid && db) {
+      await setDoc(doc(db, 'users', uid), {
         role,
         name,
         updatedAt: serverTimestamp(),
       }, { merge: true })
-    } catch { /* non-fatal */ }
+    }
   } catch { /* non-fatal */ }
 }
 

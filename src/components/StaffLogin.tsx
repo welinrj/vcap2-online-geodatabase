@@ -1,8 +1,8 @@
 import { useState, type FC, type FormEvent } from 'react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import type { UserProfile } from '../types/user'
-import { findUserByName } from '../services/userStore'
 import { ensureAnonymousAuthWithUserDoc } from '../services/firebaseAuth'
+import { auth } from '../config/firebase'
 import { WavyBackground } from './ui/wavy-background'
 
 const STAFF_PASSWORD = 'VCAP2@2026'
@@ -92,42 +92,16 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     }
     setLoading(true)
     try {
-      // Ensure Firebase Auth session + user doc exist for Firestore rules.
+      // Write user doc at the Firebase anonymous UID so Firestore security
+      // rules (isEditor / isAdmin) resolve correctly. The portal user ID is
+      // set to this same UID so auth.uid always matches the user doc key.
       await ensureAnonymousAuthWithUserDoc('admin', STAFF_USER_NAME)
-
-      let user: UserProfile | null = null
-      try {
-        const { db } = await import('../config/firebase')
-        const { collection, query, where, getDocs, doc, setDoc, serverTimestamp } = await import('firebase/firestore')
-        const q = query(collection(db, 'users'), where('name', '==', STAFF_USER_NAME))
-        const snap = await getDocs(q)
-        const existing = snap.docs.find((d) => !d.data()._deleted)
-        if (existing) {
-          const data = existing.data()
-          user = {
-            id: existing.id,
-            name: data.name ?? STAFF_USER_NAME,
-            role: 'admin',
-            email: data.email,
-            organization: data.organization,
-            avatar: data.avatar,
-            createdAt: data.createdAt?.toDate?.().toISOString() ?? new Date().toISOString(),
-          }
-          if (data.role !== 'admin') {
-            await setDoc(doc(db, 'users', existing.id), { role: 'admin' }, { merge: true })
-          }
-        } else {
-          const stableId = 'vcap2_staff_admin'
-          user = { id: stableId, name: STAFF_USER_NAME, role: 'admin', createdAt: new Date().toISOString() }
-          await setDoc(doc(db, 'users', stableId), { ...user, createdAt: serverTimestamp(), lastLogin: serverTimestamp() })
-        }
-      } catch {
-        try { user = await findUserByName(STAFF_USER_NAME) } catch { /* ignore */ }
-        if (!user) {
-          user = { id: 'vcap2_staff', name: STAFF_USER_NAME, role: 'admin', createdAt: new Date().toISOString() }
-        } else if (user.role !== 'admin') {
-          user = { ...user, role: 'admin' }
-        }
+      const uid = auth.currentUser?.uid ?? 'vcap2_staff'
+      const user: UserProfile = {
+        id: uid,
+        name: STAFF_USER_NAME,
+        role: 'admin',
+        createdAt: new Date().toISOString(),
       }
       persist(user)
     } catch {
