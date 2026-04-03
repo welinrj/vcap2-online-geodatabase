@@ -29,10 +29,11 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  /* z-index: -1 keeps the background behind ALL content in Safari.
-     z-index: 0 creates a stacking context that Safari composites on top
-     of siblings that lack an explicit z-index, causing the black screen. */
-  z-index: -1;
+  /* z-index: 0 renders above the body background (so the gradient animation
+     is visible) while main-content at z-index:1 and sidebar at z-index:100
+     remain above it. z-index:-1 would push it below the body paint layer,
+     making the body's black background cover the whole screen. */
+  z-index: 0;
   pointer-events: none;
   background: linear-gradient(40deg, var(--gradient-background-start), var(--gradient-background-end));
 }
@@ -321,14 +322,16 @@
   font-size: 16px;
   line-height: 1.5;
   color: var(--color-text);
-  background-color: var(--color-bg);
+  /* No background here — .bga-container (z-index:0) provides the gradient.
+     A black :root background would paint over the fixed animation layer. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   min-height: 100vh;
-  background-color: var(--color-bg);
+  /* Transparent so the fixed gradient animation shows through. */
+  background-color: transparent;
 }
 
 ul {
