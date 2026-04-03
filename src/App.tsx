@@ -9,9 +9,7 @@ import ChatPopup from './components/ChatPopup'
 import { getUser } from './services/userStore'
 import { onIncomingCalls } from './services/callService'
 import { ProDocProvider } from './contexts/ProDocContext'
-import { auth, db } from './config/firebase'
-import { signInAnonymously } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { ensureAnonymousAuthWithUserDoc } from './services/firebaseAuth'
 import { startGmailPolling } from './services/googleIntegration'
 import { createNotification } from './services/messagingStore'
 import { playNotificationSound } from './services/notificationSounds'
@@ -101,22 +99,12 @@ function App() {
     const userId = sessionStorage.getItem('vcap2_user_id')
     if (staffAuth && userId) {
       // Ensure Firebase Auth session exists for Storage/Firestore rules.
-      // After restoring a session we must also ensure a user doc exists at
-      // the anonymous Firebase UID so that Firestore role-based rules pass.
-      if (!auth.currentUser) {
-        const stored = sessionStorage.getItem('vcap2_user_profile')
-        signInAnonymously(auth).then(async (result) => {
-          if (stored) {
-            try {
-              const profile = JSON.parse(stored) as UserProfile
-              await setDoc(doc(db, 'users', result.user.uid), {
-                role: profile.role ?? 'editor',
-                name: profile.name ?? 'Staff',
-                updatedAt: serverTimestamp(),
-              }, { merge: true })
-            } catch { /* non-fatal */ }
-          }
-        }).catch(() => { /* non-fatal */ })
+      const stored = sessionStorage.getItem('vcap2_user_profile')
+      if (stored) {
+        try {
+          const profile = JSON.parse(stored) as UserProfile
+          ensureAnonymousAuthWithUserDoc(profile.role ?? 'editor', profile.name ?? 'Staff').catch(() => {})
+        } catch { /* ignore */ }
       }
       const restoreFromSession = () => {
         const stored = sessionStorage.getItem('vcap2_user_profile')
@@ -184,18 +172,7 @@ function App() {
           setCurrentUser(user)
           setShowLogin(false)
           // Bridge custom portal auth to Firebase Auth so Storage/Firestore rules pass.
-          // Write user doc at the Firebase UID so role-based rules resolve correctly.
-          if (!auth.currentUser) {
-            signInAnonymously(auth).then(async (result) => {
-              try {
-                await setDoc(doc(db, 'users', result.user.uid), {
-                  role: user.role ?? 'editor',
-                  name: user.name ?? 'Staff',
-                  updatedAt: serverTimestamp(),
-                }, { merge: true })
-              } catch { /* non-fatal */ }
-            }).catch(() => { /* non-fatal */ })
-          }
+          ensureAnonymousAuthWithUserDoc(user.role ?? 'editor', user.name ?? 'Staff').catch(() => {})
         }}
         onCancel={() => {
           setShowLogin(false)

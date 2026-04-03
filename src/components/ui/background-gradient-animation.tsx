@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@/lib/utils";
+import { cn, isSafariBrowser } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -41,11 +41,7 @@ export const BackgroundGradientAnimation = ({
   const interactiveRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [isSafari] = useState(() =>
-    typeof navigator !== "undefined"
-      ? /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-      : false
-  );
+  const [isSafari] = useState(isSafariBrowser);
 
   useEffect(() => {
     const el = containerRef.current;

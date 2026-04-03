@@ -2,6 +2,7 @@ import { useState, type FC, type FormEvent } from 'react'
 import vcap2Logo from '../../assets/vcap2-logo.png'
 import type { UserProfile } from '../types/user'
 import { findUserByName } from '../services/userStore'
+import { ensureAnonymousAuthWithUserDoc } from '../services/firebaseAuth'
 import { WavyBackground } from './ui/wavy-background'
 
 const STAFF_PASSWORD = 'VCAP2@2026'
@@ -91,21 +92,8 @@ const StaffLogin: FC<StaffLoginProps> = ({ onSuccess, onCancel }) => {
     }
     setLoading(true)
     try {
-      // Sign in anonymously for Firebase session, then write a user doc at the
-      // anonymous Firebase UID so Firestore security rules can resolve the role.
-      try {
-        const { signInAnonymously } = await import('firebase/auth')
-        const { auth, db } = await import('../config/firebase')
-        const anonResult = await signInAnonymously(auth)
-        try {
-          const { doc: fsDoc, setDoc: fsSetDoc, serverTimestamp: fsST } = await import('firebase/firestore')
-          await fsSetDoc(fsDoc(db, 'users', anonResult.user.uid), {
-            role: 'admin',
-            name: STAFF_USER_NAME,
-            updatedAt: fsST(),
-          }, { merge: true })
-        } catch { /* non-fatal — Firestore may not be reachable yet */ }
-      } catch { /* non-fatal */ }
+      // Ensure Firebase Auth session + user doc exist for Firestore rules.
+      await ensureAnonymousAuthWithUserDoc('admin', STAFF_USER_NAME)
 
       let user: UserProfile | null = null
       try {

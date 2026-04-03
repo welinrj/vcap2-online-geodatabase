@@ -13,6 +13,7 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
+  signInAnonymously,
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
@@ -25,7 +26,27 @@ import { auth, db } from '../config/firebase'
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import type { UserProfile, UserRole } from '../types/user'
 
-const googleProvider = auth ? new GoogleAuthProvider() : null
+/**
+ * Ensure an anonymous Firebase Auth session exists and write a user doc at
+ * the anonymous UID so Firestore role-based security rules resolve correctly.
+ * No-ops if auth is absent or the user is already signed in. All errors are non-fatal.
+ */
+export async function ensureAnonymousAuthWithUserDoc(
+  role: UserRole,
+  name: string,
+): Promise<void> {
+  if (!auth || auth.currentUser) return
+  try {
+    const result = await signInAnonymously(auth)
+    try {
+      await setDoc(doc(db!, 'users', result.user.uid), {
+        role,
+        name,
+        updatedAt: serverTimestamp(),
+      }, { merge: true })
+    } catch { /* non-fatal */ }
+  } catch { /* non-fatal */ }
+}
 
 /**
  * Check if Firebase is configured
@@ -61,10 +82,8 @@ export async function signInWithEmail(email: string, password: string): Promise<
  */
 export async function signInWithGoogle(): Promise<UserProfile> {
   ensureFirebaseConfigured()
-  if (!googleProvider) {
-    throw new Error('Google sign-in is not available (Firebase not configured)')
-  }
-  const result = await signInWithPopup(auth!, googleProvider)
+  const provider = new GoogleAuthProvider()
+  const result = await signInWithPopup(auth!, provider)
   const user = result.user
 
   // Check if user profile exists, create if not

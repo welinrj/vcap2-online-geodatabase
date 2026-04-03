@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, isSafariBrowser } from "@/lib/utils";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createNoise3D } from "simplex-noise";
 
@@ -98,14 +98,7 @@ export const WavyBackground = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [isSafari, setIsSafari] = useState(false);
-  useEffect(() => {
-    setIsSafari(
-      typeof window !== "undefined" &&
-        navigator.userAgent.includes("Safari") &&
-        !navigator.userAgent.includes("Chrome")
-    );
-  }, []);
+  const [isSafari] = useState(isSafariBrowser);
 
   return (
     <div
